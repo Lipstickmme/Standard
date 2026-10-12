@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Rockfield National Bank - application styling
+   Standard Merchant Bank - application styling
    Loaded after styles.css. The marketing pages borrow the tokens and the
    components; the signed-in application uses the shell, the tables and the
    forms below.
@@ -25,11 +25,11 @@
   --rf-line-2: #edf1f7;
 
   /* Brand */
-  --rf-navy: #11213a;
+  --rf-navy: #0e2148;
   --rf-navy-2: #1b3457;
   --rf-navy-3: #2d5c93;
-  --rf-brass: #b08341;
-  --rf-brass-2: #caa062;
+  --rf-brass: #b89243;
+  --rf-brass-2: #d4ad5a;
   --rf-brass-soft: #f6ecda;
 
   /* Money */
@@ -153,7 +153,7 @@ body.rf-site {
 }
 .rf-mark.on-paper { height: 46px; }
 
-/* The whole lockup - mark over ROCKFIELD over BANK - where a panel is tall
+/* The whole lockup - monogram over STANDARD MERCHANT BANK - where a panel is tall
    enough to give it room. */
 .rf-lockup { display: block; height: auto; max-width: 100%; }
 
@@ -369,7 +369,7 @@ body.rf-site {
 
 /* ---- the variants: a face, an edge, an ink, and nothing else ---- */
 
-.rf-btn.brass  { --btn-face: var(--rf-brass); --btn-edge: #9a7137; --btn-ink: #fff; }
+.rf-btn.brass  { --btn-face: var(--rf-brass); --btn-edge: #9c7a35; --btn-ink: #fff; }
 .rf-btn.danger { --btn-face: var(--rf-debit); --btn-edge: #8a2b23; }
 .rf-btn.ghost  { --btn-face: var(--rf-btn-ghost-face); --btn-edge: var(--rf-btn-ghost-edge); --btn-ink: var(--rf-ink); }
 .rf-btn.ghost:hover { --btn-edge: #b9c6d8; }
@@ -535,7 +535,7 @@ body.rf-site {
 .rf-plastic {
   position: relative; aspect-ratio: 1.586; border-radius: 16px; padding: 20px;
   color: #fff; overflow: hidden; box-shadow: var(--rf-shadow-lg);
-  background: linear-gradient(140deg, #1b3457 0%, #11213a 55%, #0a1526 100%);
+  background: linear-gradient(140deg, #1b3457 0%, #0e2148 55%, #0a1526 100%);
   display: flex; flex-direction: column; justify-content: space-between;
   max-width: 380px;
 }
@@ -693,7 +693,7 @@ body.rf-site {
 .rf-auth-aside::after {
   content: ""; position: absolute; inset: 0; opacity: .5;
   background:
-    radial-gradient(60% 40% at 80% 15%, rgba(176, 131, 65, .28), transparent 70%),
+    radial-gradient(60% 40% at 80% 15%, rgba(184, 146, 67, .28), transparent 70%),
     radial-gradient(50% 40% at 10% 90%, rgba(41, 74, 119, .5), transparent 70%);
 }
 .rf-auth-aside > * { position: relative; z-index: 1; }
@@ -811,7 +811,7 @@ a.rf-auth-brand {
 .rf-hero::after {
   content: ""; position: absolute; inset: 0; opacity: .55; pointer-events: none; z-index: -1;
   background:
-    radial-gradient(55% 45% at 78% 12%, rgba(176, 131, 65, .3), transparent 70%),
+    radial-gradient(55% 45% at 78% 12%, rgba(184, 146, 67, .3), transparent 70%),
     radial-gradient(45% 45% at 8% 88%, rgba(41, 74, 119, .55), transparent 70%);
 }
 /* Over a photograph the brass wash is a tint, not a light source. */
@@ -840,6 +840,48 @@ a.rf-auth-brand {
 }
 .rf-hero-stats .k { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #a7b8d0; }
 .rf-hero-stats .v { font-family: var(--rf-display); font-size: clamp(20px, 2.1vw, 24px); letter-spacing: 0; color: #fff; }
+
+/* ---------------------------------------------------------- home hero -- */
+
+/* The home hero: the family photograph as an underlay, under one navy wash.
+
+   The whole frame is tinted, not just the left, so the photograph reads as the
+   ground the page stands on rather than a picture placed beside the type. On a
+   wide screen the photograph is set to the right and fades into the navy, so
+   the headline sits on navy and the faces stay clear of it. */
+.rf-hero.home { background: var(--rf-navy); min-height: min(86vh, 760px); display: flex; align-items: center; }
+.rf-hero.home > .wrap { flex: 0 0 auto; }
+.rf-hero.home .rf-hero-photo { object-position: 62% 30%; }
+.rf-hero.home.has-photo::before {
+  background:
+    linear-gradient(90deg, rgba(10, 24, 54, .92) 0%, rgba(12, 28, 62, .72) 34%, rgba(14, 33, 72, .34) 62%, rgba(14, 33, 72, .22) 100%),
+    linear-gradient(to top, rgba(8, 19, 44, .55) 0%, transparent 45%);
+}
+.rf-hero.home.has-photo::after { opacity: .16; }
+@media (min-width: 1000px) {
+  .rf-hero.home .rf-hero-photo {
+    left: auto; right: 0; width: 72%;
+    object-position: 40% 30%;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 34%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 34%);
+  }
+}
+.rf-hero.home .rf-hero-copy { max-width: 36rem; }
+.rf-hero.home h1 { font-size: clamp(44px, 6.2vw, 80px); line-height: 1.02; }
+.rf-hero.home .rf-eyebrow { color: #e3c47e; }
+.rf-hero.home p.lede { color: #e2e8f2; }
+.rf-hero.home .rf-hero-actions { align-items: center; gap: 14px 30px; }
+.rf-btn.pill { border-radius: 999px; padding: 0 26px 0 30px; }
+.rf-btn .arw { transition: transform var(--rf-tilt); }
+.rf-btn:hover .arw { transform: translateX(3px); }
+.rf-hero-link {
+  color: #fff; font: 600 15.5px/1.2 var(--rf-sans); text-decoration: none;
+  padding: 4px 0; border-bottom: 1.5px solid rgba(255, 255, 255, .7);
+  transition: border-color var(--rf-tilt), color var(--rf-tilt);
+}
+.rf-hero-link:hover { color: #e3c47e; border-bottom-color: #e3c47e; }
+.rf-hero-link:focus-visible { outline: 2px solid var(--rf-brass-2); outline-offset: 4px; }
+.rf-hero.home .rf-hero-stats { max-width: 46rem; }
 
 /* ---------------------------------------------------------------- glass -- */
 
@@ -1049,13 +1091,16 @@ a.rf-auth-brand {
   /* The watermark would otherwise push the page sideways. */
   .rf-hero-mark { right: -120px; opacity: .05; }
   .rf-hero-actions .rf-btn { flex: 1 1 auto; justify-content: center; }
+  .rf-hero.home .rf-hero-actions { flex-direction: column; align-items: stretch; }
+  .rf-hero.home .rf-hero-link { align-self: center; }
+  .rf-hero.home .rf-hero-photo { object-position: 58% 30%; }
 }
 
 /* The nav at phone width.
 
    The bank's full name plus two buttons does not fit across 390px, and the
    name was wrapping onto three lines while the buttons ran off the edge. The
-   name shortens to the mark and "Rockfield", and "Open an account" gives way
+   name shortens to the mark and "SMB", and "Open an account" gives way
    to Sign in - the page below is one long argument for opening an account, so
    the button is not the only route to it. */
 @media (max-width: 620px) {

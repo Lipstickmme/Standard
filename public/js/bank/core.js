@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * The shared front end for Rockfield online banking.
+ * The shared front end for SMB online banking.
  *
  * Everything here is plain browser JavaScript: one global, no build step, no
  * framework. It gives the page scripts an API client that carries the CSRF
@@ -88,7 +88,7 @@
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     const csrf = cookie('rf_csrf');
-    if (csrf && method !== 'GET') headers['X-Rockfield-CSRF'] = csrf;
+    if (csrf && method !== 'GET') headers['X-SMB-CSRF'] = csrf;
 
     // Paths are relative to the banking API unless they already name a full
     // one: '/transfers' is ours, '/api/bank/documents/x/file' is already whole.
@@ -430,7 +430,7 @@
     </svg>`;
   }
 
-  const CHART_COLORS = ['#1b3457', '#b08341', '#1b7a53', '#a3352b', '#4a6fa5', '#8a6a1f', '#2f8f8f', '#6b4c9a', '#9aa1ab'];
+  const CHART_COLORS = ['#1b3457', '#b89243', '#1b7a53', '#a3352b', '#4a6fa5', '#8a6a1f', '#2f8f8f', '#6b4c9a', '#9aa1ab'];
 
   /* ------------------------------------------------------------ session -- */
 
@@ -583,7 +583,7 @@
         try {
           fn(session);
         } catch (err) {
-          console.error('[rockfield] page script failed', err);
+          console.error('[smb] page script failed', err);
           toast('Something on this page did not load. Refresh to try again.', 'bad');
         }
       });

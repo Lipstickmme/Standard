@@ -1,4 +1,4 @@
-# Deploying Rockfield National Bank to Vercel
+# Deploying Standard Merchant Bank to Vercel
 
 A step-by-step guide for the workflow: replace the images, fork to your GitHub,
 deploy on Vercel, then switch the backend on.
@@ -32,27 +32,18 @@ and local JSON files otherwise, so development works offline with no setup.
 
 ## Step 1: Add your images
 
-All current artwork is generated blueprint-style placeholder SVG. The five
-page-level images need no code change at all: **drop them into
-`public/assets/bank/` named `rockfield1` to `rockfield6`** and the next build picks them
-up. Any of `.webp`, `.avif`, `.jpg`, `.jpeg`, `.png` works, and `.webp` is chosen
-first if more than one is present.
-
-| File | Where it appears | Suggested size |
-| ---- | ---------------- | -------------- |
-| `rockfield1` | The home page hero and the first slide | 2400 x 1400 |
-| `rockfield2` | The `/personal` header and the second slide | 1920 x 1200 |
-| `rockfield3` | The `/business` header and the third slide | 1920 x 1200 |
-| `rockfield4` | The security section and the `/rates` header | 1920 x 1200 |
-| `rockfield5` | The contact section and the `/contact` header | 1920 x 1200 |
-| `rockfield6` | The `/careers` header | 1920 x 1200 |
+Page-level photographs need no code change at all: **drop them into
+`public/assets/img/` under the slot names listed in
+`public/assets/img/README.md`** (`smb-family`, `smb-home`, `smb-business-owner`
+and so on) and the next build picks them up. Any of `.webp`, `.avif`, `.jpg`,
+`.jpeg`, `.png` works, and `.webp` is chosen first if more than one is present.
 
 Project and service artwork is named per item in `src/data/projects.json` and
 `src/data/services.json`, so those take any filename you like.
 
-`rockfield1` carries the most weight: it is the first thing anyone sees, so pick the
-one that reads as the bank's signature and has calm space rather than busy
-detail in the middle, where headlines sit.
+`smb-family` carries the most weight: it is the home hero, the first thing
+anyone sees. It is laid under a navy wash and set to the right of the frame, so
+the people should sit in the middle or right of the picture.
 
 The mapping lives in `src/data/images.json`. Each slot names the file it prefers
 and the placeholder it falls back on, so the site never shows a broken image
@@ -65,11 +56,12 @@ project; used for the card thumbnail and the detail-page figure). Suggested size
 **CEO portrait.** Edit the `image` field in `src/data/leadership.json`. Suggested
 size 760 x 950 (4:5 portrait).
 
-**Logo.** Already your artwork, in `public/assets/brand/`.
+**Logo.** The source is `public/assets/img/smblogo.png`. Replace it and run
+`npm run build:brand` to regenerate the lockups, monogram, favicons and link card.
 
 Notes:
 
-- Names are matched without regard to case, so `Rockfield3.png` and `rockfield3.png`
+- Names are matched without regard to case, so `SMB-Home.png` and `smb-home.png`
   both work. That matters: the deploy runs on Linux, where the two are
   different files.
 - Keep files under about 400 KB each. The underlay is fetched on every page, so
@@ -259,7 +251,7 @@ While you are there, set the first administrator:
 | `BANK_ENCRYPTION_KEY` | the 64-character hex string from above |
 | `BANK_ADMIN_EMAIL` | the address you will sign in with |
 | `BANK_ADMIN_PASSWORD` | a strong password, changed after the first sign-in |
-| `BANK_ALERT_FROM` | `Rockfield National Bank <alerts@yourdomain.com>` |
+| `BANK_ALERT_FROM` | `Standard Merchant Bank <alerts@yourdomain.com>` |
 | `PUBLIC_BASE_URL` | `https://yourdomain.com`, for links inside alert emails |
 
 **`PUBLIC_BASE_URL` has to be saved as plain text, not Sensitive.** Vercel reads
@@ -296,7 +288,7 @@ for anything real** - they have balances and history that are not yours.
    | ---- | ----- |
    | `RESEND_API_KEY` | the key you copied |
    | `FORM_TO` | where enquiries land (comma-separate for several) |
-   | `FORM_FROM` | `Rockfield National Bank <onboarding@resend.dev>` to start |
+   | `FORM_FROM` | `Standard Merchant Bank <onboarding@resend.dev>` to start |
 
 4. **Redeploy.**
 
@@ -306,7 +298,7 @@ directly. Set `CHAT_NOTIFY=off` to keep enquiry emails but stop chat emails.
 
 For production, verify your domain in Resend (**Domains, Add Domain**, then add the
 DNS records) and change `FORM_FROM` to something like
-`Rockfield National Bank <support@yourdomain.com>`. Mail from a verified domain is far less
+`Standard Merchant Bank <support@yourdomain.com>`. Mail from a verified domain is far less
 likely to be treated as spam.
 
 To text customers as well as email them, add `PINGRAM_API_KEY` and

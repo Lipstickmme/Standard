@@ -163,7 +163,7 @@ function head({ title, description, noindex = false, styles = [], bodyClass }) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${title}</title>
   <meta name="description" content="${description}" />${noindex ? '\n  <meta name="robots" content="noindex, nofollow" />' : ''}
-  <meta name="theme-color" content="#11213a" />
+  <meta name="theme-color" content="#0e2148" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="${BANK.name}" />
   <meta property="og:title" content="${title}" />
@@ -231,7 +231,7 @@ function sidebar(active) {
   return `
     <aside class="rf-side" id="rf-side">
       <div class="rf-side-brand">
-        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="53" height="28" />
+        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="43" height="28" />
         <span>
           <strong>${BANK.shortName}</strong>
           <small>Online banking</small>
@@ -324,7 +324,7 @@ function authPage({ title, description, content, extraScripts = [] }) {
     `  <div class="rf-auth-wrap">
     <section class="rf-auth-aside">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="240" height="143" />
+        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="240" height="170" />
       </a>
       <h2>Your money, held the way a bank should hold it.</h2>
       <p>${BANK.tagline} Deposits insured by the FDIC to the maximum permitted by law, and a real person on the phone when you need one.</p>
@@ -337,12 +337,12 @@ function authPage({ title, description, content, extraScripts = [] }) {
       <div class="rf-auth-foot">
         ${BANK.name} will never call, text or email to ask for your password or a one-time code.<br />
         Report anything suspicious on <span data-site="fraudPhone">our fraud line</span>.<br />
-        &copy; ${YEAR} ${BANK.legalName}. Member FDIC. Equal Housing Lender.
+        &copy; ${YEAR} ${BANK.legalName} Member FDIC. Equal Housing Lender.
       </div>
     </section>
     <section class="rf-auth-panel">
       <a class="rf-auth-brand" href="/" aria-label="${BANK.name} home">
-        <img src="/assets/bank/logomark-light.png" alt="" width="53" height="28" />
+        <img src="/assets/bank/logomark-light.png" alt="" width="43" height="28" />
         <span>
           <strong>${BANK.name}</strong>
           <small>Online banking</small>
@@ -365,7 +365,7 @@ function marketingNav(active = '') {
   <header class="rf-marketing-nav">
     <div class="wrap inner">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-mark on-paper" src="/assets/bank/logomark-dark.png" alt="" width="87" height="46" />
+        <img class="rf-mark on-paper" src="/assets/bank/logomark-dark.png" alt="" width="70" height="46" />
         <span>
           <strong>${BANK.shortName}<span class="rf-full-name"> ${BANK.name.replace(`${BANK.shortName} `, '')}</span></strong>
           <small>Member FDIC</small>
@@ -393,7 +393,7 @@ function marketingFooter() {
     <div class="wrap">
       <div class="cols">
         <div>
-          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="190" height="113" style="margin-bottom:16px" />
+          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="190" height="134" style="margin-bottom:16px" />
           <p style="margin:0 0 12px;max-width:34ch">${BANK.tagline} Personal and business banking since ${BANK.established}.</p>
           <p style="margin:0;font-size:12.5px" data-site-row="address" hidden><span data-site="address"></span></p>
         </div>
@@ -425,7 +425,7 @@ function marketingFooter() {
         Annual Percentage Yields shown are accurate as of ${new Date().toLocaleDateString('en-US', { dateStyle: 'long' })} and may change after account opening. Fees may reduce earnings.
         Credit products are subject to credit approval.<br />
         This is a demonstration application. ${BANK.name} is a fictional institution: the routing number, account numbers and card numbers used here are synthetic and address no real financial institution.<br />
-        &copy; ${YEAR} ${BANK.legalName}. All rights reserved.
+        &copy; ${YEAR} ${BANK.legalName} All rights reserved.
       </div>
     </div>
   </footer>`;

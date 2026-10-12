@@ -42,7 +42,7 @@ function header({ eyebrow, title, lede, image }) {
   <header class="rf-hero compact ${image ? 'has-photo' : 'has-mark'}">
     ${image
       ? `<img class="rf-hero-photo" src="${image}" alt="" aria-hidden="true" />`
-      : `<img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="499" />`}
+      : `<img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="614" />`}
     <div class="wrap">
       <span class="rf-eyebrow">${eyebrow}</span>
       <h1 style="font-size:clamp(32px,4.6vw,52px)">${title}</h1>
@@ -96,16 +96,16 @@ const tick = icon('check', 15);
 const ceo = leadership[0];
 
 const homeContent = `
-  <section class="rf-hero tall has-photo">
+  <section class="rf-hero tall has-photo home">
     <img class="rf-hero-photo" src="${images.hero}" alt="" aria-hidden="true" fetchpriority="high" />
     <div class="wrap">
       <div class="rf-hero-copy">
-        <span class="rf-eyebrow">Established ${BANK.established}</span>
-        <h1>Banking built<br />on bedrock.</h1>
-        <p class="lede">Checking with no monthly fee. Savings at 4.35% APY. And a payments team that reads every outgoing wire before it leaves.</p>
+        <span class="rf-eyebrow">The key to your family&rsquo;s money</span>
+        <h1>Banking that<br />feels like home.</h1>
+        <p class="lede">No monthly fee on checking, 4.35% APY on savings, and a real banker on the line whenever anyone in the household needs one &mdash; wherever in the world they happen to be.</p>
         <div class="rf-hero-actions">
-          <a class="rf-btn brass lg" href="/open-account">Open an account</a>
-          <a class="rf-btn glass lg" href="/signin">Sign in to online banking</a>
+          <a class="rf-btn brass lg pill" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
+          <a class="rf-hero-link" href="/security-center">How we keep you safe</a>
         </div>
       </div>
       <div class="rf-hero-stats rf-glass">
@@ -573,7 +573,7 @@ const contactContent = `
 /* ===================================================================== legal == */
 
 const legalContent = `
-  ${header({ eyebrow: 'Legal', title: 'Disclosures.', lede: 'The agreements and notices that govern an account at Rockfield.' })}
+  ${header({ eyebrow: 'Legal', title: 'Disclosures.', lede: 'The agreements and notices that govern an account at SMB.' })}
 
   <section class="rf-section">
     <div class="wrap" style="max-width:820px">
@@ -604,7 +604,7 @@ const legalContent = `
 
 const notFoundContent = `
   <section class="rf-hero has-mark" style="min-height:60vh;display:flex;align-items:center">
-    <img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="499" />
+    <img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="614" />
     <div class="wrap">
       <span class="rf-eyebrow">Error 404</span>
       <h1>Not on the books.</h1>
@@ -626,7 +626,7 @@ const deskContent = `
 
     <section class="admin-gate" id="admin-unconfigured" hidden>
       <div class="admin-card">
-        <span class="eyebrow">Rockfield / Client services desk</span>
+        <span class="eyebrow">SMB / Client services desk</span>
         <h1>Backend not connected.</h1>
         <div id="admin-missing"></div>
         <p class="admin-note">Set it in the deployment's environment variables and reload. Nothing needs rebuilding, but the change only reaches a running deployment after a redeploy.</p>
@@ -637,7 +637,7 @@ const deskContent = `
 
     <section class="admin-gate" id="admin-login" hidden>
       <form class="admin-card" id="login-form" novalidate>
-        <span class="eyebrow">Rockfield / Client services desk</span>
+        <span class="eyebrow">SMB / Client services desk</span>
         <h1>Staff sign in.</h1>
         <p class="admin-note" id="login-note">Website enquiries, live chat and the shared mailbox. Customer accounts are in the <a href="/console">banking console</a>.</p>
         <div class="field"><label for="login-email">Email</label><input type="email" id="login-email" name="email" autocomplete="username" required /></div>
@@ -651,7 +651,7 @@ const deskContent = `
     <div class="admin-shell" id="admin-shell" hidden>
       <header class="admin-bar">
         <a class="admin-brand" href="/">
-          <img src="/assets/bank/logo-light.png" alt="Rockfield National Bank" width="240" height="143" />
+          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="240" height="170" />
           <span>Client services desk</span>
         </a>
         <div class="admin-bar-end">
@@ -713,12 +713,12 @@ const marketing = (file, opts) => ({ file, build: marketingPage, opts });
 module.exports = [
   marketing('index.html', {
     title: `${BANK.name} | ${BANK.tagline}`,
-    description: 'Personal and business banking from Rockfield National Bank: no-fee checking, 4.35% APY savings, cards, wires and a 24/7 fraud line. Member FDIC.',
+    description: 'Personal and business banking from Standard Merchant Bank: no-fee checking, 4.35% APY savings, cards, wires and a 24/7 fraud line. Member FDIC.',
     active: '', content: homeContent,
   }),
   marketing('personal.html', {
     title: `Personal banking | ${BANK.name}`,
-    description: 'Checking, savings, certificates and cards from Rockfield National Bank.',
+    description: 'Checking, savings, certificates and cards from Standard Merchant Bank.',
     active: 'personal', content: personalContent,
   }),
   marketing('business.html', {
@@ -728,32 +728,32 @@ module.exports = [
   }),
   marketing('rates.html', {
     title: `Rates and fees | ${BANK.name}`,
-    description: 'Deposit rates and the full fee schedule at Rockfield National Bank.',
+    description: 'Deposit rates and the full fee schedule at Standard Merchant Bank.',
     active: 'rates', content: ratesContent,
   }),
   marketing('security-center.html', {
     title: `Security centre | ${BANK.name}`,
-    description: 'How Rockfield protects your account, and what to do if something looks wrong.',
+    description: 'How SMB protects your account, and what to do if something looks wrong.',
     active: 'security-center', content: securityCentreContent,
   }),
   marketing('open-account.html', {
     title: `Open an account | ${BANK.name}`,
-    description: 'Start an application for a Rockfield checking, savings or business account.',
+    description: 'Start an application for a SMB checking, savings or business account.',
     active: '', content: openAccountContent,
   }),
   marketing('careers.html', {
     title: `Careers | ${BANK.name}`,
-    description: 'Open roles at Rockfield National Bank across retail, payments, financial crime, compliance, lending and technology.',
+    description: 'Open roles at Standard Merchant Bank across retail, payments, financial crime, compliance, lending and technology.',
     active: '', content: careersContent, extraScripts: ['/js/careers.js'],
   }),
   marketing('apply.html', {
     title: `Apply | ${BANK.name}`,
-    description: 'Apply to Rockfield National Bank. One form, read by the people you would work with.',
+    description: 'Apply to Standard Merchant Bank. One form, read by the people you would work with.',
     active: '', content: applyContent, extraScripts: ['/js/apply.js'],
   }),
   marketing('support.html', {
     title: `Support | ${BANK.name}`,
-    description: 'Contact Rockfield National Bank. Client services six days a week and a 24/7 fraud line.',
+    description: 'Contact Standard Merchant Bank. Client services six days a week and a 24/7 fraud line.',
     active: 'support', content: contactContent,
   }),
   marketing('legal.html', {

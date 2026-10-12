@@ -5,14 +5,17 @@
  *
  *   npm run build:brand
  *
- * The source is public/assets/img/rockfieldlogo.png: black line work on an
- * opaque white square, which is the wrong shape for most of the places it has
- * to appear. This turns it into the set the site actually needs -
+ * The source is public/assets/img/smblogo.png: the navy-and-gold SMB monogram,
+ * its key, and the STANDARD MERCHANT BANK wordmark on an opaque white square,
+ * which is the wrong shape for most of the places it has to appear. This turns
+ * it into the set the site actually needs -
  *
- *   logo-dark.png      the full lockup, transparent, for light backgrounds
- *   logo-light.png     the same painted white, for the navy panels
- *   logomark-dark.png  the rock and hall alone, for square and compact spots
- *   logomark-light.png the same in white
+ *   logo-dark.png      the full lockup in its own colours, transparent, for
+ *                      light backgrounds
+ *   logo-light.png     the same with the navy painted white and the gold kept,
+ *                      for the navy panels
+ *   logomark-dark.png  the monogram and key alone, for square and compact spots
+ *   logomark-light.png the same, white and gold
  *   favicon.png / apple-touch-icon.png / favicon.ico / og-image.png
  *
  * - and does it by reading pixels in Chromium, which is the only image
@@ -20,9 +23,10 @@
  * Nothing here runs on a normal build: the outputs are committed, because they
  * change about as often as the bank changes its name.
  *
- * Transparency is derived from luminance rather than keyed on pure white, so
- * the anti-aliased edges of the line work stay soft instead of turning into a
- * ragged one-bit cutout.
+ * The artwork is in colour, so transparency is unmixed from the white rather
+ * than read off luminance: each pixel's alpha is how far its lightest channel
+ * sits below white, and its colour is recovered by taking the white back out.
+ * The anti-aliased edges stay soft and keep their hue instead of greying.
  */
 
 const fs = require('fs');
@@ -31,19 +35,17 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
 const BRAND = path.join(PUBLIC, 'assets', 'bank');
-const SOURCE = path.join(PUBLIC, 'assets', 'img', 'rockfieldlogo.png');
+const SOURCE = path.join(PUBLIC, 'assets', 'img', 'smblogo.png');
 
-const NAVY = '#11213a';
-const BRASS_LIGHT = '#caa062';
-const PAPER = '#ffffff';
+const NAVY = '#0e2148';
 
 /* ------------------------------------------------------------ in-page -- */
 
 /**
  * Runs inside Chromium, where there is a canvas to read pixels from.
  *
- * Returns the cut-outs as data URLs plus the row profile used to find the
- * gap between the mark and the wordmark, so the caller can report it.
+ * Returns the cut-outs as data URLs plus the bounds used to find the gap
+ * between the monogram and the wordmark, so the caller can report it.
  */
 async function extract(dataUrl) {
   const img = new Image();
@@ -56,24 +58,34 @@ async function extract(dataUrl) {
   c.height = height;
   const ctx = c.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(img, 0, 0);
-  const src = ctx.getImageData(0, 0, width, height);
-  const px = src.data;
+  const px = ctx.getImageData(0, 0, width, height).data;
 
-  // Luminance -> coverage. The artwork is dark on white, so ink is 1 - luma.
-  const cover = new Float32Array(width * height);
+  // Anything under this is paper texture or compression noise, not ink.
+  const FLOOR = 0.05;
+
+  // Colour-to-alpha against white.
+  const alpha = new Float32Array(width * height);
+  const rgb = new Float32Array(width * height * 3);
   for (let i = 0, p = 0; i < px.length; i += 4, p += 1) {
-    const luma = (px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114) / 255;
-    cover[p] = 1 - luma;
+    const r = px[i] / 255;
+    const g = px[i + 1] / 255;
+    const b = px[i + 2] / 255;
+    let a = 1 - Math.min(r, g, b);
+    a = a < FLOOR ? 0 : Math.min(1, (a - FLOOR) / (1 - FLOOR));
+    alpha[p] = a;
+    const k = Math.max(a, 1e-3);
+    rgb[p * 3] = Math.min(1, Math.max(0, (r - (1 - a)) / k));
+    rgb[p * 3 + 1] = Math.min(1, Math.max(0, (g - (1 - a)) / k));
+    rgb[p * 3 + 2] = Math.min(1, Math.max(0, (b - (1 - a)) / k));
   }
 
-  // Anything under this is paper texture or JPEG-ish noise, not ink.
-  const FLOOR = 0.06;
   const rows = new Float32Array(height);
   const cols = new Float32Array(width);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
-      const a = cover[y * width + x];
-      if (a > FLOOR) { rows[y] += a; cols[x] += a; }
+      const a = alpha[y * width + x];
+      rows[y] += a;
+      cols[x] += a;
     }
   }
 
@@ -87,8 +99,15 @@ async function extract(dataUrl) {
   const left = firstAbove(cols, 0, width, 1);
   const right = firstAbove(cols, width - 1, -1, -1);
 
-  /** Cut a box out of the coverage map and paint it in one colour. */
-  function cut(box, colour, pad = 0) {
+  /**
+   * Cut a box out of the artwork.
+   *
+   * `light` repaints the navy white for dark grounds and leaves the gold
+   * alone. Gold is told from navy by how much warmer than blue it is, with a
+   * soft ramp between so the edges where the two meet do not band.
+   */
+  function cut(box, light = false, maxWidth = 640) {
+    const pad = 0;
     const w = box.right - box.left + 1 + pad * 2;
     const h = box.bottom - box.top + 1 + pad * 2;
     const out = document.createElement('canvas');
@@ -96,29 +115,53 @@ async function extract(dataUrl) {
     out.height = h;
     const octx = out.getContext('2d');
     const dest = octx.createImageData(w, h);
-    const [r, g, b] = colour;
     for (let y = 0; y < h; y += 1) {
       for (let x = 0; x < w; x += 1) {
         const sx = box.left - pad + x;
         const sy = box.top - pad + y;
-        const inside = sx >= 0 && sx < width && sy >= 0 && sy < height;
-        const a = inside ? cover[sy * width + sx] : 0;
         const o = (y * w + x) * 4;
-        dest.data[o] = r;
-        dest.data[o + 1] = g;
-        dest.data[o + 2] = b;
-        // Push the midtones up a little: the source is soft line art and a
-        // straight luminance map renders it noticeably lighter than the
-        // original looks on white.
-        dest.data[o + 3] = Math.round(Math.min(1, a < FLOOR ? 0 : a * 1.12) * 255);
+        if (sx < 0 || sx >= width || sy < 0 || sy >= height) { dest.data[o + 3] = 0; continue; }
+        const p = sy * width + sx;
+        let r = rgb[p * 3];
+        let g = rgb[p * 3 + 1];
+        let b = rgb[p * 3 + 2];
+        let a = alpha[p];
+        if (light) {
+          // Unmixed from white, gold comes out as a dark bronze - which is
+          // right over paper and muddy over navy. So on the light version the
+          // gold takes the colour it shows on paper, at nearly full strength,
+          // and only the navy is unmixed and repainted white.
+          const gold = Math.min(1, Math.max(0, ((r - b) - 0.18) / 0.22));
+          const shown = [px[p * 4] / 255, px[p * 4 + 1] / 255, px[p * 4 + 2] / 255];
+          const lift = 1.12;
+          r = Math.min(1, shown[0] * lift) * gold + (1 - gold);
+          g = Math.min(1, shown[1] * lift) * gold + (1 - gold);
+          b = Math.min(1, shown[2] * lift) * gold + (1 - gold);
+          a = Math.min(1, a * (1 + 0.35 * gold));
+        }
+        dest.data[o] = Math.round(r * 255);
+        dest.data[o + 1] = Math.round(g * 255);
+        dest.data[o + 2] = Math.round(b * 255);
+        dest.data[o + 3] = Math.round(a * 255);
       }
     }
     octx.putImageData(dest, 0, 0);
-    return out.toDataURL('image/png');
+    // Twice the largest size any of these is shown at is plenty, and keeps the
+    // nav's mark from weighing more than the page around it.
+    if (w <= maxWidth) return out.toDataURL('image/png');
+    const small = document.createElement('canvas');
+    small.width = maxWidth;
+    small.height = Math.round((h * maxWidth) / w);
+    const sctx = small.getContext('2d');
+    sctx.imageSmoothingQuality = 'high';
+    sctx.drawImage(out, 0, 0, small.width, small.height);
+    return small.toDataURL('image/png');
   }
 
-  // The mark sits above the wordmark with a band of clear paper between them.
-  // Find the widest such band in the top two thirds and cut there.
+  // The monogram sits above the wordmark with a band of clear paper between
+  // them. A second, narrower band separates the wordmark from the rule under
+  // it, so the search is limited to the upper part of the artwork and takes
+  // the widest band it finds there.
   let gapStart = -1;
   let best = null;
   for (let y = top; y <= bottom; y += 1) {
@@ -127,19 +170,20 @@ async function extract(dataUrl) {
     if ((!empty || y === bottom) && gapStart !== -1) {
       const run = { from: gapStart, to: y - 1 };
       const span = run.to - run.from;
-      const inTopTwoThirds = run.from < top + (bottom - top) * 0.7;
-      if (inTopTwoThirds && (!best || span > best.to - best.from)) best = run;
+      const upper = run.from < top + (bottom - top) * 0.85;
+      if (upper && (!best || span > best.to - best.from)) best = run;
       gapStart = -1;
     }
   }
-  const split = best ? Math.round((best.from + best.to) / 2) : Math.round((top + bottom) / 2);
+  const split = best ? best.from : Math.round((top + bottom) / 2);
 
-  // The mark's own left/right bounds, which are narrower than the wordmark's.
+  // The monogram's own left/right bounds, which are narrower than the
+  // wordmark's.
   let markLeft = width;
   let markRight = 0;
   for (let y = top; y < split; y += 1) {
     for (let x = 0; x < width; x += 1) {
-      if (cover[y * width + x] > FLOOR) {
+      if (alpha[y * width + x] > FLOOR) {
         if (x < markLeft) markLeft = x;
         if (x > markRight) markRight = x;
       }
@@ -147,124 +191,16 @@ async function extract(dataUrl) {
   }
 
   const full = { top, bottom, left, right };
-  const mark = { top, bottom: split, left: markLeft, right: markRight };
-
-  // The portico alone, thickened, for the small icons.
-  //
-  // Two problems at favicon sizes, and they need different answers. The whole
-  // mark has too much in it: a rock and a building side by side become two
-  // grey lumps once there are only sixteen pixels to share between them. And
-  // the drawing is fine line work - the strokes are about one part in seventy
-  // of its height, so at 16px they are a fifth of a pixel and vanish.
-  //
-  // So: crop to the hall, and dilate before the browser scales it down. The
-  // dilation is sized so the strokes land near a whole pixel in the output,
-  // which also closes the gaps between the columns - at 16px a solid portico
-  // is the right answer, and at 48px they separate again on their own.
-  //
-  // The hall's left edge is the low point of the roofline: the rock's summit
-  // is higher than the pediment, so the search starts to the right of it and
-  // walks left until the roof stops descending.
-  const markWidth = markRight - markLeft + 1;
-  // Where the hall sits inside the mark.
-  //
-  // Measured off the artwork rather than detected, because it cannot be
-  // detected from the outline: the rock stands behind the hall and is taller,
-  // so the silhouette above the hall belongs to the rock, and a skyline search
-  // finds the rock's summit every time. These two fractions are checked by eye
-  // against the rendered icons - if the logo is ever redrawn, look at
-  // favicon.ico afterwards.
-  const HALL = { left: 0.50, top: 0.17 };
-  const markHeight = split - top;
-  const hall = {
-    top: Math.round(top + markHeight * HALL.top),
-    bottom: split,
-    left: Math.round(markLeft + markWidth * HALL.left),
-    right: markRight,
-  };
-
-  /**
-   * A max filter over the coverage map, run separately in each axis.
-   *
-   * Thickens every stroke by `radius` in all directions. Separable because a
-   * square max filter is the horizontal one followed by the vertical one, and
-   * doing it in two passes is O(n·r) rather than O(n·r²).
-   */
-  function dilated(box, radius) {
-    const w = box.right - box.left + 1;
-    const h = box.bottom - box.top + 1;
-    const a = new Float32Array(w * h);
-    const b = new Float32Array(w * h);
-    for (let y = 0; y < h; y += 1) {
-      for (let x = 0; x < w; x += 1) {
-        const sx = box.left + x;
-        const sy = box.top + y;
-        a[y * w + x] = sx >= 0 && sx < width && sy >= 0 && sy < height ? cover[sy * width + sx] : 0;
-      }
-    }
-    for (let y = 0; y < h; y += 1) {
-      for (let x = 0; x < w; x += 1) {
-        let m = 0;
-        for (let d = -radius; d <= radius; d += 1) {
-          const xx = x + d;
-          if (xx >= 0 && xx < w) m = Math.max(m, a[y * w + xx]);
-        }
-        b[y * w + x] = m;
-      }
-    }
-    for (let y = 0; y < h; y += 1) {
-      for (let x = 0; x < w; x += 1) {
-        let m = 0;
-        for (let d = -radius; d <= radius; d += 1) {
-          const yy = y + d;
-          if (yy >= 0 && yy < h) m = Math.max(m, b[yy * w + x]);
-        }
-        a[y * w + x] = m;
-      }
-    }
-    return { data: a, w, h };
-  }
-
-  /** Paint a dilated box into a PNG, in one colour. */
-  function cutThick(box, colour, radius, pad) {
-    const { data, w, h } = dilated(box, radius);
-    const out = document.createElement('canvas');
-    out.width = w + pad * 2;
-    out.height = h + pad * 2;
-    const octx = out.getContext('2d');
-    const dest = octx.createImageData(out.width, out.height);
-    const [r, g, bl] = colour;
-    for (let y = 0; y < out.height; y += 1) {
-      for (let x = 0; x < out.width; x += 1) {
-        const sx = x - pad;
-        const sy = y - pad;
-        const v = sx >= 0 && sx < w && sy >= 0 && sy < h ? data[sy * w + sx] : 0;
-        const o = (y * out.width + x) * 4;
-        dest.data[o] = r;
-        dest.data[o + 1] = g;
-        dest.data[o + 2] = bl;
-        dest.data[o + 3] = Math.round(Math.min(1, v < FLOOR ? 0 : v * 1.35) * 255);
-      }
-    }
-    octx.putImageData(dest, 0, 0);
-    return out.toDataURL('image/png');
-  }
-
-  // One crop per icon size, each thickened for the scale it will be seen at.
-  const hallHeight = hall.bottom - hall.top + 1;
-  const hallFor = {};
-  for (const size of [48, 32, 16]) {
-    const radius = Math.max(1, Math.round((hallHeight / size) * 0.6));
-    hallFor[size] = cutThick(hall, [255, 255, 255], radius, 8);
-  }
+  const mark = { top, bottom: split - 1, left: markLeft, right: markRight };
 
   return {
-    bounds: { full, mark, hall, split },
-    logoDark: cut(full, [17, 33, 58]),
-    logoLight: cut(full, [255, 255, 255]),
-    markDark: cut(mark, [17, 33, 58]),
-    markLight: cut(mark, [255, 255, 255]),
-    hallFor,
+    bounds: { full, mark, split },
+    logoDark: cut(full),
+    logoLight: cut(full, true),
+    markDark: cut(mark, false, 360),
+    markLight: cut(mark, true, 360),
+    // Full size for the icon tiles, which scale it down themselves.
+    markIcon: cut(mark, true, 1024),
   };
 }
 
@@ -311,17 +247,15 @@ function ico(images) {
 
 const dataUrlToBuffer = (url) => Buffer.from(url.split(',')[1], 'base64');
 
-/** The icon tile: the mark in white on a navy square. */
+/** The icon tile: the monogram in white and gold on a navy square. */
 function iconHtml(size, art) {
-  // Below 64px the whole mark has no room to resolve, so the tile shows the
-  // portico alone - and gives it more of the tile, because there is less in it.
-  const small = size < 64;
-  const inset = Math.round(size * (small ? 0.08 : 0.15));
-  const src = small ? art.hallFor[size] : art.markLight;
+  // The monogram is wide and short, so it is given most of the tile's width.
+  // Below 64px it gets nearly all of it: the letters need every pixel.
+  const inset = Math.round(size * (size < 64 ? 0.06 : 0.12));
   return `<!doctype html><html><body style="margin:0">
     <div style="width:${size}px;height:${size}px;background:${NAVY};border-radius:${Math.round(size * 0.22)}px;
                 display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:${inset}px">
-      <img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain" />
+      <img src="${art.markIcon}" style="max-width:100%;max-height:100%;object-fit:contain" />
     </div>
   </body></html>`;
 }
@@ -333,12 +267,12 @@ function cardHtml(logoLightUrl) {
                 display:flex;flex-direction:column;align-items:center;justify-content:center;
                 font-family:Georgia,'Liberation Serif','Times New Roman',serif">
       <div style="position:absolute;inset:0;
-                  background:radial-gradient(60% 50% at 78% 12%, rgba(176,131,65,.30), transparent 70%),
-                             radial-gradient(50% 45% at 8% 92%, rgba(41,74,119,.55), transparent 70%)"></div>
+                  background:radial-gradient(60% 50% at 78% 12%, rgba(184,146,67,.30), transparent 70%),
+                             radial-gradient(50% 45% at 8% 92%, rgba(41,74,140,.55), transparent 70%)"></div>
 
-      <img src="${logoLightUrl}" style="position:relative;width:560px;object-fit:contain" />
+      <img src="${logoLightUrl}" style="position:relative;width:520px;object-fit:contain" />
 
-      <div style="position:relative;color:#c3d0e2;font-size:30px;margin-top:34px">Banking built on bedrock.</div>
+      <div style="position:relative;color:#c3d0e2;font-size:30px;margin-top:30px">Banking that feels like home.</div>
 
       <div style="position:absolute;bottom:40px;color:#7f91ab;
                   font-family:Helvetica,'Liberation Sans',Arial,sans-serif;font-size:16px;letter-spacing:3px">
@@ -376,8 +310,8 @@ function cardHtml(logoLightUrl) {
 
     const { full, mark, split } = cut.bounds;
     console.log(`  read ${path.relative(PUBLIC, SOURCE)}`);
-    console.log(`  artwork occupies x ${full.left}-${full.right}, y ${full.top}-${full.bottom}; mark/wordmark split at y ${split}`);
-    console.log(`  portico cropped at x ${cut.bounds.hall.left}-${cut.bounds.hall.right}, y ${cut.bounds.hall.top}-${cut.bounds.hall.bottom}`);
+    console.log(`  artwork occupies x ${full.left}-${full.right}, y ${full.top}-${full.bottom}; monogram/wordmark split at y ${split}`);
+    console.log(`  monogram cropped at x ${mark.left}-${mark.right}, y ${mark.top}-${mark.bottom}`);
 
     const files = [
       ['logo-dark.png', cut.logoDark],

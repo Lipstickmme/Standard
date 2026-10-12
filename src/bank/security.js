@@ -87,7 +87,7 @@ function encryptionKey() {
   }
   if (!warnedAboutKey) {
     warnedAboutKey = true;
-    console.warn('[rockfield] BANK_ENCRYPTION_KEY is not set: using a development key. Do not run production this way.');
+    console.warn('[smb] BANK_ENCRYPTION_KEY is not set: using a development key. Do not run production this way.');
   }
   return crypto.createHash('sha256').update('rockfield-development-key').digest();
 }
@@ -112,7 +112,7 @@ function decrypt(payload) {
     decipher.setAuthTag(Buffer.from(tag, 'base64'));
     return Buffer.concat([decipher.update(Buffer.from(ct, 'base64')), decipher.final()]).toString('utf8');
   } catch (err) {
-    console.warn('[rockfield] could not decrypt a stored value:', err.message);
+    console.warn('[smb] could not decrypt a stored value:', err.message);
     return '';
   }
 }
@@ -157,7 +157,7 @@ function passwordProblems(password, { minLength = 10 } = {}) {
   if (!/[A-Z]/.test(value)) problems.push('An uppercase letter');
   if (!/\d/.test(value)) problems.push('A number');
   if (!/[^A-Za-z0-9]/.test(value)) problems.push('A symbol');
-  if (/^(?:password|letmein|qwerty|welcome|rockfield)/i.test(value)) problems.push('Not a common password');
+  if (/^(?:password|letmein|qwerty|welcome|merchant|smb)/i.test(value)) problems.push('Not a common password');
   if (/(.)\1{3,}/.test(value)) problems.push('No character repeated four or more times');
   return problems;
 }

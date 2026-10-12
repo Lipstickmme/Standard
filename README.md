@@ -1,4 +1,4 @@
-# Rockfield National Bank
+# Standard Merchant Bank
 
 A complete retail banking application: a public bank site, online banking for
 customers, and a staff console that registers customers, opens accounts, moves
@@ -9,7 +9,7 @@ dependency. Supabase holds the data in production; without it the same code
 runs on JSON files, so the whole bank starts on a laptop with nothing
 provisioned.
 
-> **This is a demonstration.** Rockfield National Bank is fictional. The
+> **This is a demonstration.** Standard Merchant Bank is fictional. The
 > routing number sits in a prefix the Federal Reserve has not assigned, account
 > numbers and card numbers are generated in published test ranges, and no real
 > money can move through any of it.
@@ -22,8 +22,8 @@ npm start        # http://localhost:3000
 
 | | |
 |---|---|
-| Customer sign-in | `/signin` — `demo@rockfieldglobalfinance.com` / `Bedrock#Demo2026` |
-| Staff console | `/console` — `admin@rockfieldglobalfinance.com` / `Rockfield#Admin2026` |
+| Customer sign-in | `/signin` — `demo@standardmerchantbank.com` / `Merchant#Demo2026` |
+| Staff console | `/console` — `admin@standardmerchantbank.com` / `Merchant#Admin2026` |
 | Client services desk | `/admin` — website enquiries, chat and mail (Supabase auth) |
 
 The sign-in page carries both demonstration logins as buttons, so nothing needs
@@ -292,27 +292,26 @@ timeout — lives in the console under Settings instead.
 
 ## Images and the mark
 
-Page artwork resolves at build time from `public/assets/bank/`. Drop in
-`rockfield1` … `rockfield6` in any common format and the next build picks them
+Page artwork resolves at build time from `public/assets/img/` (slot names in
+`public/assets/img/README.md`). Drop in a file under a slot name in any common format and the next build picks them
 up in place of the generated placeholders; the build log says which were found.
 Per-story images are named in `src/data/projects.json`.
 
-The logo lives once, as geometry, in `src/bank/site/logo.js` — a boulder with a
-banking hall in front of it, stroked in `currentColor` so the same shapes serve
-a navy sidebar and a white nav without a second file. `npm run build:brand`
-writes everything derived from it:
+The logo is `public/assets/img/smblogo.png`: the navy SMB monogram with the
+gold key through the M, over the STANDARD MERCHANT BANK wordmark.
+`npm run build:brand` cuts everything the site needs out of it:
 
 | Output | Built from |
 |---|---|
-| `assets/bank/mark-{dark,light}.svg` | the line work alone |
-| `assets/bank/wordmark-{dark,light}.svg` | mark over ROCKFIELD / BANK |
-| `favicon.ico` (16, 32, 48) | a filled reduction — at 16px, the hall alone |
-| `favicon.png`, `apple-touch-icon.png` | the line work on a navy tile |
+| `assets/bank/logo-dark.png` | the full lockup in its own colours, for light grounds |
+| `assets/bank/logo-light.png` | the same with the navy painted white and the gold kept, for navy |
+| `assets/bank/logomark-{dark,light}.png` | the monogram and key alone |
+| `favicon.ico` (16, 32, 48), `favicon.png`, `apple-touch-icon.png` | the monogram on a navy tile |
 | `assets/bank/og-image.png` | the link card, 1200×630 |
 
 It needs `playwright-core` to rasterise, and it is not part of `npm run build` —
 the outputs are committed, because they change about as often as the bank
-changes its name. Edit the geometry, run it again, and every size follows.
+changes its name. Replace the PNG, run it again, and every size follows.
 
 ---
 

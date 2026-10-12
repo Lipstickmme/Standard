@@ -13,19 +13,19 @@
 
 /** The institution. Fictional, on a routing prefix the Fed has not assigned. */
 const BANK = {
-  name: 'Rockfield National Bank',
-  shortName: 'Rockfield',
-  legalName: 'Rockfield National Bank, N.A.',
-  tagline: 'Banking built on bedrock.',
+  name: 'Standard Merchant Bank',
+  shortName: 'Standard Merchant',
+  legalName: 'Standard Merchant Bank, N.A.',
+  tagline: 'Banking that feels like home.',
   // ABA checksum valid: 3(8+2+4)+7(1+6+1)+(9+4+7) = 42+56+20 = 118... see
   // validateRouting() in ids.js, which is what actually enforces this.
   routingNumber: '819264176',
   wireRoutingNumber: '819264176',
-  swift: 'RKFDUS44XXX',
+  swift: 'SMBKUS44XXX',
   fdicCert: '58412',
   nmls: '409127',
-  email: 'support@rockfieldglobalfinance.com',
-  securityEmail: 'security@rockfieldglobalfinance.com',
+  email: 'support@standardmerchantbank.com',
+  securityEmail: 'security@standardmerchantbank.com',
   established: 1924,
 };
 
@@ -97,7 +97,7 @@ const PRODUCTS = [
   {
     id: 'rockfield_signature_card',
     type: 'credit',
-    name: 'Rockfield Signature Card',
+    name: 'SMB Signature Card',
     blurb: '2% back on everything, no categories to remember.',
     apr: 18.99,
     creditLimit: 1500000,

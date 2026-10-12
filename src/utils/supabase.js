@@ -115,7 +115,7 @@ function getSupabase() {
     },
   };
 
-  console.log('[rockfield] storage: Supabase');
+  console.log('[smb] storage: Supabase');
   return client;
 }
 

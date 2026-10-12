@@ -47,7 +47,7 @@ exports.create = async (req, res, next) => {
       try {
         await storage.append(record);
       } catch (err) {
-        console.error('[rockfield] failed to persist enquiry:', err.message);
+        console.error('[smb] failed to persist enquiry:', err.message);
       }
       await notify.enquiry(record);
     }
