@@ -42,7 +42,7 @@ function header({ eyebrow, title, lede, image }) {
   <header class="rf-hero compact ${image ? 'has-photo' : 'has-mark'}">
     ${image
       ? `<img class="rf-hero-photo" src="${image}" alt="" aria-hidden="true" />`
-      : `<img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="614" />`}
+      : `<img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="940" height="614" />`}
     <div class="wrap">
       <span class="rf-eyebrow">${eyebrow}</span>
       <h1 style="font-size:clamp(32px,4.6vw,52px)">${title}</h1>
@@ -104,7 +104,7 @@ const homeContent = `
         <h1>Banking that<br />feels like home.</h1>
         <p class="lede">No monthly fee on checking, 4.35% APY on savings, and a real banker on the line whenever anyone in the household needs one &mdash; wherever in the world they happen to be.</p>
         <div class="rf-hero-actions">
-          <a class="rf-btn brass lg pill" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
+          <a class="rf-btn lg pill" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
           <a class="rf-hero-link" href="/security-center">How we keep you safe</a>
         </div>
       </div>
@@ -604,13 +604,13 @@ const legalContent = `
 
 const notFoundContent = `
   <section class="rf-hero has-mark" style="min-height:60vh;display:flex;align-items:center">
-    <img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="940" height="614" />
+    <img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="940" height="614" />
     <div class="wrap">
       <span class="rf-eyebrow">Error 404</span>
       <h1>Not on the books.</h1>
       <p class="lede">This page has moved or never existed. The links below will get you back.</p>
       <div class="rf-hero-actions">
-        <a class="rf-btn brass" href="/">Back to home</a>
+        <a class="rf-btn" href="/">Back to home</a>
         <a class="rf-btn ghost" href="/signin">Sign in</a>
       </div>
     </div>

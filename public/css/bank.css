@@ -17,17 +17,22 @@
   --rf-ink-2: #3d4757;
   --rf-ink-3: #6a7587;
   --rf-ink-4: #9aa4b4;
-  --rf-paper: #f4f7fb;
+  --rf-paper: #f5f9fe;
   --rf-surface: #ffffff;
   --rf-surface-2: #f8fafd;
-  --rf-surface-3: #eef2f8;
-  --rf-line: #dfe6f0;
-  --rf-line-2: #edf1f7;
+  --rf-surface-3: #e9f2fc;
+  --rf-line: #d6e4f3;
+  --rf-line-2: #e8f0f9;
 
   /* Brand */
   --rf-navy: #0e2148;
-  --rf-navy-2: #1b3457;
-  --rf-navy-3: #2d5c93;
+  --rf-navy-2: #173a72;
+  --rf-navy-3: #1f5fae;
+  /* The corporate light blues: a pale wash for alternate sections and page
+     headers, and a deeper one for its rules. */
+  --rf-sky: #eaf3fd;
+  --rf-sky-2: #d3e5f8;
+  --rf-blue: #1f5fae;
   --rf-brass: #b89243;
   --rf-brass-2: #d4ad5a;
   --rf-brass-soft: #f6ecda;
@@ -1422,3 +1427,91 @@ a.rf-auth-brand {
   .chat { right: 12px; bottom: 12px; }
   .chat-panel { height: min(70vh, 520px); }
 }
+
+/* ==========================================================================
+   The corporate palette on the public site and the sign-in pages.
+
+   Navy from the logo carries the type and the primary buttons, a corporate
+   blue marks eyebrows and links, and the grounds are white and light blue.
+   The gold is left to the logo. These pages are always light (their <html>
+   carries data-rf-theme="light"); the footer and the application sidebar
+   stay navy, which is what anchors a light page.
+   ========================================================================== */
+
+.rf-section.alt { background: var(--rf-sky); border-block-color: var(--rf-sky-2); }
+.rf-site .rf-eyebrow, .rf-auth .rf-eyebrow { color: var(--rf-blue); }
+
+.rf-hero {
+  background: linear-gradient(160deg, #f6faff 0%, #e8f2fd 55%, #d9e9f9 100%);
+  color: var(--rf-navy);
+}
+.rf-hero::after {
+  opacity: .7;
+  background:
+    radial-gradient(55% 45% at 82% 10%, rgba(255, 255, 255, .9), transparent 70%),
+    radial-gradient(45% 45% at 6% 92%, rgba(31, 95, 174, .12), transparent 70%);
+}
+.rf-hero.has-photo::after { opacity: 0; }
+.rf-hero h1 { color: var(--rf-navy); }
+.rf-hero p.lede { color: var(--rf-ink-2); }
+.rf-hero .rf-eyebrow { color: var(--rf-blue); }
+.rf-hero-mark { opacity: .07; }
+
+/* Over a photograph the scrim is now light: white on the left where the
+   words are, clearing to the picture on the right. */
+.rf-hero.has-photo::before {
+  background:
+    linear-gradient(100deg, rgba(246, 250, 255, .97) 0%, rgba(238, 246, 254, .9) 38%, rgba(232, 242, 252, .4) 66%, rgba(232, 242, 252, .06) 100%);
+}
+.rf-hero.home { background: var(--rf-sky); }
+.rf-hero.home.has-photo::before {
+  background:
+    linear-gradient(90deg, #f6faff 0%, rgba(240, 247, 255, .95) 30%, rgba(234, 243, 253, .45) 56%, rgba(234, 243, 253, 0) 78%),
+    linear-gradient(to top, rgba(234, 243, 253, .55) 0%, transparent 32%);
+}
+.rf-hero.home .rf-eyebrow { color: var(--rf-blue); }
+.rf-hero.home p.lede { color: var(--rf-ink-2); }
+
+.rf-hero-link { color: var(--rf-navy); border-bottom-color: var(--rf-navy); }
+.rf-hero-link:hover { color: var(--rf-blue); border-bottom-color: var(--rf-blue); }
+
+/* The figures on white glass rather than dark. */
+.rf-hero .rf-glass {
+  background: rgba(255, 255, 255, .86);
+  border-color: rgba(255, 255, 255, .95);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 22px 44px -26px rgba(14, 33, 72, .45);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .rf-hero .rf-glass { background: rgba(255, 255, 255, .7); }
+}
+.rf-hero-stats .k { color: var(--rf-ink-3); }
+.rf-hero-stats .v { color: var(--rf-navy); }
+
+/* The sign-in aside: light blue, with the full-colour lockup. */
+.rf-auth-aside {
+  background: linear-gradient(150deg, #f6faff 0%, #e6f1fc 60%, #d3e5f8 100%);
+  color: var(--rf-navy);
+}
+.rf-auth-aside::after {
+  background:
+    radial-gradient(60% 40% at 80% 15%, rgba(255, 255, 255, .85), transparent 70%),
+    radial-gradient(50% 40% at 10% 90%, rgba(31, 95, 174, .12), transparent 70%);
+}
+.rf-auth-aside p { color: var(--rf-ink-2); }
+.rf-auth-points li { color: var(--rf-ink-2); }
+.rf-auth-points svg { color: var(--rf-blue); }
+.rf-auth-foot { color: var(--rf-ink-3); border-top-color: rgba(14, 33, 72, .12); }
+
+@media (max-width: 900px) {
+  .rf-hero.has-photo::before,
+  .rf-hero.home.has-photo::before {
+    background: linear-gradient(180deg, rgba(246, 250, 255, .9) 0%, rgba(238, 246, 254, .84) 100%);
+  }
+}
+
+/* Accents in corporate blue rather than brass. */
+.rf-marketing-nav nav a::after { background: var(--rf-blue); }
+.rf-feature .ic { background: var(--rf-sky); color: var(--rf-blue); }
+.rf-site .role .team { color: var(--rf-blue); }
+.rf-tabs button.is-active { border-bottom-color: var(--rf-blue); }
+.rf-btn:focus-visible, .rf-hero-link:focus-visible { outline-color: var(--rf-blue); }

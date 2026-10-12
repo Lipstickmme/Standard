@@ -155,9 +155,11 @@ const icon = (name, size = 18) => {
 
 /* ----------------------------------------------------------------- head --- */
 
-function head({ title, description, noindex = false, styles = [], bodyClass }) {
+function head({ title, description, noindex = false, styles = [], bodyClass, theme }) {
+  // The public site and the sign-in pages are always the light corporate
+  // palette; the signed-in application follows the device.
   return `<!doctype html>
-<html lang="en">
+<html lang="en"${theme ? ` data-rf-theme="${theme}"` : ''}>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -320,11 +322,11 @@ ${tabbar(active)}
 /** The sign-in shell: a panel on the right, the bank's case on the left. */
 function authPage({ title, description, content, extraScripts = [] }) {
   return [
-    head({ title, description, noindex: true, bodyClass: 'rf-auth' }),
+    head({ title, description, noindex: true, bodyClass: 'rf-auth', theme: 'light' }),
     `  <div class="rf-auth-wrap">
     <section class="rf-auth-aside">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="240" height="170" />
+        <img class="rf-lockup" src="/assets/bank/logo-dark.png" alt="${BANK.name}" width="240" height="170" />
       </a>
       <h2>Your money, held the way a bank should hold it.</h2>
       <p>${BANK.tagline} Deposits insured by the FDIC to the maximum permitted by law, and a real person on the phone when you need one.</p>
@@ -442,7 +444,7 @@ function marketingFooter() {
 function marketingPage({ title, description, active, content, extraScripts = [], bodyClass = 'rf-site' }) {
   const { chatWidget } = require('../../site/layout');
   return [
-    head({ title, description, bodyClass }),
+    head({ title, description, bodyClass, theme: 'light' }),
     marketingNav(active),
     content,
     marketingFooter(),
