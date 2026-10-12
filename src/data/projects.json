@@ -1,5 +1,24 @@
 [
   {
+    "id": "ivy-lane-bridal",
+    "name": "Ivy Lane Bridal Atelier",
+    "sector": "Merchant services",
+    "location": "Columbus, OH",
+    "year": 2025,
+    "metric": "Next day",
+    "metricLabel": "deposit settlement",
+    "image": "atelier",
+    "client": "Ivy Lane Atelier LLC",
+    "status": "Growing",
+    "duration": "Client since 2022",
+    "services": [
+      "Business banking",
+      "Merchant services"
+    ],
+    "blurb": "Deposits taken months ahead of a fitting, held apart from the operating account and settled the next business day.",
+    "overview": "A gown is paid for in instalments over most of a year, so deposits arrived long before the work and sat in the same account as the rent. Deposits now land in a dedicated holding account, settle next business day with the bride's reference on every line, and move to operating only when a fitting is complete. The bookkeeper reconciles with read-only access that cannot move money."
+  },
+  {
     "id": "meridian-logistics",
     "name": "Meridian Logistics",
     "sector": "Business banking",
@@ -36,25 +55,6 @@
     ],
     "blurb": "A construction facility drawn against surveyed progress rather than a fixed calendar.",
     "overview": "Eighty-four units on a constrained site, financed on a facility that released against surveyed progress rather than a fixed schedule. The developer kept a named underwriter through the whole build, which mattered twice when the programme moved."
-  },
-  {
-    "id": "field-and-vine",
-    "name": "Field & Vine Grocers",
-    "sector": "Merchant services",
-    "location": "Dublin, OH",
-    "year": 2025,
-    "metric": "Next day",
-    "metricLabel": "card settlement",
-    "image": "retail",
-    "client": "Field & Vine Holdings",
-    "status": "Nine stores",
-    "duration": "Client since 2021",
-    "services": [
-      "Business banking",
-      "Cards and credit"
-    ],
-    "blurb": "Next-business-day settlement across nine stores, reconciled against the operating account automatically.",
-    "overview": "Card settlement arriving on different days across nine stores made reconciliation a weekly argument. Settlement now lands next business day into one operating account with store-level references on every deposit, and the bookkeeper has read-only access that cannot move money."
   },
   {
     "id": "ellis-household",

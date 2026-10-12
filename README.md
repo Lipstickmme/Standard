@@ -297,21 +297,22 @@ Page artwork resolves at build time from `public/assets/img/` (slot names in
 up in place of the generated placeholders; the build log says which were found.
 Per-story images are named in `src/data/projects.json`.
 
-The logo is `public/assets/img/smblogo.png`: the navy SMB monogram with the
-gold key through the M, over the STANDARD MERCHANT BANK wordmark.
-`npm run build:brand` cuts everything the site needs out of it:
+The logo is drawn in `scripts/build-brand.js` as vector shapes: an S built
+from slanted slabs (royal blue over midnight navy, with a light-blue bar where
+they meet) beside STANDARD over MERCHANT BANK, set in Plus Jakarta Sans.
+`npm run build:brand` renders everything the site needs from it:
 
 | Output | Built from |
 |---|---|
-| `assets/bank/logo-dark.png` | the full lockup in its own colours, for light grounds |
-| `assets/bank/logo-light.png` | the same with the navy painted white and the gold kept, for navy |
-| `assets/bank/logomark-{dark,light}.png` | the monogram and key alone |
-| `favicon.ico` (16, 32, 48), `favicon.png`, `apple-touch-icon.png` | the monogram on a navy tile |
+| `assets/bank/logo-dark.png` | the horizontal lockup, for light grounds |
+| `assets/bank/logo-light.png` | the same in white and pale blue, for navy |
+| `assets/bank/logomark-{dark,light}.png` | the slab S alone |
+| `favicon.ico` (16, 32, 48), `favicon.png`, `apple-touch-icon.png` | the S on a navy tile |
 | `assets/bank/og-image.png` | the link card, 1200×630 |
 
 It needs `playwright-core` to rasterise, and it is not part of `npm run build` —
 the outputs are committed, because they change about as often as the bank
-changes its name. Replace the PNG, run it again, and every size follows.
+changes its name. Change a shape or colour there, run it again, and every size follows.
 
 ---
 

@@ -17,8 +17,8 @@
       "fallback": "/assets/bank/personal.svg"
     },
     "businessHeader": {
-      "_where": "/business. The shop owner in her doorway (smb-business-owner) when it is there, the workshop otherwise.",
-      "prefer": ["smb-business-owner", "smb-business"],
+      "_where": "/business. The shop owner in her doorway.",
+      "prefer": ["smb-business-owner"],
       "fallback": "/assets/bank/business.svg"
     },
     "ratesHeader": {
@@ -51,7 +51,7 @@
     "_comment": "Customer stories in src/data/projects.json refer to these by key rather than by path, so the photography can be swapped without editing the copy.",
     "logistics": { "prefer": ["story-logistics"], "fallback": "/assets/bank/story-logistics.svg" },
     "property": { "prefer": ["story-property"], "fallback": "/assets/bank/story-property.svg" },
-    "retail": { "prefer": ["story-retail"], "fallback": "/assets/bank/story-retail.svg" },
+    "atelier": { "prefer": ["smb-atelier"], "fallback": "/assets/bank/story-retail.svg" },
     "personal": { "prefer": ["story-personal"], "fallback": "/assets/bank/story-personal.svg" }
   }
 }

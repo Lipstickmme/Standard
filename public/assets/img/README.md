@@ -19,7 +19,7 @@ Rename a file to the name in the first column and it takes that place.
 | `smb-family`        | Home hero background        | The family on the sofa. Laid under a navy wash and set to the right; the headline sits on the left |
 | `smb-vault`         | Home security panel         | Close, dark, physical: a vault door, a lock        |
 | `smb-home`          | `/personal` header          | People at home, banking on a phone                 |
-| `smb-business-owner`| `/business` header          | A shop owner in her doorway. Falls back to `smb-business`, the workshop |
+| `smb-business-owner`| `/business` header          | A shop owner in her doorway                        |
 | `smb-rates`         | `/rates` header             | One person going through their money, unhurried    |
 | `smb-banker`        | `/security-center` header   | A banker, face visible — reassurance, not hardware |
 | `smb-branch`        | `/open-account` header      | A branch interior, somebody being served           |
@@ -27,7 +27,7 @@ Rename a file to the name in the first column and it takes that place.
 | `smb-contact`       | `/contact` header           | A conversation across a desk                       |
 | `story-logistics`   | Customer story              | Fleet, depot, freight                              |
 | `story-property`    | Customer story              | A building going up                                |
-| `story-retail`      | Customer story              | A shop floor                                       |
+| `smb-atelier`       | Customer story (Ivy Lane)   | A small business at work: the bridal atelier       |
 | `story-personal`    | Customer story              | A household at the kitchen table                   |
 
 `/apply` and `/legal` carry no photograph. They get the mark drawn large and
@@ -39,6 +39,5 @@ Headers are cropped with `object-fit: cover`, so the aspect ratio matters less
 than where the subject sits: keep faces and detail away from the left third,
 which the type covers.
 
-`smblogo.png` is the source logo. It is not shown anywhere directly:
-`npm run build:brand` cuts it into the lockups, the monogram and the icons in
-`../bank/`.
+The logo is not a file here: it is drawn in `scripts/build-brand.js`, and
+`npm run build:brand` writes the lockups, the mark and the icons to `../bank/`.

@@ -62,7 +62,7 @@
      Only the first text node holding a number moves, so "4.35% APY" keeps
      its <small> and "$25.00" keeps its dollar sign. Values with a slash
      ("24 / 7") are left alone: they are not quantities. */
-  const FIGURES = '.rf-hero-stats .v, .rf-stat .v, .rf-product .rate, .rf-amt';
+  const FIGURES = '.rf-hero-stats .v, .rf-trust .v, .rf-phone-balance, .rf-stat .v, .rf-product .rate, .rf-amt';
   const NUMBER = /^(\D*?)(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(.*)$/;
 
   function firstNumberNode(el) {

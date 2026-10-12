@@ -79,16 +79,13 @@
   --rf-tilt: 240ms var(--rf-ease);
   /* Type.
 
-     The supplied logo is set in classic roman caps, so the page is built
-     around a serif rather than the geometric sans it had before. Libre
-     Baskerville is the workhorse - a transitional face with the weight an
-     institution wants - and Cormorant Garamond carries the large headlines,
-     where Baskerville's sturdiness turns heavy. Source Sans 3 is a humanist
-     sans with classical proportions: it sits with a serif in a way a grotesk
-     does not, and stays legible down at table and label sizes. */
-  --rf-sans: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --rf-display: "Libre Baskerville", Georgia, "Times New Roman", serif;
-  --rf-headline: "Cormorant Garamond", "Libre Baskerville", Georgia, serif;
+     One geometric sans, Plus Jakarta Sans, from the headlines down to the
+     labels - the same family the logo's wordmark is set in, so the page and
+     the mark read as one voice. Headlines take the heavy weights and a little
+     negative tracking; body copy sits at 400-500. */
+  --rf-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rf-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rf-headline: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --rf-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --rf-sidebar: 258px;
 }
@@ -1780,3 +1777,215 @@ a.rf-auth-brand {
   }
   .rf-hero-stats > div + div::before { display: none; }
 }
+
+/* ==========================================================================
+   The geometric redesign: the slab mark, heavy sans headlines, a feature row
+   and a trust strip, and the device showcase. The slanted slabs that make up
+   the mark recur as translucent shapes behind the photograph and the phone,
+   so the page is built out of the same pieces as the logo.
+   ========================================================================== */
+
+/* ---- type ---- */
+.rf-hero h1, .rf-section h2, .rf-cta h2, .rf-auth-aside h2, .rf-auth-box h1 {
+  font-weight: 800; letter-spacing: -.035em;
+}
+.rf-hero.home h1 { font-size: clamp(42px, 5.8vw, 74px); line-height: 1.02; }
+.rf-hero.compact h1 { font-size: clamp(32px, 4.4vw, 52px) !important; line-height: 1.06; }
+.rf-section h2 { font-size: clamp(28px, 3.4vw, 42px); line-height: 1.1; }
+.rf-cta h2 { font-size: clamp(26px, 3.2vw, 40px); }
+.rf-section.alt blockquote, .rf-section.deep blockquote { font-family: var(--rf-headline) !important; font-style: normal !important; font-weight: 600 !important; letter-spacing: -.02em !important; }
+.rf-eyebrow { font-weight: 700; letter-spacing: .18em; }
+
+/* ---- the nav carries the full lockup ---- */
+.rf-nav-logo { display: block; height: 40px; width: auto; }
+.rf-marketing-nav nav a { font-weight: 600; }
+@media (max-width: 620px) { .rf-nav-logo { height: 32px; } }
+
+/* ---- hero: the feature row ---- */
+.rf-hero.home .rf-hero-copy { max-width: 38rem; }
+.rf-hero-features {
+  list-style: none; padding: 0; margin: clamp(30px, 4.5vh, 48px) 0 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 22px; max-width: 46rem;
+}
+.rf-hero-features li { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--rf-ink-3); line-height: 1.45; }
+.rf-hero-features strong { color: var(--rf-navy); font-size: 14.5px; font-weight: 700; margin-top: 8px; }
+.rf-hero-features .ic, .rf-trust .ic {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  color: var(--rf-blue);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .9), rgba(220, 233, 251, .9));
+  box-shadow: 0 1px 0 #fff inset, 0 10px 22px -14px rgba(26, 86, 196, .7);
+  border: 1px solid rgba(255, 255, 255, .9);
+  transition: transform .3s var(--rf-ease-out), box-shadow .3s var(--rf-ease-out);
+}
+.rf-hero-features li:hover .ic { transform: translateY(-3px); box-shadow: 0 1px 0 #fff inset, 0 16px 26px -14px rgba(26, 86, 196, .85); }
+@media (max-width: 999px) { .rf-hero-features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---- the slabs ---- */
+.rf-slab {
+  position: absolute; z-index: 0; pointer-events: none; border-radius: 6px;
+  transform: skewX(-12deg);
+  background: linear-gradient(180deg, rgba(47, 116, 224, .34) 0%, rgba(59, 130, 246, .1) 100%);
+  border: 1px solid rgba(255, 255, 255, .35);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.rf-hero .rf-slab.one { left: 47%; top: 14%; width: 96px; height: 64%; }
+.rf-hero .rf-slab.two { left: 53.5%; top: 34%; width: 62px; height: 48%; background: linear-gradient(180deg, rgba(140, 188, 255, .4) 0%, rgba(140, 188, 255, .08) 100%); }
+@media (max-width: 999px) { .rf-hero .rf-slab { display: none; } }
+
+/* ---- the trust strip ---- */
+.rf-trust {
+  position: relative; z-index: 1;
+  padding: 30px 0 34px;
+  background: rgba(255, 255, 255, .72);
+  -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px);
+  border-block: 1px solid var(--rf-line-2);
+}
+.rf-trust-title { display: block; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--rf-blue); margin-bottom: 22px; }
+.rf-trust-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rf-trust-row > div { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 18px; position: relative; }
+.rf-trust-row > div + div::before {
+  content: ""; position: absolute; left: 0; top: 8%; bottom: 8%; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--rf-sky-2), transparent);
+}
+.rf-trust .ic { background: transparent; box-shadow: none; border-color: transparent; width: 40px; height: 40px; }
+.rf-trust .v { font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: var(--rf-navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.rf-trust .k { font-size: 13px; color: var(--rf-ink-3); }
+@media (max-width: 900px) {
+  .rf-trust-row { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; }
+  .rf-trust-row > div { justify-content: flex-start; padding: 4px 8px; }
+  .rf-trust-row > div + div::before { display: none; }
+}
+
+/* ---- checks ---- */
+.rf-checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.rf-checks li { display: flex; gap: 12px; align-items: center; font-weight: 600; color: var(--rf-ink-2); }
+.rf-checks svg { width: 26px; height: 26px; padding: 5px; border-radius: 50%; flex: 0 0 26px; color: #fff; background: linear-gradient(135deg, #2f74e0, #123f9a); box-sizing: border-box; }
+
+/* ---- the device showcase ---- */
+.rf-device-stage { position: relative; min-height: 600px; display: grid; place-items: center; }
+.rf-device-stage .rf-slab.three { left: 10%; top: 8%; width: 120px; height: 78%; }
+.rf-device-stage .rf-slab.four { right: 8%; top: 20%; width: 80px; height: 60%; background: linear-gradient(180deg, rgba(140, 188, 255, .45), rgba(140, 188, 255, .08)); }
+
+.rf-phone {
+  position: relative; z-index: 2; width: 286px; height: 580px; padding: 12px; border-radius: 48px;
+  background: linear-gradient(145deg, #2a3142 0%, #0b1020 40%, #1c2232 100%);
+  box-shadow: 0 0 0 1.5px #3b4459 inset, 0 50px 90px -40px rgba(10, 26, 63, .75), 0 20px 40px -24px rgba(10, 26, 63, .5);
+}
+.rf-phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 26px; border-radius: 20px; background: #05070d; z-index: 3; }
+.rf-phone-screen { height: 100%; border-radius: 37px; overflow: hidden; background: #f5f8fd; display: flex; flex-direction: column; }
+.rf-phone-top { padding: 52px 22px 26px; color: #fff; background: linear-gradient(150deg, #07142f 0%, #0b2257 55%, #1a56c4 130%); position: relative; }
+.rf-phone-status { position: absolute; top: 18px; left: 26px; right: 26px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.rf-phone-status .dots { width: 38px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 60%, rgba(255,255,255,.4) 60%); opacity: .85; }
+.rf-phone-logo { width: 116px; height: auto; display: block; margin-bottom: 14px; }
+.rf-phone-balance { font-size: 32px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.rf-phone-delta { display: inline-flex; gap: 6px; align-items: center; margin-top: 8px; padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: rgba(52, 211, 153, .18); color: #6ee7b7; }
+.rf-phone-delta span { color: #c7d6ee; font-weight: 500; }
+.rf-phone-body { flex: 1; margin-top: -12px; border-radius: 22px 22px 0 0; background: #fff; padding: 18px 16px; position: relative; }
+.rf-phone-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; padding-bottom: 14px; border-bottom: 1px solid var(--rf-line-2); }
+.rf-phone-actions span { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rf-phone-actions svg { width: 38px; height: 38px; padding: 10px; border-radius: 50%; box-sizing: border-box; color: var(--rf-blue); background: var(--rf-sky); }
+.rf-phone-actions em { font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--rf-ink-2); }
+.rf-phone-head { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 2px 8px; font-size: 12.5px; color: var(--rf-navy); }
+.rf-phone-head span { font-size: 11px; color: var(--rf-blue); font-weight: 700; }
+.rf-phone-tx { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rf-phone-tx li { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid var(--rf-line-2); }
+.rf-phone-tx .ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: var(--rf-navy); background: var(--rf-paper); }
+.rf-phone-tx b { display: block; font-size: 12px; color: var(--rf-navy); font-weight: 700; }
+.rf-phone-tx i { display: block; font-size: 10.5px; color: var(--rf-ink-4); font-style: normal; }
+.rf-phone-tx .amt { font-size: 12px; font-weight: 700; color: var(--rf-navy); font-variant-numeric: tabular-nums; }
+.rf-phone-tx .amt.in { color: #15803d; }
+
+.rf-plastic-card {
+  position: absolute; z-index: 3; right: -2%; bottom: 9%; width: 300px; height: 188px; border-radius: 18px; padding: 20px 22px;
+  background: linear-gradient(135deg, #07142f 0%, #0b2257 45%, #1a56c4 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 40px 70px -30px rgba(10, 26, 63, .8);
+  transform: rotate(-9deg); overflow: hidden; color: #fff;
+}
+.rf-plastic-card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.22) 48%, transparent 60%);
+  transform: translateX(-100%);
+}
+.rf-plastic-card img { width: 128px; height: auto; display: block; }
+.rf-plastic-card .chip { position: absolute; left: 22px; top: 82px; width: 42px; height: 32px; border-radius: 7px; background: linear-gradient(135deg, #f0d48a, #b8913f); box-shadow: 0 0 0 1px rgba(0,0,0,.15) inset; }
+.rf-plastic-card .num { position: absolute; left: 22px; bottom: 20px; font-family: var(--rf-mono); font-size: 15px; letter-spacing: .12em; color: #dbe7fb; }
+.rf-plastic-card .kind { position: absolute; right: 22px; bottom: 18px; font-size: 13px; font-weight: 800; letter-spacing: .14em; color: #a9c6f5; }
+@media (max-width: 900px) {
+  .rf-device-stage { min-height: 560px; margin-top: 10px; }
+  .rf-plastic-card { width: 240px; height: 150px; right: 0; bottom: 4%; }
+  .rf-plastic-card .chip { top: 64px; }
+  .rf-device-stage .rf-slab.three { left: 2%; }
+}
+@media (max-width: 420px) { .rf-phone { transform: scale(.9); } }
+
+/* ---- motion for the redesign ---- */
+@keyframes rf-slab-in {
+  from { opacity: 0; transform: skewX(-12deg) translateY(60px); }
+  to   { opacity: 1; transform: skewX(-12deg) translateY(0); }
+}
+@keyframes rf-slab-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -14px; }
+}
+@keyframes rf-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+@keyframes rf-card-float {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  50% { translate: -6px -14px; rotate: 2deg; }
+}
+@keyframes rf-sheen { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+@keyframes rf-pop {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+.rf-motion .rf-slab {
+  animation: rf-slab-in 1.2s var(--rf-ease-out) both, rf-slab-float 9s ease-in-out 1.2s infinite;
+}
+.rf-motion .rf-slab.two, .rf-motion .rf-slab.four { animation-delay: .25s, 1.6s; animation-duration: 1.2s, 11s; }
+.rf-motion .rf-hero-features li { animation: rf-pop .7s var(--rf-ease-out) both; }
+.rf-motion .rf-hero-features li:nth-child(1) { animation-delay: .6s; }
+.rf-motion .rf-hero-features li:nth-child(2) { animation-delay: .7s; }
+.rf-motion .rf-hero-features li:nth-child(3) { animation-delay: .8s; }
+.rf-motion .rf-hero-features li:nth-child(4) { animation-delay: .9s; }
+
+.rf-motion .rf-phone { animation: rf-float 7s ease-in-out infinite; }
+.rf-motion .rf-plastic-card { animation: rf-card-float 8s ease-in-out .6s infinite; }
+.rf-motion .rf-plastic-card::after { animation: rf-sheen 5s ease-in-out 1s infinite; }
+.rf-motion .rf-device-stage:not(.in) .rf-phone-tx li { opacity: 0; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li { animation: rf-pop .6s var(--rf-ease-out) both; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(1) { animation-delay: .5s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(2) { animation-delay: .65s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(3) { animation-delay: .8s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(4) { animation-delay: .95s; }
+.rf-motion .rf-trust-row > div { animation: rf-pop .8s var(--rf-ease-out) both; }
+.rf-motion .rf-trust-row > div:nth-child(2) { animation-delay: .1s; }
+.rf-motion .rf-trust-row > div:nth-child(3) { animation-delay: .2s; }
+.rf-motion .rf-trust-row > div:nth-child(4) { animation-delay: .3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-slab, .rf-phone, .rf-plastic-card, .rf-plastic-card::after { animation: none !important; }
+}
+
+/* Placement, checked against the photograph and the phone: the slabs sit at
+   chest height between the copy and the family, clear of every face; the
+   card overlaps the phone's edge rather than its activity list. */
+.rf-hero .rf-slab.one { left: 49%; top: 46%; width: 84px; height: 46%; }
+.rf-hero .rf-slab.two { left: 55%; top: 60%; width: 54px; height: 34%; }
+.rf-device-stage .rf-phone { margin-right: 90px; }
+.rf-plastic-card { right: -4%; bottom: 3%; width: 270px; height: 170px; }
+.rf-plastic-card .chip { top: 72px; }
+@media (max-width: 900px) {
+  .rf-device-stage .rf-phone { margin-right: 0; }
+  .rf-plastic-card { right: -2%; bottom: -2%; width: 220px; height: 138px; }
+  .rf-plastic-card img { width: 100px; }
+  .rf-plastic-card .chip { top: 56px; width: 34px; height: 26px; }
+}
+/* Page headers are wide and short; faces sit in the upper part of every
+   photograph, so the crop keeps the top rather than the middle. */
+.rf-hero.compact .rf-hero-photo { object-position: center 20%; }
+/* Figures in the heavy weight, like the headlines. */
+.rf-product .rate, .rf-stat .v, .rf-hero-stats .v { font-weight: 800; letter-spacing: -.02em; }
+.rf-product .rate small { font-weight: 600; letter-spacing: 0; }

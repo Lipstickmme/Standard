@@ -42,7 +42,7 @@ function header({ eyebrow, title, lede, image }) {
   <header class="rf-hero compact ${image ? 'has-photo' : 'has-mark'}">
     ${image
       ? `<img class="rf-hero-photo" src="${image}" alt="" aria-hidden="true" />`
-      : `<img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="940" height="614" />`}
+      : `<img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="368" height="372" />`}
     <div class="wrap">
       <span class="rf-eyebrow">${eyebrow}</span>
       <h1 style="font-size:clamp(32px,4.6vw,52px)">${title}</h1>
@@ -98,6 +98,8 @@ const ceo = leadership[0];
 const homeContent = `
   <section class="rf-hero tall has-photo home">
     <img class="rf-hero-photo" src="${images.hero}" alt="" aria-hidden="true" fetchpriority="high" />
+    <span class="rf-slab one" aria-hidden="true"></span>
+    <span class="rf-slab two" aria-hidden="true"></span>
     <div class="wrap">
       <div class="rf-hero-copy">
         <span class="rf-eyebrow">The key to your family&rsquo;s money</span>
@@ -107,12 +109,75 @@ const homeContent = `
           <a class="rf-btn lg pill" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
           <a class="rf-hero-link" href="/security-center">How we keep you safe</a>
         </div>
+        <ul class="rf-hero-features">
+          <li><span class="ic">${icon('transfer', 20)}</span><strong>Easy payments</strong><span>Send and receive in seconds, at home or abroad.</span></li>
+          <li><span class="ic">${icon('deposit', 20)}</span><strong>Smart savings</strong><span>Round-ups and goal buckets that grow on their own.</span></li>
+          <li><span class="ic">${icon('chart', 20)}</span><strong>Spending insights</strong><span>See where the money goes, by category.</span></li>
+          <li><span class="ic">${icon('shield', 20)}</span><strong>Bank-grade security</strong><span>Two-step sign-in and alerts in seconds.</span></li>
+        </ul>
       </div>
-      <div class="rf-hero-stats rf-glass">
-        <div><div class="k">Savings APY</div><div class="v">4.35%</div></div>
-        <div><div class="k">Monthly fee</div><div class="v">$0.00</div></div>
-        <div><div class="k">Fee-free ATMs</div><div class="v">60,000</div></div>
-        <div><div class="k">Fraud line</div><div class="v">24 / 7</div></div>
+    </div>
+  </section>
+
+  <section class="rf-trust" aria-label="At a glance">
+    <div class="wrap">
+      <span class="rf-trust-title">Trusted by families and businesses since ${BANK.established}</span>
+      <div class="rf-trust-row">
+        <div><span class="ic">${icon('deposit', 26)}</span><div><div class="v">4.35%</div><div class="k">APY on High-Yield Savings</div></div></div>
+        <div><span class="ic">${icon('card', 26)}</span><div><div class="v">$0.00</div><div class="k">Monthly fee on checking</div></div></div>
+        <div><span class="ic">${icon('building', 26)}</span><div><div class="v">60,000</div><div class="k">Fee-free ATMs nationwide</div></div></div>
+        <div><span class="ic">${icon('shield', 26)}</span><div><div class="v">24 / 7</div><div class="k">Fraud line, every day</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rf-section rf-app-show">
+    <div class="wrap rf-grid side" style="gap:56px;align-items:center">
+      <div>
+        <span class="rf-eyebrow">Your bank, in your pocket</span>
+        <h2>More control. More possibilities.</h2>
+        <p class="section-lede">Every account, card and payment in one place. Freeze a card in a tap, move money between the family&rsquo;s accounts instantly, and see every transfer with a reference you can quote.</p>
+        <ul class="rf-checks">
+          <li>${icon('check', 16)}<span>Instant transfers between ${BANK.shortName} accounts</span></li>
+          <li>${icon('check', 16)}<span>Card controls: freeze, limits, travel on or off</span></li>
+          <li>${icon('check', 16)}<span>Alerts within seconds, wherever the money went</span></li>
+        </ul>
+        <p style="margin-top:28px"><a class="rf-btn lg pill" href="/open-account">Get started <span class="arw" aria-hidden="true">&rarr;</span></a></p>
+      </div>
+      <div class="rf-device-stage" aria-hidden="true">
+        <span class="rf-slab three"></span>
+        <span class="rf-slab four"></span>
+        <div class="rf-phone">
+          <div class="rf-phone-screen">
+            <div class="rf-phone-top">
+              <div class="rf-phone-status"><span>9:41</span><span class="dots"></span></div>
+              <img src="/assets/bank/logo-light.png" alt="" width="482" height="124" class="rf-phone-logo" />
+              <div class="rf-phone-balance">$4,250.00</div>
+              <div class="rf-phone-delta">&uarr; 12% <span>vs. last month</span></div>
+            </div>
+            <div class="rf-phone-body">
+              <div class="rf-phone-actions">
+                <span>${icon('transfer', 16)}<em>Send</em></span>
+                <span>${icon('deposit', 16)}<em>Request</em></span>
+                <span>${icon('plus', 16)}<em>Top up</em></span>
+                <span>${icon('menu', 16)}<em>More</em></span>
+              </div>
+              <div class="rf-phone-head"><strong>Recent activity</strong><span>See all</span></div>
+              <ul class="rf-phone-tx">
+                <li><span class="ic">${icon('card', 14)}</span><span><b>Corner Coffee</b><i>Today</i></span><span class="amt">&minus;$4.50</span></li>
+                <li><span class="ic">${icon('building', 14)}</span><span><b>Salary deposit</b><i>Yesterday</i></span><span class="amt in">+$2,800.00</span></li>
+                <li><span class="ic">${icon('bill', 14)}</span><span><b>Online shopping</b><i>Mon</i></span><span class="amt">&minus;$89.99</span></li>
+                <li><span class="ic">${icon('people', 14)}</span><span><b>Sent to Maya</b><i>Sun</i></span><span class="amt">&minus;$120.00</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="rf-plastic-card">
+          <img src="/assets/bank/logo-light.png" alt="" width="482" height="124" />
+          <span class="chip"></span>
+          <span class="num">&bull;&bull;&bull;&bull; 4821</span>
+          <span class="kind">DEBIT</span>
+        </div>
       </div>
     </div>
   </section>
@@ -604,7 +669,7 @@ const legalContent = `
 
 const notFoundContent = `
   <section class="rf-hero has-mark" style="min-height:60vh;display:flex;align-items:center">
-    <img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="940" height="614" />
+    <img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="368" height="372" />
     <div class="wrap">
       <span class="rf-eyebrow">Error 404</span>
       <h1>Not on the books.</h1>
@@ -651,7 +716,7 @@ const deskContent = `
     <div class="admin-shell" id="admin-shell" hidden>
       <header class="admin-bar">
         <a class="admin-brand" href="/">
-          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="240" height="170" />
+          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="482" height="124" style="width:240px" />
           <span>Client services desk</span>
         </a>
         <div class="admin-bar-end">

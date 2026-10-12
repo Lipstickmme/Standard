@@ -30,9 +30,9 @@
      /api/services serves the real ones; if it cannot be reached the section
      stays empty, which is better than a bank offering seismic detailing. */
   const FALLBACK_PROJECTS = [
+    { id: 'ivy-lane-bridal', name: 'Ivy Lane Bridal Atelier', sector: 'Merchant services', location: 'Columbus, OH', year: 2025, metric: 'Next day', metricLabel: 'deposit settlement', image: '/assets/img/smb-atelier.webp', blurb: 'Deposits taken months ahead of a fitting, held apart from the operating account and settled the next business day.' },
     { id: 'meridian-logistics', name: 'Meridian Logistics', sector: 'Business banking', location: 'Columbus, OH', year: 2025, metric: '2 days', metricLabel: 'cut from payroll settlement', image: '/assets/img/story-logistics.png', blurb: 'Same-day ACH origination took two days out of a payroll run for 640 drivers.' },
     { id: 'harrow-street', name: 'Harrow Street Residences', sector: 'Commercial lending', location: 'Columbus, OH', year: 2024, metric: '$14.2m', metricLabel: 'construction facility', image: '/assets/img/story-property.png', blurb: 'A construction facility drawn against surveyed progress rather than a fixed calendar.' },
-    { id: 'field-and-vine', name: 'Field & Vine Grocers', sector: 'Merchant services', location: 'Dublin, OH', year: 2025, metric: 'Next day', metricLabel: 'card settlement', image: '/assets/img/story-retail.png', blurb: 'Next-business-day settlement across nine stores, reconciled against the operating account automatically.' },
     { id: 'ellis-household', name: 'The Ellis household', sector: 'Personal banking', location: 'Columbus, OH', year: 2026, metric: '4.35%', metricLabel: 'APY on savings', image: '/assets/img/story-personal.png', blurb: 'Round-ups and an automatic sweep the day after payday, with nothing to remember.' }
   ];
 
