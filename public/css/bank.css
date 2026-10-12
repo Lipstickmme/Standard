@@ -1515,3 +1515,268 @@ a.rf-auth-brand {
 .rf-site .role .team { color: var(--rf-blue); }
 .rf-tabs button.is-active { border-bottom-color: var(--rf-blue); }
 .rf-btn:focus-visible, .rf-hero-link:focus-visible { outline-color: var(--rf-blue); }
+
+/* ==========================================================================
+   Remodel: deeper colour, glass and motion on the public site.
+
+   Deeper blues throughout: a midnight navy from the logo, a royal blue for
+   accents, and a richer light blue for the washes. Cards are frosted glass
+   over slowly drifting colour, so the glass has something to be glass over.
+   Some sections are "deep": a navy-to-royal band with dark glass on it, which
+   gives the page a rhythm of light and dark rather than one long white sheet.
+   ========================================================================== */
+
+:root {
+  --rf-navy: #0a1a3f;
+  --rf-navy-2: #102c66;
+  --rf-navy-3: #1a56c4;
+  --rf-blue: #1a56c4;
+  --rf-blue-2: #3b82f6;
+  --rf-sky: #dce9fb;
+  --rf-sky-2: #b8d2f2;
+  --rf-paper: #eef4fc;
+  --rf-line: #cddcf0;
+  --rf-line-2: #e1ebf8;
+  --rf-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --rf-deep: linear-gradient(135deg, #07142f 0%, #0b2257 45%, #123f9a 100%);
+  --rf-glass-light: rgba(255, 255, 255, .58);
+  --rf-glass-light-edge: rgba(255, 255, 255, .85);
+  --rf-glass-depth: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 28px 56px -30px rgba(10, 26, 63, .45), 0 2px 6px rgba(10, 26, 63, .05);
+}
+
+.rf-site { background: var(--rf-paper); }
+
+/* ---- the nav: frosted, and firmer once the page moves under it ---- */
+.rf-site .rf-marketing-nav {
+  background: rgba(255, 255, 255, .7);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border-bottom-color: rgba(205, 220, 240, .7);
+  transition: background .3s var(--rf-ease), box-shadow .3s var(--rf-ease);
+}
+.rf-site .rf-marketing-nav.is-scrolled {
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 10px 30px -18px rgba(10, 26, 63, .35);
+}
+
+/* ---- buttons: a gradient face, and a sheen that crosses on hover ---- */
+.rf-site .rf-btn { overflow: hidden; isolation: isolate; }
+.rf-site .rf-btn:not(.ghost):not(.glass):not(.link):not(.light) {
+  background-image: linear-gradient(135deg, #0a1a3f 0%, #133a8a 60%, #1a56c4 100%);
+  border-color: #0b2257;
+  box-shadow: 0 10px 22px -12px rgba(18, 63, 154, .7);
+}
+.rf-site .rf-btn::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.rf-site .rf-btn:hover::after { transform: translateX(120%); transition: transform .8s var(--rf-ease-out); }
+.rf-site .rf-btn.ghost {
+  --btn-face: rgba(255, 255, 255, .6); --btn-edge: rgba(26, 86, 196, .25); --btn-ink: var(--rf-navy);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.rf-site .rf-btn.ghost::after { background: linear-gradient(110deg, transparent 30%, rgba(26, 86, 196, .12) 50%, transparent 70%); }
+.rf-btn.light { --btn-face: #fff; --btn-edge: #fff; --btn-ink: var(--rf-navy); }
+
+/* ---- glass cards over a drifting wash ---- */
+.rf-site .rf-section { position: relative; isolation: isolate; overflow: hidden; }
+.rf-site .rf-section::before {
+  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(32% 38% at 18% 22%, rgba(59, 130, 246, .16), transparent 70%),
+    radial-gradient(30% 36% at 84% 30%, rgba(26, 86, 196, .13), transparent 70%),
+    radial-gradient(34% 40% at 60% 92%, rgba(125, 180, 255, .2), transparent 70%);
+  animation: rf-aurora 28s ease-in-out infinite alternate;
+}
+.rf-site .rf-section.alt { background: linear-gradient(180deg, #e6f0fd 0%, var(--rf-sky) 100%); border-block-color: var(--rf-sky-2); }
+
+.rf-site .rf-card,
+.rf-site .rf-product {
+  position: relative;
+  background-color: var(--rf-glass-light);
+  border: 1px solid var(--rf-glass-light-edge);
+  box-shadow: var(--rf-glass-depth);
+  -webkit-backdrop-filter: saturate(170%) blur(18px);
+  backdrop-filter: saturate(170%) blur(18px);
+}
+/* The light under the pointer, positioned by motion.js. */
+.rf-site .rf-card,
+.rf-site .rf-product,
+.rf-hero-stats,
+.rf-cta-card {
+  background-image: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .42), transparent 42%);
+}
+.rf-site a.rf-card:hover, .rf-site .rf-product:hover, .rf-site .rf-card.interactive:hover {
+  transform: perspective(900px) translateY(-6px) rotateX(2deg);
+  border-color: #fff;
+  box-shadow: 0 1px 0 #fff inset, 0 36px 64px -30px rgba(10, 26, 63, .55);
+}
+.rf-site .rf-product .rate {
+  background: linear-gradient(120deg, var(--rf-navy) 0%, var(--rf-blue) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.rf-site .rf-product .rate small { -webkit-text-fill-color: var(--rf-ink-3); }
+.rf-site .rf-feature .ic {
+  background: linear-gradient(135deg, rgba(26, 86, 196, .14), rgba(59, 130, 246, .22));
+  color: var(--rf-blue);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset;
+}
+.rf-site .rf-section h2 { color: var(--rf-navy); }
+
+/* ---- deep bands ----
+   The tokens are redefined inside the band, so every component in it - cards,
+   muted text, rules, features - turns over without a rule of its own. */
+.rf-section.deep, .rf-cta, .rf-footer {
+  --rf-ink: #ffffff;
+  --rf-ink-2: #d9e5f8;
+  --rf-ink-3: #a9c0e6;
+  --rf-line: rgba(255, 255, 255, .16);
+  --rf-line-2: rgba(255, 255, 255, .1);
+  --rf-surface: rgba(255, 255, 255, .06);
+  --rf-surface-2: rgba(255, 255, 255, .04);
+  --rf-glass-light: rgba(255, 255, 255, .07);
+  --rf-glass-light-edge: rgba(255, 255, 255, .16);
+  --rf-glass-depth: 0 1px 0 rgba(255, 255, 255, .14) inset, 0 30px 60px -30px rgba(0, 0, 0, .6);
+  background: var(--rf-deep);
+  color: var(--rf-ink);
+}
+.rf-site .rf-section.deep { border-block: 0; }
+.rf-site .rf-section.deep::before,
+.rf-cta::before,
+.rf-footer::before {
+  background:
+    radial-gradient(30% 40% at 15% 20%, rgba(59, 130, 246, .35), transparent 70%),
+    radial-gradient(28% 38% at 85% 25%, rgba(212, 173, 90, .14), transparent 70%),
+    radial-gradient(36% 44% at 55% 95%, rgba(96, 165, 250, .28), transparent 70%);
+}
+.rf-site .rf-section.deep h2, .rf-section.deep h3, .rf-section.deep blockquote { color: #fff; }
+.rf-section.deep .rf-eyebrow, .rf-cta .rf-eyebrow { color: #8fb8ff; }
+.rf-section.deep .section-lede, .rf-section.deep .rf-muted, .rf-section.deep p { color: var(--rf-ink-2); }
+.rf-section.deep .rf-feature .ic { background: rgba(255, 255, 255, .1); color: #a8c8ff; box-shadow: 0 1px 0 rgba(255, 255, 255, .18) inset; }
+.rf-site .rf-section.deep .rf-card,
+.rf-site .rf-section.deep .rf-product { background-image: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .12), transparent 42%); }
+.rf-site .rf-section.deep a.rf-card:hover { border-color: rgba(255, 255, 255, .3); }
+.rf-site .rf-section.deep .rf-btn.ghost { --btn-face: rgba(255, 255, 255, .08); --btn-edge: rgba(255, 255, 255, .3); --btn-ink: #fff; }
+.rf-section.deep .rf-stat .v { color: #fff; }
+
+/* ---- the closing band ---- */
+.rf-cta { position: relative; isolation: isolate; overflow: hidden; padding: clamp(56px, 8vw, 96px) 0; }
+.rf-cta::before, .rf-footer::before {
+  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
+  animation: rf-aurora 30s ease-in-out infinite alternate;
+}
+.rf-cta-card {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 28px; align-items: center;
+  padding: clamp(28px, 4vw, 48px);
+  border-radius: 28px;
+  background-color: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .16) inset, 0 40px 80px -40px rgba(0, 0, 0, .7);
+  -webkit-backdrop-filter: saturate(160%) blur(20px); backdrop-filter: saturate(160%) blur(20px);
+}
+.rf-cta h2 { font-family: var(--rf-headline); font-weight: 600; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.1; margin: 0 0 10px; color: #fff; }
+.rf-cta p { margin: 0; color: var(--rf-ink-2); max-width: 52ch; }
+.rf-cta-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.rf-cta .rf-btn.glass { --btn-ink: #fff; }
+@media (max-width: 800px) {
+  .rf-cta-card { grid-template-columns: minmax(0, 1fr); }
+  .rf-cta-actions { justify-content: stretch; }
+  .rf-cta-actions .rf-btn { flex: 1 1 auto; }
+}
+
+/* ---- the footer: deep, continuous with the band above ---- */
+.rf-footer { position: relative; isolation: isolate; overflow: hidden; color: var(--rf-ink-3); border-top: 1px solid rgba(255, 255, 255, .08); }
+.rf-footer a { color: var(--rf-ink-2); transition: color .2s var(--rf-ease); }
+.rf-footer a:hover { color: #fff; }
+.rf-footer .legal { color: #8aa3cc; }
+
+/* ---- the hero: richer wash, glass figures, deeper type ---- */
+.rf-hero.home.has-photo::before {
+  background:
+    linear-gradient(90deg, #eef5ff 0%, rgba(232, 242, 255, .94) 30%, rgba(220, 233, 251, .42) 56%, rgba(220, 233, 251, 0) 78%),
+    linear-gradient(to top, rgba(220, 233, 251, .6) 0%, transparent 32%);
+}
+.rf-hero.has-photo::before {
+  background:
+    linear-gradient(100deg, rgba(238, 245, 255, .97) 0%, rgba(230, 240, 253, .9) 38%, rgba(220, 233, 251, .38) 66%, rgba(220, 233, 251, .05) 100%);
+}
+.rf-hero::after {
+  opacity: 1;
+  background:
+    radial-gradient(40% 50% at 8% 90%, rgba(26, 86, 196, .16), transparent 70%),
+    radial-gradient(30% 40% at 30% 10%, rgba(59, 130, 246, .12), transparent 70%);
+  animation: rf-aurora 26s ease-in-out infinite alternate;
+}
+.rf-hero h1 {
+  background: linear-gradient(120deg, #07142f 0%, #0b2257 45%, #1a56c4 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding-bottom: .06em;
+}
+.rf-hero .rf-glass {
+  background-color: rgba(255, 255, 255, .55);
+  border-color: rgba(255, 255, 255, .9);
+  box-shadow: 0 1px 0 #fff inset, 0 30px 60px -30px rgba(10, 26, 63, .5);
+}
+.rf-hero-stats .v { color: var(--rf-navy); }
+.rf-hero-stats > div { position: relative; }
+.rf-hero-stats > div + div::before {
+  content: ""; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(26, 86, 196, .25), transparent);
+}
+.rf-hero-photo { scale: 1.04; }
+
+/* ---- motion ---- */
+@keyframes rf-aurora {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(4%, -3%, 0) rotate(6deg) scale(1.06); }
+  100% { transform: translate3d(-3%, 4%, 0) rotate(-4deg) scale(1.02); }
+}
+@keyframes rf-rise {
+  from { opacity: 0; transform: translateY(26px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes rf-breathe {
+  from { scale: 1.04; }
+  to   { scale: 1.11; }
+}
+
+.rf-motion .rf-hero-photo { animation: rf-breathe 22s ease-in-out infinite alternate; }
+.rf-motion .rf-hero .rf-hero-copy > *,
+.rf-motion .rf-hero .wrap > :not(.rf-hero-copy) {
+  animation: rf-rise 1s var(--rf-ease-out) both;
+}
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(1), .rf-motion .rf-hero .wrap > :nth-child(1):not(.rf-hero-copy) { animation-delay: .05s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(2), .rf-motion .rf-hero .wrap > :nth-child(2):not(.rf-hero-copy) { animation-delay: .15s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(3), .rf-motion .rf-hero .wrap > :nth-child(3):not(.rf-hero-copy) { animation-delay: .28s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(4) { animation-delay: .4s; }
+.rf-motion .rf-hero .wrap > .rf-hero-stats { animation-delay: .55s; }
+
+.rf-site [data-reveal] {
+  opacity: 0; transform: translateY(28px) scale(.985);
+  transition: opacity .8s var(--rf-ease-out), transform 1s var(--rf-ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.rf-site [data-reveal].in { opacity: 1; transform: none; }
+/* A revealed card still lifts on hover: the hover transform wins once in. */
+.rf-site a.rf-card[data-reveal].in:hover, .rf-site .rf-product[data-reveal].in:hover {
+  transform: perspective(900px) translateY(-6px) rotateX(2deg);
+  transition: transform var(--rf-tilt), box-shadow var(--rf-tilt), border-color var(--rf-tilt);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-site .rf-section::before, .rf-cta::before, .rf-footer::before, .rf-hero::after { animation: none; }
+  .rf-site [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .rf-site .rf-btn:hover::after { transition: none; }
+}
+
+/* Narrow screens: the copy spans the photograph, so the wash covers it evenly
+   rather than clearing to the right, and the stat dividers (which mark
+   columns, not rows) step aside once the figures wrap. */
+@media (max-width: 999px) {
+  .rf-hero.has-photo::before,
+  .rf-hero.home.has-photo::before {
+    background: linear-gradient(180deg, rgba(238, 245, 255, .9) 0%, rgba(228, 239, 253, .86) 100%);
+  }
+  .rf-hero-stats > div + div::before { display: none; }
+}

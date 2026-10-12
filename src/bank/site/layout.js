@@ -391,6 +391,21 @@ function marketingNav(active = '') {
 
 function marketingFooter() {
   return `
+  <section class="rf-cta" aria-label="Open an account">
+    <div class="wrap">
+      <div class="rf-cta-card">
+        <div>
+          <span class="rf-eyebrow">Ready when you are</span>
+          <h2>Open an account in about ten minutes.</h2>
+          <p>No monthly fee on Everyday Checking, 4.35% APY on savings, and a banker who answers when you call.</p>
+        </div>
+        <div class="rf-cta-actions">
+          <a class="rf-btn lg pill light" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
+          <a class="rf-btn lg pill glass" href="/support">Talk to us</a>
+        </div>
+      </div>
+    </div>
+  </section>
   <footer class="rf-footer">
     <div class="wrap">
       <div class="cols">
@@ -450,7 +465,7 @@ function marketingPage({ title, description, active, content, extraScripts = [],
     marketingFooter(),
     chatWidget(),
     `  <div class="rf-toasts" id="rf-toasts"></div>`,
-    scripts(['/js/main.js', '/js/supabase-lite.js', '/js/chat.js', ...extraScripts]),
+    scripts(['/js/main.js', '/js/motion.js', '/js/supabase-lite.js', '/js/chat.js', ...extraScripts]),
   ].join('\n');
 }
 

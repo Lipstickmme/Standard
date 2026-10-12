@@ -129,7 +129,7 @@ const homeContent = `
     </div>
   </section>
 
-  <section class="rf-section">
+  <section class="rf-section deep">
     <div class="wrap">
       <span class="rf-eyebrow">Moving money</span>
       <h2>Every payment leaves a receipt you can quote.</h2>
@@ -189,7 +189,7 @@ const homeContent = `
     </div>
   </section>
 
-  <section class="rf-section alt">
+  <section class="rf-section deep">
     <div class="wrap" style="max-width:820px;text-align:center">
       <blockquote style="font-family:var(--rf-headline);font-weight:500;font-style:italic;font-size:clamp(24px,3vw,36px);line-height:1.32;letter-spacing:0;margin:0 0 18px">
         &ldquo;${ceo.quote}&rdquo;
@@ -238,7 +238,7 @@ const personalContent = `
     </div>
   </section>
 
-  <section class="rf-section alt">
+  <section class="rf-section deep">
     <div class="wrap">
       <span class="rf-eyebrow">What comes with all of it</span>
       <h2>The parts that are not on the rate sheet.</h2>
@@ -267,7 +267,7 @@ const businessContent = `
     image: images.businessHeader,
   })}
 
-  <section class="rf-section">
+  <section class="rf-section deep">
     <div class="wrap">
       <span class="rf-eyebrow">How it works</span>
       <h2>Controls first, then convenience.</h2>
