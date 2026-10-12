@@ -32,8 +32,9 @@ const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 // Only the weights the stylesheet actually sets. Every extra one is a file
 // somebody downloads to render nothing.
 const FAMILIES = [
-  'Plus+Jakarta+Sans:wght@400;500;600;700;800', // headlines, body, labels, buttons
-  'IBM+Plex+Mono:wght@400;500',                 // account numbers and amounts
+  'Playfair+Display:ital,wght@0,500;0,600;1,500', // headlines and figures, after the logo's serif
+  'Jost:wght@300;400;500;600',                    // body, labels and the wide-spaced capitals
+  'IBM+Plex+Mono:wght@400;500',                   // account numbers and amounts
 ];
 
 const KEEP_SUBSETS = new Set(['latin', 'latin-ext']);

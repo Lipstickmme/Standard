@@ -1425,567 +1425,362 @@ a.rf-auth-brand {
   .chat-panel { height: min(70vh, 520px); }
 }
 
-/* ==========================================================================
-   The corporate palette on the public site and the sign-in pages.
-
-   Navy from the logo carries the type and the primary buttons, a corporate
-   blue marks eyebrows and links, and the grounds are white and light blue.
-   The gold is left to the logo. These pages are always light (their <html>
-   carries data-rf-theme="light"); the footer and the application sidebar
-   stay navy, which is what anchors a light page.
-   ========================================================================== */
-
-.rf-section.alt { background: var(--rf-sky); border-block-color: var(--rf-sky-2); }
-.rf-site .rf-eyebrow, .rf-auth .rf-eyebrow { color: var(--rf-blue); }
-
-.rf-hero {
-  background: linear-gradient(160deg, #f6faff 0%, #e8f2fd 55%, #d9e9f9 100%);
-  color: var(--rf-navy);
-}
-.rf-hero::after {
-  opacity: .7;
-  background:
-    radial-gradient(55% 45% at 82% 10%, rgba(255, 255, 255, .9), transparent 70%),
-    radial-gradient(45% 45% at 6% 92%, rgba(31, 95, 174, .12), transparent 70%);
-}
-.rf-hero.has-photo::after { opacity: 0; }
-.rf-hero h1 { color: var(--rf-navy); }
-.rf-hero p.lede { color: var(--rf-ink-2); }
-.rf-hero .rf-eyebrow { color: var(--rf-blue); }
-.rf-hero-mark { opacity: .07; }
-
-/* Over a photograph the scrim is now light: white on the left where the
-   words are, clearing to the picture on the right. */
-.rf-hero.has-photo::before {
-  background:
-    linear-gradient(100deg, rgba(246, 250, 255, .97) 0%, rgba(238, 246, 254, .9) 38%, rgba(232, 242, 252, .4) 66%, rgba(232, 242, 252, .06) 100%);
-}
-.rf-hero.home { background: var(--rf-sky); }
-.rf-hero.home.has-photo::before {
-  background:
-    linear-gradient(90deg, #f6faff 0%, rgba(240, 247, 255, .95) 30%, rgba(234, 243, 253, .45) 56%, rgba(234, 243, 253, 0) 78%),
-    linear-gradient(to top, rgba(234, 243, 253, .55) 0%, transparent 32%);
-}
-.rf-hero.home .rf-eyebrow { color: var(--rf-blue); }
-.rf-hero.home p.lede { color: var(--rf-ink-2); }
-
-.rf-hero-link { color: var(--rf-navy); border-bottom-color: var(--rf-navy); }
-.rf-hero-link:hover { color: var(--rf-blue); border-bottom-color: var(--rf-blue); }
-
-/* The figures on white glass rather than dark. */
-.rf-hero .rf-glass {
-  background: rgba(255, 255, 255, .86);
-  border-color: rgba(255, 255, 255, .95);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 22px 44px -26px rgba(14, 33, 72, .45);
-}
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .rf-hero .rf-glass { background: rgba(255, 255, 255, .7); }
-}
-.rf-hero-stats .k { color: var(--rf-ink-3); }
-.rf-hero-stats .v { color: var(--rf-navy); }
-
-/* The sign-in aside: light blue, with the full-colour lockup. */
-.rf-auth-aside {
-  background: linear-gradient(150deg, #f6faff 0%, #e6f1fc 60%, #d3e5f8 100%);
-  color: var(--rf-navy);
-}
-.rf-auth-aside::after {
-  background:
-    radial-gradient(60% 40% at 80% 15%, rgba(255, 255, 255, .85), transparent 70%),
-    radial-gradient(50% 40% at 10% 90%, rgba(31, 95, 174, .12), transparent 70%);
-}
-.rf-auth-aside p { color: var(--rf-ink-2); }
-.rf-auth-points li { color: var(--rf-ink-2); }
-.rf-auth-points svg { color: var(--rf-blue); }
-.rf-auth-foot { color: var(--rf-ink-3); border-top-color: rgba(14, 33, 72, .12); }
-
-@media (max-width: 900px) {
-  .rf-hero.has-photo::before,
-  .rf-hero.home.has-photo::before {
-    background: linear-gradient(180deg, rgba(246, 250, 255, .9) 0%, rgba(238, 246, 254, .84) 100%);
-  }
-}
-
-/* Accents in corporate blue rather than brass. */
-.rf-marketing-nav nav a::after { background: var(--rf-blue); }
-.rf-feature .ic { background: var(--rf-sky); color: var(--rf-blue); }
-.rf-site .role .team { color: var(--rf-blue); }
-.rf-tabs button.is-active { border-bottom-color: var(--rf-blue); }
-.rf-btn:focus-visible, .rf-hero-link:focus-visible { outline-color: var(--rf-blue); }
 
 /* ==========================================================================
-   Remodel: deeper colour, glass and motion on the public site.
+   The Standard theme.
 
-   Deeper blues throughout: a midnight navy from the logo, a royal blue for
-   accents, and a richer light blue for the washes. Cards are frosted glass
-   over slowly drifting colour, so the glass has something to be glass over.
-   Some sections are "deep": a navy-to-royal band with dark glass on it, which
-   gives the page a rhythm of light and dark rather than one long white sheet.
+   Taken from the logo: STANDARD in a roman serif, MERCHANT BANK in wide-
+   spaced capitals, a short hairline beneath, white on navy #002445. The site
+   is built from the same four things - that navy, white, the serif for what
+   is said and the spaced capitals for what labels it, and a hairline rule
+   where something needs separating. Colour is used sparingly, corners are
+   nearly square, and motion is slow and quiet: things fade and settle, they
+   do not bounce.
+
+   The logo always appears on its own navy: the nav, the footer, the sign-in
+   panel and the closing band are that colour, so the lockup is seen exactly
+   as it was drawn.
    ========================================================================== */
 
 :root {
-  --rf-navy: #0a1a3f;
-  --rf-navy-2: #102c66;
-  --rf-navy-3: #1a56c4;
-  --rf-blue: #1a56c4;
-  --rf-blue-2: #3b82f6;
-  --rf-sky: #dce9fb;
-  --rf-sky-2: #b8d2f2;
-  --rf-paper: #eef4fc;
-  --rf-line: #cddcf0;
-  --rf-line-2: #e1ebf8;
+  --rf-navy: #002445;
+  --rf-navy-2: #0a3360;
+  --rf-navy-3: #1d4f86;
+  --rf-navy-deep: #001a33;
+  --rf-blue: #1d4f86;
+  --rf-silver: #a9b9cf;
+  --rf-mist: #f4f6f9;
+  --rf-paper: #ffffff;
+  --rf-surface: #ffffff;
+  --rf-surface-2: #f8f9fb;
+  --rf-surface-3: #eef1f5;
+  --rf-line: #dde3ec;
+  --rf-line-2: #eaeef3;
+  --rf-ink: #0d1b2e;
+  --rf-ink-2: #3b4a5e;
+  --rf-ink-3: #66768c;
+  --rf-ink-4: #98a5b7;
+  --rf-brass: #002445;
+  --rf-brass-2: #a9b9cf;
+  --rf-radius: 4px;
+  --rf-radius-sm: 3px;
+  --rf-radius-lg: 6px;
+  --rf-shadow: 0 1px 2px rgba(0, 36, 69, .04), 0 10px 26px -18px rgba(0, 36, 69, .3);
+  --rf-shadow-lg: 0 2px 4px rgba(0, 36, 69, .04), 0 30px 60px -32px rgba(0, 36, 69, .4);
+  --rf-shadow-hover: 0 2px 6px rgba(0, 36, 69, .06), 0 26px 50px -26px rgba(0, 36, 69, .42);
+  --rf-btn-face: var(--rf-navy);
+  --rf-btn-edge: var(--rf-navy);
   --rf-ease-out: cubic-bezier(.22, 1, .36, 1);
-  --rf-deep: linear-gradient(135deg, #07142f 0%, #0b2257 45%, #123f9a 100%);
-  --rf-glass-light: rgba(255, 255, 255, .58);
-  --rf-glass-light-edge: rgba(255, 255, 255, .85);
-  --rf-glass-depth: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 28px 56px -30px rgba(10, 26, 63, .45), 0 2px 6px rgba(10, 26, 63, .05);
+  --rf-sans: "Jost", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rf-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --rf-headline: "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
-.rf-site { background: var(--rf-paper); }
-
-/* ---- the nav: frosted, and firmer once the page moves under it ---- */
-.rf-site .rf-marketing-nav {
-  background: rgba(255, 255, 255, .7);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-  backdrop-filter: saturate(180%) blur(18px);
-  border-bottom-color: rgba(205, 220, 240, .7);
-  transition: background .3s var(--rf-ease), box-shadow .3s var(--rf-ease);
-}
-.rf-site .rf-marketing-nav.is-scrolled {
-  background: rgba(255, 255, 255, .82);
-  box-shadow: 0 10px 30px -18px rgba(10, 26, 63, .35);
-}
-
-/* ---- buttons: a gradient face, and a sheen that crosses on hover ---- */
-.rf-site .rf-btn { overflow: hidden; isolation: isolate; }
-.rf-site .rf-btn:not(.ghost):not(.glass):not(.link):not(.light) {
-  background-image: linear-gradient(135deg, #0a1a3f 0%, #133a8a 60%, #1a56c4 100%);
-  border-color: #0b2257;
-  box-shadow: 0 10px 22px -12px rgba(18, 63, 154, .7);
-}
-.rf-site .rf-btn::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%);
-  transform: translateX(-120%);
-}
-.rf-site .rf-btn:hover::after { transform: translateX(120%); transition: transform .8s var(--rf-ease-out); }
-.rf-site .rf-btn.ghost {
-  --btn-face: rgba(255, 255, 255, .6); --btn-edge: rgba(26, 86, 196, .25); --btn-ink: var(--rf-navy);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-}
-.rf-site .rf-btn.ghost::after { background: linear-gradient(110deg, transparent 30%, rgba(26, 86, 196, .12) 50%, transparent 70%); }
-.rf-btn.light { --btn-face: #fff; --btn-edge: #fff; --btn-ink: var(--rf-navy); }
-
-/* ---- glass cards over a drifting wash ---- */
-.rf-site .rf-section { position: relative; isolation: isolate; overflow: hidden; }
-.rf-site .rf-section::before {
-  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(32% 38% at 18% 22%, rgba(59, 130, 246, .16), transparent 70%),
-    radial-gradient(30% 36% at 84% 30%, rgba(26, 86, 196, .13), transparent 70%),
-    radial-gradient(34% 40% at 60% 92%, rgba(125, 180, 255, .2), transparent 70%);
-  animation: rf-aurora 28s ease-in-out infinite alternate;
-}
-.rf-site .rf-section.alt { background: linear-gradient(180deg, #e6f0fd 0%, var(--rf-sky) 100%); border-block-color: var(--rf-sky-2); }
-
-.rf-site .rf-card,
-.rf-site .rf-product {
-  position: relative;
-  background-color: var(--rf-glass-light);
-  border: 1px solid var(--rf-glass-light-edge);
-  box-shadow: var(--rf-glass-depth);
-  -webkit-backdrop-filter: saturate(170%) blur(18px);
-  backdrop-filter: saturate(170%) blur(18px);
-}
-/* The light under the pointer, positioned by motion.js. */
-.rf-site .rf-card,
-.rf-site .rf-product,
-.rf-hero-stats,
-.rf-cta-card {
-  background-image: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .42), transparent 42%);
-}
-.rf-site a.rf-card:hover, .rf-site .rf-product:hover, .rf-site .rf-card.interactive:hover {
-  transform: perspective(900px) translateY(-6px) rotateX(2deg);
-  border-color: #fff;
-  box-shadow: 0 1px 0 #fff inset, 0 36px 64px -30px rgba(10, 26, 63, .55);
-}
-.rf-site .rf-product .rate {
-  background: linear-gradient(120deg, var(--rf-navy) 0%, var(--rf-blue) 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.rf-site .rf-product .rate small { -webkit-text-fill-color: var(--rf-ink-3); }
-.rf-site .rf-feature .ic {
-  background: linear-gradient(135deg, rgba(26, 86, 196, .14), rgba(59, 130, 246, .22));
-  color: var(--rf-blue);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset;
-}
-.rf-site .rf-section h2 { color: var(--rf-navy); }
-
-/* ---- deep bands ----
-   The tokens are redefined inside the band, so every component in it - cards,
-   muted text, rules, features - turns over without a rule of its own. */
-.rf-section.deep, .rf-cta, .rf-footer {
-  --rf-ink: #ffffff;
-  --rf-ink-2: #d9e5f8;
-  --rf-ink-3: #a9c0e6;
-  --rf-line: rgba(255, 255, 255, .16);
-  --rf-line-2: rgba(255, 255, 255, .1);
-  --rf-surface: rgba(255, 255, 255, .06);
-  --rf-surface-2: rgba(255, 255, 255, .04);
-  --rf-glass-light: rgba(255, 255, 255, .07);
-  --rf-glass-light-edge: rgba(255, 255, 255, .16);
-  --rf-glass-depth: 0 1px 0 rgba(255, 255, 255, .14) inset, 0 30px 60px -30px rgba(0, 0, 0, .6);
-  background: var(--rf-deep);
-  color: var(--rf-ink);
-}
-.rf-site .rf-section.deep { border-block: 0; }
-.rf-site .rf-section.deep::before,
-.rf-cta::before,
-.rf-footer::before {
-  background:
-    radial-gradient(30% 40% at 15% 20%, rgba(59, 130, 246, .35), transparent 70%),
-    radial-gradient(28% 38% at 85% 25%, rgba(212, 173, 90, .14), transparent 70%),
-    radial-gradient(36% 44% at 55% 95%, rgba(96, 165, 250, .28), transparent 70%);
-}
-.rf-site .rf-section.deep h2, .rf-section.deep h3, .rf-section.deep blockquote { color: #fff; }
-.rf-section.deep .rf-eyebrow, .rf-cta .rf-eyebrow { color: #8fb8ff; }
-.rf-section.deep .section-lede, .rf-section.deep .rf-muted, .rf-section.deep p { color: var(--rf-ink-2); }
-.rf-section.deep .rf-feature .ic { background: rgba(255, 255, 255, .1); color: #a8c8ff; box-shadow: 0 1px 0 rgba(255, 255, 255, .18) inset; }
-.rf-site .rf-section.deep .rf-card,
-.rf-site .rf-section.deep .rf-product { background-image: radial-gradient(420px circle at var(--mx, -999px) var(--my, -999px), rgba(255, 255, 255, .12), transparent 42%); }
-.rf-site .rf-section.deep a.rf-card:hover { border-color: rgba(255, 255, 255, .3); }
-.rf-site .rf-section.deep .rf-btn.ghost { --btn-face: rgba(255, 255, 255, .08); --btn-edge: rgba(255, 255, 255, .3); --btn-ink: #fff; }
-.rf-section.deep .rf-stat .v { color: #fff; }
-
-/* ---- the closing band ---- */
-.rf-cta { position: relative; isolation: isolate; overflow: hidden; padding: clamp(56px, 8vw, 96px) 0; }
-.rf-cta::before, .rf-footer::before {
-  content: ""; position: absolute; inset: -25%; z-index: -1; pointer-events: none;
-  animation: rf-aurora 30s ease-in-out infinite alternate;
-}
-.rf-cta-card {
-  display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 28px; align-items: center;
-  padding: clamp(28px, 4vw, 48px);
-  border-radius: 28px;
-  background-color: rgba(255, 255, 255, .07);
-  border: 1px solid rgba(255, 255, 255, .18);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .16) inset, 0 40px 80px -40px rgba(0, 0, 0, .7);
-  -webkit-backdrop-filter: saturate(160%) blur(20px); backdrop-filter: saturate(160%) blur(20px);
-}
-.rf-cta h2 { font-family: var(--rf-headline); font-weight: 600; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.1; margin: 0 0 10px; color: #fff; }
-.rf-cta p { margin: 0; color: var(--rf-ink-2); max-width: 52ch; }
-.rf-cta-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
-.rf-cta .rf-btn.glass { --btn-ink: #fff; }
-@media (max-width: 800px) {
-  .rf-cta-card { grid-template-columns: minmax(0, 1fr); }
-  .rf-cta-actions { justify-content: stretch; }
-  .rf-cta-actions .rf-btn { flex: 1 1 auto; }
-}
-
-/* ---- the footer: deep, continuous with the band above ---- */
-.rf-footer { position: relative; isolation: isolate; overflow: hidden; color: var(--rf-ink-3); border-top: 1px solid rgba(255, 255, 255, .08); }
-.rf-footer a { color: var(--rf-ink-2); transition: color .2s var(--rf-ease); }
-.rf-footer a:hover { color: #fff; }
-.rf-footer .legal { color: #8aa3cc; }
-
-/* ---- the hero: richer wash, glass figures, deeper type ---- */
-.rf-hero.home.has-photo::before {
-  background:
-    linear-gradient(90deg, #eef5ff 0%, rgba(232, 242, 255, .94) 30%, rgba(220, 233, 251, .42) 56%, rgba(220, 233, 251, 0) 78%),
-    linear-gradient(to top, rgba(220, 233, 251, .6) 0%, transparent 32%);
-}
-.rf-hero.has-photo::before {
-  background:
-    linear-gradient(100deg, rgba(238, 245, 255, .97) 0%, rgba(230, 240, 253, .9) 38%, rgba(220, 233, 251, .38) 66%, rgba(220, 233, 251, .05) 100%);
-}
-.rf-hero::after {
-  opacity: 1;
-  background:
-    radial-gradient(40% 50% at 8% 90%, rgba(26, 86, 196, .16), transparent 70%),
-    radial-gradient(30% 40% at 30% 10%, rgba(59, 130, 246, .12), transparent 70%);
-  animation: rf-aurora 26s ease-in-out infinite alternate;
-}
-.rf-hero h1 {
-  background: linear-gradient(120deg, #07142f 0%, #0b2257 45%, #1a56c4 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  padding-bottom: .06em;
-}
-.rf-hero .rf-glass {
-  background-color: rgba(255, 255, 255, .55);
-  border-color: rgba(255, 255, 255, .9);
-  box-shadow: 0 1px 0 #fff inset, 0 30px 60px -30px rgba(10, 26, 63, .5);
-}
-.rf-hero-stats .v { color: var(--rf-navy); }
-.rf-hero-stats > div { position: relative; }
-.rf-hero-stats > div + div::before {
-  content: ""; position: absolute; left: -10px; top: 6px; bottom: 6px; width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(26, 86, 196, .25), transparent);
-}
-.rf-hero-photo { scale: 1.04; }
-
-/* ---- motion ---- */
-@keyframes rf-aurora {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
-  50%  { transform: translate3d(4%, -3%, 0) rotate(6deg) scale(1.06); }
-  100% { transform: translate3d(-3%, 4%, 0) rotate(-4deg) scale(1.02); }
-}
-@keyframes rf-rise {
-  from { opacity: 0; transform: translateY(26px); filter: blur(6px); }
-  to   { opacity: 1; transform: none; filter: none; }
-}
-@keyframes rf-breathe {
-  from { scale: 1.04; }
-  to   { scale: 1.11; }
-}
-
-.rf-motion .rf-hero-photo { animation: rf-breathe 22s ease-in-out infinite alternate; }
-.rf-motion .rf-hero .rf-hero-copy > *,
-.rf-motion .rf-hero .wrap > :not(.rf-hero-copy) {
-  animation: rf-rise 1s var(--rf-ease-out) both;
-}
-.rf-motion .rf-hero .rf-hero-copy > :nth-child(1), .rf-motion .rf-hero .wrap > :nth-child(1):not(.rf-hero-copy) { animation-delay: .05s; }
-.rf-motion .rf-hero .rf-hero-copy > :nth-child(2), .rf-motion .rf-hero .wrap > :nth-child(2):not(.rf-hero-copy) { animation-delay: .15s; }
-.rf-motion .rf-hero .rf-hero-copy > :nth-child(3), .rf-motion .rf-hero .wrap > :nth-child(3):not(.rf-hero-copy) { animation-delay: .28s; }
-.rf-motion .rf-hero .rf-hero-copy > :nth-child(4) { animation-delay: .4s; }
-.rf-motion .rf-hero .wrap > .rf-hero-stats { animation-delay: .55s; }
-
-.rf-site [data-reveal] {
-  opacity: 0; transform: translateY(28px) scale(.985);
-  transition: opacity .8s var(--rf-ease-out), transform 1s var(--rf-ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-.rf-site [data-reveal].in { opacity: 1; transform: none; }
-/* A revealed card still lifts on hover: the hover transform wins once in. */
-.rf-site a.rf-card[data-reveal].in:hover, .rf-site .rf-product[data-reveal].in:hover {
-  transform: perspective(900px) translateY(-6px) rotateX(2deg);
-  transition: transform var(--rf-tilt), box-shadow var(--rf-tilt), border-color var(--rf-tilt);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rf-site .rf-section::before, .rf-cta::before, .rf-footer::before, .rf-hero::after { animation: none; }
-  .rf-site [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .rf-site .rf-btn:hover::after { transition: none; }
-}
-
-/* Narrow screens: the copy spans the photograph, so the wash covers it evenly
-   rather than clearing to the right, and the stat dividers (which mark
-   columns, not rows) step aside once the figures wrap. */
-@media (max-width: 999px) {
-  .rf-hero.has-photo::before,
-  .rf-hero.home.has-photo::before {
-    background: linear-gradient(180deg, rgba(238, 245, 255, .9) 0%, rgba(228, 239, 253, .86) 100%);
-  }
-  .rf-hero-stats > div + div::before { display: none; }
-}
-
-/* ==========================================================================
-   The geometric redesign: the slab mark, heavy sans headlines, a feature row
-   and a trust strip, and the device showcase. The slanted slabs that make up
-   the mark recur as translucent shapes behind the photograph and the phone,
-   so the page is built out of the same pieces as the logo.
-   ========================================================================== */
+.rf-site, .rf-auth { background: var(--rf-paper); color: var(--rf-ink); font-size: 16.5px; line-height: 1.65; }
 
 /* ---- type ---- */
-.rf-hero h1, .rf-section h2, .rf-cta h2, .rf-auth-aside h2, .rf-auth-box h1 {
-  font-weight: 800; letter-spacing: -.035em;
+.rf-site h1, .rf-site h2, .rf-auth h1, .rf-auth h2, .rf-cta h2 {
+  font-family: var(--rf-headline); font-weight: 500; letter-spacing: -.005em; line-height: 1.12;
 }
-.rf-hero.home h1 { font-size: clamp(42px, 5.8vw, 74px); line-height: 1.02; }
-.rf-hero.compact h1 { font-size: clamp(32px, 4.4vw, 52px) !important; line-height: 1.06; }
-.rf-section h2 { font-size: clamp(28px, 3.4vw, 42px); line-height: 1.1; }
-.rf-cta h2 { font-size: clamp(26px, 3.2vw, 40px); }
-.rf-section.alt blockquote, .rf-section.deep blockquote { font-family: var(--rf-headline) !important; font-style: normal !important; font-weight: 600 !important; letter-spacing: -.02em !important; }
-.rf-eyebrow { font-weight: 700; letter-spacing: .18em; }
+.rf-site h3 { font-family: var(--rf-headline); font-weight: 500; letter-spacing: 0; }
+.rf-eyebrow {
+  display: inline-block; margin-bottom: 18px;
+  font: 500 12px/1.4 var(--rf-sans); letter-spacing: .34em; text-transform: uppercase;
+  color: var(--rf-navy-3);
+}
+.rf-section h2 { font-size: clamp(30px, 3.6vw, 46px); color: var(--rf-navy); margin: 0 0 12px; }
+.rf-section .section-lede { color: var(--rf-ink-3); font-size: 17px; max-width: 58ch; }
 
-/* ---- the nav carries the full lockup ---- */
-.rf-nav-logo { display: block; height: 40px; width: auto; }
-.rf-marketing-nav nav a { font-weight: 600; }
-@media (max-width: 620px) { .rf-nav-logo { height: 32px; } }
+/* The hairline from the logo: under every section heading, in the hero and
+   the closing band. It draws outwards from the left as the heading arrives. */
+.rf-rule { display: block; width: 64px; height: 1px; background: currentColor; opacity: .55; margin: 22px 0 24px; transform-origin: left; }
+.rf-site .rf-section h2::after {
+  content: ""; display: block; width: 56px; height: 1px; margin-top: 20px;
+  background: var(--rf-navy); opacity: .35; transform-origin: left;
+}
+.rf-site .rf-section .wrap[style*="text-align:center"] h2::after { margin-inline: auto; transform-origin: center; }
 
-/* ---- hero: the feature row ---- */
-.rf-hero.home .rf-hero-copy { max-width: 38rem; }
+/* ---- buttons: nearly square, spaced capitals ---- */
+.rf-site .rf-btn, .rf-auth .rf-btn {
+  border-radius: 2px; text-transform: uppercase; letter-spacing: .18em;
+  font: 500 12.5px/1 var(--rf-sans); padding: 0 24px; min-height: 46px;
+}
+.rf-site .rf-btn.lg { min-height: 52px; padding: 0 32px; font-size: 13px; }
+.rf-site .rf-btn.sm { min-height: 38px; padding: 0 16px; font-size: 11.5px; }
+.rf-site .rf-btn:hover, .rf-auth .rf-btn:hover { transform: translateY(-1px); filter: none; box-shadow: 0 12px 24px -16px rgba(0, 36, 69, .6); }
+.rf-site .rf-btn:not(.ghost):not(.glass):not(.link):not(.light):hover { --btn-face: var(--rf-navy-2); }
+.rf-site .rf-btn.ghost { --btn-face: transparent; --btn-edge: rgba(0, 36, 69, .35); --btn-ink: var(--rf-navy); }
+.rf-site .rf-btn.ghost:hover { --btn-face: var(--rf-navy); --btn-ink: #fff; --btn-edge: var(--rf-navy); }
+.rf-btn.light { --btn-face: #fff; --btn-edge: #fff; --btn-ink: var(--rf-navy); }
+.rf-btn.light:hover { --btn-face: #eef2f7; }
+.rf-site .rf-btn.glass, .rf-auth .rf-btn.glass { --btn-face: transparent; --btn-edge: rgba(255, 255, 255, .55); --btn-ink: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.rf-site .rf-btn.glass:hover { --btn-face: rgba(255, 255, 255, .1); --btn-edge: #fff; }
+.rf-btn:focus-visible { outline: 1px solid var(--rf-navy-3); outline-offset: 3px; }
+.rf-btn.pill { border-radius: 2px; }
+
+/* ---- the nav: the logo on its own navy ---- */
+.rf-site .rf-marketing-nav {
+  background: rgba(0, 36, 69, .97); border-bottom: 1px solid rgba(255, 255, 255, .08);
+  transition: background .4s var(--rf-ease), box-shadow .4s var(--rf-ease);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .rf-site .rf-marketing-nav { background: rgba(0, 36, 69, .9); -webkit-backdrop-filter: saturate(140%) blur(14px); backdrop-filter: saturate(140%) blur(14px); }
+}
+.rf-site .rf-marketing-nav.is-scrolled { box-shadow: 0 14px 34px -22px rgba(0, 14, 30, .8); }
+.rf-site .rf-marketing-nav .inner { padding: 16px 0; }
+.rf-nav-logo { display: block; height: 50px; width: auto; }
+.rf-site .rf-marketing-nav nav a {
+  color: rgba(255, 255, 255, .78); font: 500 12px/1 var(--rf-sans); letter-spacing: .2em; text-transform: uppercase;
+  margin: 0 13px; padding: 10px 0;
+}
+.rf-site .rf-marketing-nav nav a::after { background: #fff; height: 1px; }
+.rf-site .rf-marketing-nav nav a:hover, .rf-site .rf-marketing-nav nav a.is-active { color: #fff; font-weight: 500; }
+.rf-site .rf-marketing-nav .rf-btn.ghost { --btn-face: transparent; --btn-edge: rgba(255, 255, 255, .45); --btn-ink: #fff; }
+.rf-site .rf-marketing-nav .rf-btn.ghost:hover { --btn-face: rgba(255, 255, 255, .1); --btn-edge: #fff; }
+.rf-site .rf-marketing-nav .rf-btn:not(.ghost) { --btn-face: #fff; --btn-edge: #fff; --btn-ink: var(--rf-navy); }
+.rf-site .rf-marketing-nav .rf-btn:not(.ghost):hover { --btn-face: #eef2f7; }
+@media (max-width: 620px) { .rf-nav-logo { height: 40px; } .rf-site .rf-marketing-nav .inner { padding: 12px 0; } }
+
+/* ---- heroes: photographs under the logo's navy ---- */
+.rf-site .rf-hero { background: var(--rf-navy); color: #fff; }
+.rf-site .rf-hero::after { display: none; }
+.rf-site .rf-hero h1 { color: #fff; }
+.rf-site .rf-hero p.lede { color: rgba(255, 255, 255, .82); font-weight: 300; font-size: clamp(17px, 1.6vw, 20px); }
+.rf-site .rf-hero .rf-eyebrow { color: var(--rf-silver); }
+.rf-site .rf-hero .rf-rule { color: #fff; }
+.rf-site .rf-hero.has-photo::before {
+  background: linear-gradient(100deg, rgba(0, 36, 69, .93) 0%, rgba(0, 36, 69, .82) 38%, rgba(0, 36, 69, .45) 68%, rgba(0, 36, 69, .3) 100%);
+}
+.rf-site .rf-hero.home { background: var(--rf-navy); min-height: min(88vh, 800px); }
+.rf-site .rf-hero.home .rf-hero-photo { left: 0; width: 100%; -webkit-mask-image: none; mask-image: none; object-position: 62% 30%; }
+.rf-site .rf-hero.home.has-photo::before {
+  background:
+    linear-gradient(90deg, rgba(0, 36, 69, .95) 0%, rgba(0, 36, 69, .86) 34%, rgba(0, 36, 69, .42) 62%, rgba(0, 36, 69, .22) 100%),
+    linear-gradient(to top, rgba(0, 26, 51, .6) 0%, transparent 40%);
+}
+.rf-site .rf-hero.home h1 { font-size: clamp(44px, 6vw, 78px); line-height: 1.05; }
+.rf-site .rf-hero.home .rf-hero-copy { max-width: 40rem; }
+.rf-site .rf-hero.compact h1 { font-size: clamp(34px, 4.4vw, 54px) !important; }
+.rf-site .rf-hero-photo { object-position: center 22%; }
+.rf-site .rf-hero.has-mark { background: radial-gradient(70% 90% at 85% 50%, #0a3360 0%, var(--rf-navy) 70%); }
+.rf-site .rf-hero-mark { opacity: .08; height: 86%; right: 6%; }
+.rf-hero-link {
+  color: #fff; font: 500 12.5px/1 var(--rf-sans); letter-spacing: .18em; text-transform: uppercase; text-decoration: none;
+  padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, .55); transition: border-color .3s var(--rf-ease);
+}
+.rf-hero-link:hover { color: #fff; border-bottom-color: #fff; }
+.rf-site .rf-hero .rf-hero-actions { gap: 16px 34px; align-items: center; }
+@media (max-width: 999px) {
+  .rf-site .rf-hero.has-photo::before, .rf-site .rf-hero.home.has-photo::before {
+    background: linear-gradient(180deg, rgba(0, 36, 69, .84) 0%, rgba(0, 36, 69, .9) 100%);
+  }
+  .rf-site .rf-hero.home .rf-hero-actions { flex-direction: column; align-items: stretch; }
+  .rf-site .rf-hero.home .rf-hero-link { align-self: center; }
+}
+
+/* The four features, set like the logo's second line. */
 .rf-hero-features {
-  list-style: none; padding: 0; margin: clamp(30px, 4.5vh, 48px) 0 0;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 22px; max-width: 46rem;
+  list-style: none; padding: 34px 0 0; margin: clamp(34px, 5vh, 52px) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 26px; max-width: 48rem;
 }
-.rf-hero-features li { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--rf-ink-3); line-height: 1.45; }
-.rf-hero-features strong { color: var(--rf-navy); font-size: 14.5px; font-weight: 700; margin-top: 8px; }
-.rf-hero-features .ic, .rf-trust .ic {
-  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
-  color: var(--rf-blue);
-  background: linear-gradient(135deg, rgba(255, 255, 255, .9), rgba(220, 233, 251, .9));
-  box-shadow: 0 1px 0 #fff inset, 0 10px 22px -14px rgba(26, 86, 196, .7);
-  border: 1px solid rgba(255, 255, 255, .9);
-  transition: transform .3s var(--rf-ease-out), box-shadow .3s var(--rf-ease-out);
-}
-.rf-hero-features li:hover .ic { transform: translateY(-3px); box-shadow: 0 1px 0 #fff inset, 0 16px 26px -14px rgba(26, 86, 196, .85); }
+.rf-hero-features li { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 300; line-height: 1.5; color: rgba(255, 255, 255, .7); }
+.rf-hero-features strong { color: #fff; font: 500 11.5px/1.4 var(--rf-sans); letter-spacing: .2em; text-transform: uppercase; margin-top: 10px; }
+.rf-hero-features .ic { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: #fff; border: 1px solid rgba(255, 255, 255, .35); }
+.rf-hero-features .ic svg { width: 18px; height: 18px; }
 @media (max-width: 999px) { .rf-hero-features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* ---- the slabs ---- */
-.rf-slab {
-  position: absolute; z-index: 0; pointer-events: none; border-radius: 6px;
-  transform: skewX(-12deg);
-  background: linear-gradient(180deg, rgba(47, 116, 224, .34) 0%, rgba(59, 130, 246, .1) 100%);
-  border: 1px solid rgba(255, 255, 255, .35);
-  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-}
-.rf-hero .rf-slab.one { left: 47%; top: 14%; width: 96px; height: 64%; }
-.rf-hero .rf-slab.two { left: 53.5%; top: 34%; width: 62px; height: 48%; background: linear-gradient(180deg, rgba(140, 188, 255, .4) 0%, rgba(140, 188, 255, .08) 100%); }
-@media (max-width: 999px) { .rf-hero .rf-slab { display: none; } }
-
 /* ---- the trust strip ---- */
-.rf-trust {
-  position: relative; z-index: 1;
-  padding: 30px 0 34px;
-  background: rgba(255, 255, 255, .72);
-  -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px);
-  border-block: 1px solid var(--rf-line-2);
-}
-.rf-trust-title { display: block; text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--rf-blue); margin-bottom: 22px; }
+.rf-trust { padding: 40px 0 44px; background: #fff; border-bottom: 1px solid var(--rf-line); }
+.rf-trust-title { display: block; text-align: center; font: 500 11.5px/1.4 var(--rf-sans); letter-spacing: .34em; text-transform: uppercase; color: var(--rf-ink-3); margin-bottom: 28px; }
 .rf-trust-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.rf-trust-row > div { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 4px 18px; position: relative; }
-.rf-trust-row > div + div::before {
-  content: ""; position: absolute; left: 0; top: 8%; bottom: 8%; width: 1px;
-  background: linear-gradient(180deg, transparent, var(--rf-sky-2), transparent);
-}
-.rf-trust .ic { background: transparent; box-shadow: none; border-color: transparent; width: 40px; height: 40px; }
-.rf-trust .v { font-size: 26px; font-weight: 800; letter-spacing: -.02em; color: var(--rf-navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.rf-trust-row > div { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 4px 18px; position: relative; }
+.rf-trust-row > div + div::before { content: ""; position: absolute; left: 0; top: 10%; bottom: 10%; width: 1px; background: var(--rf-line); }
+.rf-trust .ic { color: var(--rf-navy-3); display: grid; place-items: center; }
+.rf-trust .ic svg { width: 26px; height: 26px; }
+.rf-trust .v { font: 500 32px/1.1 var(--rf-headline); color: var(--rf-navy); font-variant-numeric: lining-nums tabular-nums; }
 .rf-trust .k { font-size: 13px; color: var(--rf-ink-3); }
 @media (max-width: 900px) {
-  .rf-trust-row { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 22px; }
-  .rf-trust-row > div { justify-content: flex-start; padding: 4px 8px; }
+  .rf-trust-row { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 26px; }
+  .rf-trust-row > div { justify-content: flex-start; padding: 4px 6px; }
   .rf-trust-row > div + div::before { display: none; }
 }
 
+/* ---- sections, cards ---- */
+.rf-site .rf-section { position: relative; padding: clamp(64px, 8vw, 112px) 0; }
+.rf-site .rf-section.alt { background: var(--rf-mist); border-block: 1px solid var(--rf-line-2); }
+.rf-site .rf-card, .rf-site .rf-product {
+  background: #fff; border: 1px solid var(--rf-line); border-radius: var(--rf-radius); box-shadow: none;
+  transition: transform .5s var(--rf-ease-out), box-shadow .5s var(--rf-ease-out), border-color .5s var(--rf-ease-out);
+}
+.rf-site a.rf-card:hover, .rf-site .rf-product:hover, .rf-site .rf-card.interactive:hover {
+  transform: translateY(-4px); box-shadow: var(--rf-shadow-hover); border-color: #c9d3e1;
+}
+.rf-site .rf-product { padding: 32px 28px; border-top: 2px solid var(--rf-navy); }
+.rf-site .rf-product .rate { font: 500 44px/1 var(--rf-headline); color: var(--rf-navy); letter-spacing: -.01em; font-variant-numeric: lining-nums; }
+.rf-site .rf-product .rate small { font: 400 13px var(--rf-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--rf-ink-3); }
+.rf-site .rf-product h3 { font-size: 22px; margin: 18px 0 8px; color: var(--rf-navy); }
+.rf-site .rf-product li svg { color: var(--rf-navy-3); }
+.rf-site .rf-stat .k { font: 500 11px/1.4 var(--rf-sans); letter-spacing: .24em; color: var(--rf-ink-3); }
+.rf-site .rf-stat .v { font: 500 32px/1.1 var(--rf-headline); color: var(--rf-navy); font-variant-numeric: lining-nums; margin: 10px 0 4px; }
+.rf-site .rf-feature .ic { background: transparent; color: var(--rf-navy); border: 1px solid var(--rf-line); border-radius: 50%; }
+.rf-site .rf-feature h3 { font-size: 18px; }
+.rf-site .rf-badge { border-radius: 2px; letter-spacing: .06em; }
+.rf-site .rf-section .rf-eyebrow { color: var(--rf-navy-3); }
+
+/* ---- deep sections: the logo's navy ---- */
+.rf-section.deep, .rf-cta, .rf-footer {
+  --rf-ink: #ffffff;
+  --rf-ink-2: rgba(255, 255, 255, .82);
+  --rf-ink-3: rgba(255, 255, 255, .62);
+  --rf-line: rgba(255, 255, 255, .16);
+  --rf-line-2: rgba(255, 255, 255, .1);
+  --rf-surface: transparent;
+  --rf-surface-2: rgba(255, 255, 255, .03);
+  color: var(--rf-ink);
+}
+.rf-site .rf-section.deep { background: var(--rf-navy); border: 0; }
+.rf-site .rf-section.deep h2, .rf-section.deep h3, .rf-section.deep blockquote { color: #fff !important; }
+.rf-site .rf-section.deep h2::after { background: #fff; }
+.rf-site .rf-section.deep .rf-eyebrow { color: var(--rf-silver); }
+.rf-section.deep .section-lede, .rf-section.deep .rf-muted, .rf-section.deep p { color: var(--rf-ink-2); }
+.rf-site .rf-section.deep .rf-card, .rf-site .rf-section.deep .rf-product { background: rgba(255, 255, 255, .03); border-color: rgba(255, 255, 255, .16); }
+.rf-site .rf-section.deep a.rf-card:hover { border-color: rgba(255, 255, 255, .4); box-shadow: none; }
+.rf-site .rf-section.deep .rf-stat .v { color: #fff; }
+.rf-site .rf-section.deep .rf-feature .ic { color: #fff; border-color: rgba(255, 255, 255, .3); }
+.rf-site .rf-section.deep .rf-btn.ghost { --btn-edge: rgba(255, 255, 255, .45); --btn-ink: #fff; }
+.rf-site .rf-section.deep .rf-btn.ghost:hover { --btn-face: #fff; --btn-ink: var(--rf-navy); --btn-edge: #fff; }
+.rf-site .rf-section.deep blockquote { font-family: var(--rf-headline) !important; font-style: italic !important; font-weight: 500 !important; }
+
 /* ---- checks ---- */
-.rf-checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.rf-checks li { display: flex; gap: 12px; align-items: center; font-weight: 600; color: var(--rf-ink-2); }
-.rf-checks svg { width: 26px; height: 26px; padding: 5px; border-radius: 50%; flex: 0 0 26px; color: #fff; background: linear-gradient(135deg, #2f74e0, #123f9a); box-sizing: border-box; }
+.rf-checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.rf-checks li { display: flex; gap: 14px; align-items: center; color: var(--rf-ink-2); }
+.rf-checks svg { width: 24px; height: 24px; padding: 5px; border-radius: 50%; flex: 0 0 24px; box-sizing: border-box; color: var(--rf-navy); border: 1px solid rgba(0, 36, 69, .3); }
 
 /* ---- the device showcase ---- */
 .rf-device-stage { position: relative; min-height: 600px; display: grid; place-items: center; }
-.rf-device-stage .rf-slab.three { left: 10%; top: 8%; width: 120px; height: 78%; }
-.rf-device-stage .rf-slab.four { right: 8%; top: 20%; width: 80px; height: 60%; background: linear-gradient(180deg, rgba(140, 188, 255, .45), rgba(140, 188, 255, .08)); }
-
-.rf-phone {
-  position: relative; z-index: 2; width: 286px; height: 580px; padding: 12px; border-radius: 48px;
-  background: linear-gradient(145deg, #2a3142 0%, #0b1020 40%, #1c2232 100%);
-  box-shadow: 0 0 0 1.5px #3b4459 inset, 0 50px 90px -40px rgba(10, 26, 63, .75), 0 20px 40px -24px rgba(10, 26, 63, .5);
+.rf-device-stage::before {
+  content: ""; position: absolute; inset: 8% 10% 6% 18%; z-index: 0; border-radius: 2px;
+  background: var(--rf-mist); border: 1px solid var(--rf-line-2);
 }
-.rf-phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 26px; border-radius: 20px; background: #05070d; z-index: 3; }
-.rf-phone-screen { height: 100%; border-radius: 37px; overflow: hidden; background: #f5f8fd; display: flex; flex-direction: column; }
-.rf-phone-top { padding: 52px 22px 26px; color: #fff; background: linear-gradient(150deg, #07142f 0%, #0b2257 55%, #1a56c4 130%); position: relative; }
-.rf-phone-status { position: absolute; top: 18px; left: 26px; right: 26px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
-.rf-phone-status .dots { width: 38px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 60%, rgba(255,255,255,.4) 60%); opacity: .85; }
-.rf-phone-logo { width: 116px; height: auto; display: block; margin-bottom: 14px; }
-.rf-phone-balance { font-size: 32px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.rf-phone-delta { display: inline-flex; gap: 6px; align-items: center; margin-top: 8px; padding: 4px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: rgba(52, 211, 153, .18); color: #6ee7b7; }
-.rf-phone-delta span { color: #c7d6ee; font-weight: 500; }
-.rf-phone-body { flex: 1; margin-top: -12px; border-radius: 22px 22px 0 0; background: #fff; padding: 18px 16px; position: relative; }
+.rf-phone {
+  position: relative; z-index: 2; width: 286px; height: 580px; padding: 11px; border-radius: 46px; margin-right: 90px;
+  background: linear-gradient(145deg, #2b3446 0%, #0b1220 45%, #1d2433 100%);
+  box-shadow: 0 0 0 1px #3a4458 inset, 0 50px 90px -46px rgba(0, 36, 69, .8);
+}
+.rf-phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 90px; height: 25px; border-radius: 20px; background: #05070d; z-index: 3; }
+.rf-phone-screen { height: 100%; border-radius: 36px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+.rf-phone-top { padding: 54px 22px 28px; color: #fff; background: var(--rf-navy); position: relative; }
+.rf-phone-status { position: absolute; top: 18px; left: 26px; right: 26px; display: flex; justify-content: space-between; font: 600 12px/1 var(--rf-sans); }
+.rf-phone-status .dots { width: 36px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fff 60%, rgba(255,255,255,.35) 60%); }
+.rf-phone-logo { width: 112px; height: auto; display: block; margin: 0 0 16px; }
+.rf-phone-balance { font: 500 32px/1.1 var(--rf-headline); font-variant-numeric: lining-nums tabular-nums; }
+.rf-phone-delta { display: inline-flex; gap: 6px; margin-top: 8px; font-size: 11.5px; color: #9fe0c0; }
+.rf-phone-delta span { color: var(--rf-silver); }
+.rf-phone-body { flex: 1; padding: 18px 16px; }
 .rf-phone-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; padding-bottom: 14px; border-bottom: 1px solid var(--rf-line-2); }
 .rf-phone-actions span { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.rf-phone-actions svg { width: 38px; height: 38px; padding: 10px; border-radius: 50%; box-sizing: border-box; color: var(--rf-blue); background: var(--rf-sky); }
-.rf-phone-actions em { font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--rf-ink-2); }
+.rf-phone-actions svg { width: 38px; height: 38px; padding: 10px; border-radius: 50%; box-sizing: border-box; color: var(--rf-navy); border: 1px solid var(--rf-line); }
+.rf-phone-actions em { font-style: normal; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--rf-ink-3); }
 .rf-phone-head { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 2px 8px; font-size: 12.5px; color: var(--rf-navy); }
-.rf-phone-head span { font-size: 11px; color: var(--rf-blue); font-weight: 700; }
-.rf-phone-tx { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.rf-phone-tx li { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 7px 2px; border-bottom: 1px solid var(--rf-line-2); }
-.rf-phone-tx .ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: var(--rf-navy); background: var(--rf-paper); }
-.rf-phone-tx b { display: block; font-size: 12px; color: var(--rf-navy); font-weight: 700; }
+.rf-phone-head span { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--rf-navy-3); }
+.rf-phone-tx { list-style: none; margin: 0; padding: 0; }
+.rf-phone-tx li { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 8px 2px; border-bottom: 1px solid var(--rf-line-2); }
+.rf-phone-tx .ic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--rf-navy); background: var(--rf-mist); }
+.rf-phone-tx b { display: block; font-size: 12px; font-weight: 500; color: var(--rf-navy); }
 .rf-phone-tx i { display: block; font-size: 10.5px; color: var(--rf-ink-4); font-style: normal; }
-.rf-phone-tx .amt { font-size: 12px; font-weight: 700; color: var(--rf-navy); font-variant-numeric: tabular-nums; }
-.rf-phone-tx .amt.in { color: #15803d; }
-
+.rf-phone-tx .amt { font-size: 12px; font-weight: 500; color: var(--rf-navy); font-variant-numeric: tabular-nums; }
+.rf-phone-tx .amt.in { color: #1b7a53; }
 .rf-plastic-card {
-  position: absolute; z-index: 3; right: -2%; bottom: 9%; width: 300px; height: 188px; border-radius: 18px; padding: 20px 22px;
-  background: linear-gradient(135deg, #07142f 0%, #0b2257 45%, #1a56c4 100%);
-  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 40px 70px -30px rgba(10, 26, 63, .8);
-  transform: rotate(-9deg); overflow: hidden; color: #fff;
+  position: absolute; z-index: 3; right: -2%; bottom: 6%; width: 280px; height: 176px; border-radius: 12px; padding: 22px 24px;
+  background: linear-gradient(135deg, #0a3360 0%, var(--rf-navy) 55%, var(--rf-navy-deep) 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 40px 70px -34px rgba(0, 20, 40, .85);
+  transform: rotate(-7deg); overflow: hidden; color: #fff;
 }
-.rf-plastic-card::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.22) 48%, transparent 60%);
-  transform: translateX(-100%);
-}
-.rf-plastic-card img { width: 128px; height: auto; display: block; }
-.rf-plastic-card .chip { position: absolute; left: 22px; top: 82px; width: 42px; height: 32px; border-radius: 7px; background: linear-gradient(135deg, #f0d48a, #b8913f); box-shadow: 0 0 0 1px rgba(0,0,0,.15) inset; }
-.rf-plastic-card .num { position: absolute; left: 22px; bottom: 20px; font-family: var(--rf-mono); font-size: 15px; letter-spacing: .12em; color: #dbe7fb; }
-.rf-plastic-card .kind { position: absolute; right: 22px; bottom: 18px; font-size: 13px; font-weight: 800; letter-spacing: .14em; color: #a9c6f5; }
+.rf-plastic-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.14) 50%, transparent 62%); transform: translateX(-100%); }
+.rf-plastic-card img { width: 112px; height: auto; display: block; }
+.rf-plastic-card .chip { position: absolute; left: 24px; top: 78px; width: 40px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #e3e8ef, #9aa9bd); }
+.rf-plastic-card .num { position: absolute; left: 24px; bottom: 20px; font-family: var(--rf-mono); font-size: 14px; letter-spacing: .14em; color: #dbe4f0; }
+.rf-plastic-card .kind { position: absolute; right: 24px; bottom: 19px; font: 500 11px/1 var(--rf-sans); letter-spacing: .3em; color: var(--rf-silver); }
 @media (max-width: 900px) {
-  .rf-device-stage { min-height: 560px; margin-top: 10px; }
-  .rf-plastic-card { width: 240px; height: 150px; right: 0; bottom: 4%; }
-  .rf-plastic-card .chip { top: 64px; }
-  .rf-device-stage .rf-slab.three { left: 2%; }
+  .rf-device-stage { min-height: 560px; }
+  .rf-phone { margin-right: 0; }
+  .rf-plastic-card { right: -2%; bottom: -2%; width: 220px; height: 138px; }
+  .rf-plastic-card img { width: 92px; }
+  .rf-plastic-card .chip { top: 58px; width: 32px; height: 24px; }
+  .rf-device-stage::before { inset: 6% 0 4% 8%; }
 }
 @media (max-width: 420px) { .rf-phone { transform: scale(.9); } }
 
-/* ---- motion for the redesign ---- */
-@keyframes rf-slab-in {
-  from { opacity: 0; transform: skewX(-12deg) translateY(60px); }
-  to   { opacity: 1; transform: skewX(-12deg) translateY(0); }
-}
-@keyframes rf-slab-float {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -14px; }
-}
-@keyframes rf-float {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -12px; }
-}
-@keyframes rf-card-float {
-  0%, 100% { translate: 0 0; rotate: 0deg; }
-  50% { translate: -6px -14px; rotate: 2deg; }
-}
-@keyframes rf-sheen { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-@keyframes rf-pop {
-  from { opacity: 0; transform: translateY(14px) scale(.96); }
-  to   { opacity: 1; transform: none; }
-}
+/* ---- the closing band and the footer ---- */
+.rf-cta { padding: clamp(72px, 9vw, 120px) 0; background: var(--rf-navy); text-align: center; border-top: 1px solid rgba(255, 255, 255, .06); }
+.rf-cta .rf-eyebrow { color: var(--rf-silver); }
+.rf-cta h2 { font-size: clamp(30px, 3.8vw, 48px); margin: 0 auto; max-width: 20ch; color: #fff; }
+.rf-cta .rf-rule { margin: 26px auto; color: #fff; transform-origin: center; }
+.rf-cta p { margin: 0 auto; color: var(--rf-ink-2); max-width: 52ch; font-weight: 300; font-size: 17px; }
+.rf-cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+@media (max-width: 620px) { .rf-cta-actions .rf-btn { flex: 1 1 100%; } }
+.rf-footer { background: var(--rf-navy-deep); color: var(--rf-ink-3); border-top: 1px solid rgba(255, 255, 255, .06); }
+.rf-footer h5 { font: 500 11px/1.4 var(--rf-sans); letter-spacing: .3em; color: #fff; }
+.rf-footer a { color: var(--rf-ink-2); }
+.rf-footer a:hover { color: #fff; text-decoration: none; }
+.rf-footer .legal { color: rgba(255, 255, 255, .45); }
+.rf-footer .legal strong { color: rgba(255, 255, 255, .7); }
 
-.rf-motion .rf-slab {
-  animation: rf-slab-in 1.2s var(--rf-ease-out) both, rf-slab-float 9s ease-in-out 1.2s infinite;
-}
-.rf-motion .rf-slab.two, .rf-motion .rf-slab.four { animation-delay: .25s, 1.6s; animation-duration: 1.2s, 11s; }
-.rf-motion .rf-hero-features li { animation: rf-pop .7s var(--rf-ease-out) both; }
-.rf-motion .rf-hero-features li:nth-child(1) { animation-delay: .6s; }
-.rf-motion .rf-hero-features li:nth-child(2) { animation-delay: .7s; }
-.rf-motion .rf-hero-features li:nth-child(3) { animation-delay: .8s; }
-.rf-motion .rf-hero-features li:nth-child(4) { animation-delay: .9s; }
+/* ---- sign-in: the logo on its navy ---- */
+.rf-auth-aside { background: var(--rf-navy); color: #fff; }
+.rf-auth-aside::after { background: radial-gradient(60% 50% at 85% 10%, rgba(255, 255, 255, .06), transparent 70%); opacity: 1; }
+.rf-auth-aside h2 { color: #fff; font-weight: 500; }
+.rf-auth-aside p { color: rgba(255, 255, 255, .78); font-weight: 300; }
+.rf-auth-points li { color: rgba(255, 255, 255, .78); }
+.rf-auth-points svg { color: var(--rf-silver); }
+.rf-auth-foot { color: rgba(255, 255, 255, .5); border-top-color: rgba(255, 255, 255, .12); }
+.rf-auth-box h1 { color: var(--rf-navy); font-weight: 500; }
+.rf-auth .rf-card { border-radius: var(--rf-radius); box-shadow: var(--rf-shadow); }
+a.rf-auth-brand { background: var(--rf-navy); border-radius: var(--rf-radius); }
+a.rf-auth-brand strong { font-family: var(--rf-headline); font-weight: 500; letter-spacing: .04em; }
 
-.rf-motion .rf-phone { animation: rf-float 7s ease-in-out infinite; }
-.rf-motion .rf-plastic-card { animation: rf-card-float 8s ease-in-out .6s infinite; }
-.rf-motion .rf-plastic-card::after { animation: rf-sheen 5s ease-in-out 1s infinite; }
+/* ---- motion: slow fades, a settling rise, the rule drawing out ---- */
+@keyframes rf-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes rf-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rf-drift { from { scale: 1.03; } to { scale: 1.09; } }
+@keyframes rf-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+@keyframes rf-card-float { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: -4px -9px; rotate: 1.2deg; } }
+@keyframes rf-sheen { 0%, 70% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+.rf-motion .rf-hero-photo { animation: rf-drift 26s ease-in-out infinite alternate; }
+.rf-motion .rf-hero .rf-hero-copy > *, .rf-motion .rf-hero .wrap > :not(.rf-hero-copy) { animation: rf-rise 1.2s var(--rf-ease-out) both; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(1), .rf-motion .rf-hero .wrap > :nth-child(1):not(.rf-hero-copy) { animation-delay: .1s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(2), .rf-motion .rf-hero .wrap > :nth-child(2):not(.rf-hero-copy) { animation-delay: .25s; }
+.rf-motion .rf-hero .rf-hero-copy > .rf-rule { animation: rf-draw 1.4s var(--rf-ease-out) .5s both; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(4), .rf-motion .rf-hero .wrap > :nth-child(3):not(.rf-hero-copy) { animation-delay: .55s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(5) { animation-delay: .7s; }
+.rf-motion .rf-hero .rf-hero-copy > :nth-child(6) { animation-delay: .9s; }
+
+.rf-site [data-reveal] {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 1s var(--rf-ease-out), transform 1.1s var(--rf-ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.rf-site [data-reveal].in { opacity: 1; transform: none; }
+.rf-motion .rf-site .rf-section h2[data-reveal]::after,
+.rf-motion .rf-cta [data-reveal] .rf-rule { transform: scaleX(0); transition: transform 1.4s var(--rf-ease-out) .35s; }
+.rf-motion .rf-site .rf-section h2[data-reveal].in::after,
+.rf-motion .rf-cta [data-reveal].in .rf-rule { transform: scaleX(1); }
+.rf-site a.rf-card[data-reveal].in:hover, .rf-site .rf-product[data-reveal].in:hover { transform: translateY(-4px); transition: transform .5s var(--rf-ease-out), box-shadow .5s var(--rf-ease-out), border-color .5s var(--rf-ease-out); }
+
+.rf-motion .rf-phone { animation: rf-float 9s ease-in-out infinite; }
+.rf-motion .rf-plastic-card { animation: rf-card-float 10s ease-in-out .8s infinite; }
+.rf-motion .rf-plastic-card::after { animation: rf-sheen 7s ease-in-out 1.5s infinite; }
 .rf-motion .rf-device-stage:not(.in) .rf-phone-tx li { opacity: 0; }
-.rf-motion .rf-device-stage.in .rf-phone-tx li { animation: rf-pop .6s var(--rf-ease-out) both; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li { animation: rf-rise .8s var(--rf-ease-out) both; }
 .rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(1) { animation-delay: .5s; }
-.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(2) { animation-delay: .65s; }
-.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(3) { animation-delay: .8s; }
-.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(4) { animation-delay: .95s; }
-.rf-motion .rf-trust-row > div { animation: rf-pop .8s var(--rf-ease-out) both; }
-.rf-motion .rf-trust-row > div:nth-child(2) { animation-delay: .1s; }
-.rf-motion .rf-trust-row > div:nth-child(3) { animation-delay: .2s; }
-.rf-motion .rf-trust-row > div:nth-child(4) { animation-delay: .3s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(2) { animation-delay: .7s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(3) { animation-delay: .9s; }
+.rf-motion .rf-device-stage.in .rf-phone-tx li:nth-child(4) { animation-delay: 1.1s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .rf-slab, .rf-phone, .rf-plastic-card, .rf-plastic-card::after { animation: none !important; }
+  .rf-hero-photo, .rf-phone, .rf-plastic-card, .rf-plastic-card::after { animation: none !important; }
+  .rf-site [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .rf-site .rf-section h2::after, .rf-rule { transform: none !important; animation: none !important; }
 }
-
-/* Placement, checked against the photograph and the phone: the slabs sit at
-   chest height between the copy and the family, clear of every face; the
-   card overlaps the phone's edge rather than its activity list. */
-.rf-hero .rf-slab.one { left: 49%; top: 46%; width: 84px; height: 46%; }
-.rf-hero .rf-slab.two { left: 55%; top: 60%; width: 54px; height: 34%; }
-.rf-device-stage .rf-phone { margin-right: 90px; }
-.rf-plastic-card { right: -4%; bottom: 3%; width: 270px; height: 170px; }
-.rf-plastic-card .chip { top: 72px; }
-@media (max-width: 900px) {
-  .rf-device-stage .rf-phone { margin-right: 0; }
-  .rf-plastic-card { right: -2%; bottom: -2%; width: 220px; height: 138px; }
-  .rf-plastic-card img { width: 100px; }
-  .rf-plastic-card .chip { top: 56px; width: 34px; height: 26px; }
-}
-/* Page headers are wide and short; faces sit in the upper part of every
-   photograph, so the crop keeps the top rather than the middle. */
-.rf-hero.compact .rf-hero-photo { object-position: center 20%; }
-/* Figures in the heavy weight, like the headlines. */
-.rf-product .rate, .rf-stat .v, .rf-hero-stats .v { font-weight: 800; letter-spacing: -.02em; }
-.rf-product .rate small { font-weight: 600; letter-spacing: 0; }

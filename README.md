@@ -297,22 +297,22 @@ Page artwork resolves at build time from `public/assets/img/` (slot names in
 up in place of the generated placeholders; the build log says which were found.
 Per-story images are named in `src/data/projects.json`.
 
-The logo is drawn in `scripts/build-brand.js` as vector shapes: an S built
-from slanted slabs (royal blue over midnight navy, with a light-blue bar where
-they meet) beside STANDARD over MERCHANT BANK, set in Plus Jakarta Sans.
-`npm run build:brand` renders everything the site needs from it:
+The logo is `public/assets/img/smb-logo.webp`: STANDARD in a roman serif over
+MERCHANT BANK in wide-spaced capitals and a short rule, white on navy
+`#002445`. The site's navy is that colour, and the logo is always shown on it.
+`npm run build:brand` cuts everything the site needs out of it:
 
 | Output | Built from |
 |---|---|
-| `assets/bank/logo-dark.png` | the horizontal lockup, for light grounds |
-| `assets/bank/logo-light.png` | the same in white and pale blue, for navy |
-| `assets/bank/logomark-{dark,light}.png` | the slab S alone |
-| `favicon.ico` (16, 32, 48), `favicon.png`, `apple-touch-icon.png` | the S on a navy tile |
+| `assets/bank/logo-light.png` | the lockup in white, for the navy nav, footer and panels |
+| `assets/bank/logo-dark.png` | the same in navy, for paper (and the wall signs in the branch photos) |
+| `assets/bank/logomark-{dark,light}.png` | the S alone |
+| `favicon.ico` (16, 32, 48), `favicon.png`, `apple-touch-icon.png` | a white Playfair S on the navy |
 | `assets/bank/og-image.png` | the link card, 1200×630 |
 
 It needs `playwright-core` to rasterise, and it is not part of `npm run build` —
 the outputs are committed, because they change about as often as the bank
-changes its name. Change a shape or colour there, run it again, and every size follows.
+changes its name. Replace the file, run it again, and every size follows.
 
 ---
 

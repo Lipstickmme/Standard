@@ -39,5 +39,6 @@ Headers are cropped with `object-fit: cover`, so the aspect ratio matters less
 than where the subject sits: keep faces and detail away from the left third,
 which the type covers.
 
-The logo is not a file here: it is drawn in `scripts/build-brand.js`, and
-`npm run build:brand` writes the lockups, the mark and the icons to `../bank/`.
+`smb-logo.webp` is the logo as supplied, white on its navy. It is not shown
+directly: `npm run build:brand` cuts the lockups, the S and the icons out of it
+into `../bank/`.

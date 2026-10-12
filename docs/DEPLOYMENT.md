@@ -56,7 +56,7 @@ project; used for the card thumbnail and the detail-page figure). Suggested size
 **CEO portrait.** Edit the `image` field in `src/data/leadership.json`. Suggested
 size 760 x 950 (4:5 portrait).
 
-**Logo.** Drawn as vector shapes in `scripts/build-brand.js`. Edit it there and run
+**Logo.** The source is `public/assets/img/smb-logo.webp`. Replace it and run
 `npm run build:brand` to regenerate the lockups, mark, favicons and link card.
 
 Notes:

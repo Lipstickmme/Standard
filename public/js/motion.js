@@ -9,8 +9,7 @@
      machinery itself is SMB.observeReveals in main.js; this file only
      decides what takes part).
    - Figures count up from zero the first time they are seen.
-   - Glass cards catch a soft light under the pointer.
-   - The nav turns to frosted glass once the page moves under it.
+   - The nav takes a shadow once the page moves under it.
    - The hero photograph drifts a little slower than the page.
    ========================================================================== */
 (function () {
@@ -48,7 +47,7 @@
   const TARGETS = [
     '.rf-section .rf-eyebrow', '.rf-section h2', '.rf-section .section-lede',
     '.rf-section .rf-grid > *', '.rf-section blockquote', '.rf-section .rf-card',
-    '.rf-section table', '.rf-section form', '.rf-cta-card',
+    '.rf-section table', '.rf-section form', '.rf-cta .wrap > *',
   ].join(',');
   $$(TARGETS).forEach((el) => {
     // One reveal per branch: a card inside a revealing grid cell rides along
@@ -112,13 +111,4 @@
     $$(FIGURES).forEach((el) => seen.observe(el));
   }
 
-  /* ---- light under the pointer ---- */
-  const LIT = '.rf-site .rf-card, .rf-site .rf-product, .rf-hero-stats, .rf-cta-card';
-  document.addEventListener('pointermove', (e) => {
-    const card = e.target.closest && e.target.closest(LIT);
-    if (!card) return;
-    const box = card.getBoundingClientRect();
-    card.style.setProperty('--mx', `${(e.clientX - box.left).toFixed(0)}px`);
-    card.style.setProperty('--my', `${(e.clientY - box.top).toFixed(0)}px`);
-  }, { passive: true });
 })();

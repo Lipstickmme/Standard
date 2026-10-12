@@ -72,7 +72,7 @@ function nav(active = '') {
   return `
   <header class="nav" id="nav">
     <a class="brand" href="/" aria-label="Standard Merchant Bank home">
-      <img class="brand-logo" src="/assets/bank/logo-dark.png" alt="Standard Merchant Bank" width="482" height="124" />
+      <img class="brand-logo" src="/assets/bank/logo-dark.png" alt="Standard Merchant Bank" width="744" height="210" />
     </a>
     <nav class="nav-links" id="navlinks">
       ${link('/personal', 'Personal', 'services')}
@@ -93,7 +93,7 @@ function footer() {
   <footer class="footer">
     <div class="wrap footer-top">
       <div class="footer-brand">
-        <img class="brand-logo footer-logo" src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="482" height="124" style="width:240px" />
+        <img class="brand-logo footer-logo" src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="744" height="210" style="width:240px" />
         <p>Personal and business banking since 1924. Member FDIC.</p>
       </div>
       <div class="col">

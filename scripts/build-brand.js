@@ -1,30 +1,29 @@
 'use strict';
 
 /**
- * Build every brand asset from the logo's geometry.
+ * Build every brand asset from the supplied logo.
  *
  *   npm run build:brand
  *
- * The logo is drawn here, as vector shapes, rather than cut out of a picture:
+ * The source is public/assets/img/smb-logo.webp: STANDARD in a roman serif,
+ * MERCHANT BANK spaced wide beneath it and a short rule, white on the bank's
+ * navy (#002445). The site uses that navy as its own ground wherever the logo
+ * appears, so the lockup is always seen on the background it was drawn for.
  *
- *   - the mark is an S built from slanted slabs - an upper Γ in royal blue, a
- *     lower ⅃ in midnight navy, and a light-blue bar across the middle where
- *     the two meet, which is what turns two blocks into a letter;
- *   - the wordmark is STANDARD, heavy, over MERCHANT BANK, spaced wide, both
- *     in Plus Jakarta Sans - the same face the site is set in.
+ * From it this writes -
  *
- * From that it renders, in Chromium (the only image toolchain this project
- * can assume, and the one the browser tests already use) -
- *
- *   logo-dark.png      the lockup, transparent, for light backgrounds
- *   logo-light.png     the same in white and pale blue, for navy
- *   logomark-dark.png  the mark alone
- *   logomark-light.png the mark alone, for navy
+ *   logo-light.png     the lockup in white, transparent, for navy grounds
+ *   logo-dark.png      the same in navy, for paper
+ *   logomark-light.png the S alone, white
+ *   logomark-dark.png  the S alone, navy
  *   favicon.png / apple-touch-icon.png / favicon.ico / og-image.png
  *
- * Nothing here runs on a normal build: the outputs are committed, because
- * they change about as often as the bank changes its name. Change a shape or
- * a colour below, run it again, and every size follows.
+ * Transparency is unmixed from the navy rather than keyed: each pixel's alpha
+ * is how far it has moved from the background towards white, so the hairline
+ * rule and the serifs keep their soft edges.
+ *
+ * Pixels are read in Chromium, the one image toolchain this project can
+ * assume. Nothing here runs on a normal build: the outputs are committed.
  */
 
 const fs = require('fs');
@@ -33,100 +32,102 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
 const BRAND = path.join(PUBLIC, 'assets', 'bank');
-const FONTS = path.join(PUBLIC, 'assets', 'fonts');
+const SOURCE = path.join(PUBLIC, 'assets', 'img', 'smb-logo.webp');
 
-const NAVY = '#0a1a3f';
+const NAVY = '#002445';
 
-/* ------------------------------------------------------------ the mark -- */
+/* ------------------------------------------------------------ in-page -- */
 
-/**
- * The mark, on a 100 x 100 grid, slanted as a whole.
- *
- * `tone` picks the palette: 'dark' for paper, 'light' for navy grounds, where
- * the navy half would otherwise disappear into the background.
- */
-function markSvg(tone = 'dark', size = 100) {
-  const c = tone === 'dark'
-    ? { a1: '#2f74e0', a2: '#123f9a', b1: '#0b2257', b2: '#0a1a3f', bar: '#8cbcff', barOpacity: 0.92 }
-    : { a1: '#7fb2ff', a2: '#3b82f6', b1: '#dbe9ff', b2: '#a9c6f5', bar: '#ffffff', barOpacity: 0.9 };
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size}" height="${size}">
-  <defs>
-    <linearGradient id="a-${tone}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.a1}"/><stop offset="1" stop-color="${c.a2}"/></linearGradient>
-    <linearGradient id="b-${tone}" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.b2}"/><stop offset="1" stop-color="${c.b1}"/></linearGradient>
-  </defs>
-  <g transform="translate(9 0) skewX(-12)">
-    <path fill="url(#a-${tone})" d="M38 6 H86 V24 H40 V54 H22 V22 Q22 6 38 6 Z"/>
-    <path fill="url(#b-${tone})" d="M70 94 H22 V76 H68 V46 H86 V78 Q86 94 70 94 Z"/>
-    <path fill="${c.bar}" fill-opacity="${c.barOpacity}" d="M22 41 H86 V59 H22 Z"/>
-  </g>
-</svg>`;
-}
+async function extract(dataUrl) {
+  const img = new Image();
+  img.src = dataUrl;
+  await img.decode();
+  const { width, height } = img;
+  const c = document.createElement('canvas');
+  c.width = width;
+  c.height = height;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  const px = ctx.getImageData(0, 0, width, height).data;
 
-/** The full lockup: mark, then the two-line wordmark. */
-function lockupHtml(tone, fontCss) {
-  const ink = tone === 'dark' ? NAVY : '#ffffff';
-  const sub = tone === 'dark' ? '#1a56c4' : '#a9c6f5';
-  return `<!doctype html><html><head><style>${fontCss}
-    body { margin: 0; background: transparent; }
-    .lockup { display: inline-flex; align-items: center; gap: 22px; padding: 6px 10px 6px 4px; font-family: 'Plus Jakarta Sans', sans-serif; }
-    .words { display: flex; flex-direction: column; line-height: 1; }
-    .top { font-weight: 800; font-size: 62px; letter-spacing: -.01em; color: ${ink}; }
-    .sub { font-weight: 600; font-size: 21.5px; letter-spacing: .42em; color: ${sub}; margin-top: 10px; padding-left: 3px; }
-  </style></head><body>
-    <div class="lockup">${markSvg(tone, 112)}<div class="words"><span class="top">STANDARD</span><span class="sub">MERCHANT BANK</span></div></div>
-  </body></html>`;
-}
+  // The background, from the four corners.
+  const corner = (x, y) => { const o = (y * width + x) * 4; return [px[o], px[o + 1], px[o + 2]]; };
+  const samples = [corner(4, 4), corner(width - 5, 4), corner(4, height - 5), corner(width - 5, height - 5)];
+  const bg = [0, 1, 2].map((i) => samples.reduce((t, s) => t + s[i], 0) / samples.length);
 
-function markHtml(tone) {
-  return `<!doctype html><html><body style="margin:0;background:transparent">
-    <div class="m" style="display:inline-block;padding:4px">${markSvg(tone, 360)}</div>
-  </body></html>`;
-}
+  // White over navy: alpha is the distance travelled towards white, read on
+  // the channel with the most room to travel.
+  const ch = bg.indexOf(Math.min(...bg));
+  const FLOOR = 0.06;
+  const alpha = new Float32Array(width * height);
+  for (let i = 0, p = 0; i < px.length; i += 4, p += 1) {
+    let a = (px[i + ch] - bg[ch]) / (255 - bg[ch]);
+    a = a < FLOOR ? 0 : Math.min(1, (a - FLOOR) / (1 - FLOOR));
+    alpha[p] = a;
+  }
 
-/** The icon tile: the light mark on a deep navy square. */
-function iconHtml(size) {
-  const inset = Math.round(size * (size < 64 ? 0.1 : 0.17));
-  return `<!doctype html><html><body style="margin:0">
-    <div style="width:${size}px;height:${size}px;border-radius:${Math.round(size * 0.22)}px;box-sizing:border-box;padding:${inset}px;
-                background:linear-gradient(135deg,#0b2257 0%,${NAVY} 100%);display:flex;align-items:center;justify-content:center">
-      ${markSvg('light', size - inset * 2)}
-    </div>
-  </body></html>`;
-}
+  const rows = new Float32Array(height);
+  const cols = new Float32Array(width);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      rows[y] += alpha[y * width + x];
+      cols[x] += alpha[y * width + x];
+    }
+  }
+  const first = (arr, from, to, step) => { for (let i = from; step > 0 ? i < to : i > to; i += step) if (arr[i] > 0.5) return i; return -1; };
+  const full = { top: first(rows, 0, height, 1), bottom: first(rows, height - 1, -1, -1), left: first(cols, 0, width, 1), right: first(cols, width - 1, -1, -1) };
 
-/** The link card: what a shared URL unfurls into. */
-function cardHtml(lockupLightUrl) {
-  return `<!doctype html><html><body style="margin:0">
-    <div style="width:1200px;height:630px;position:relative;overflow:hidden;
-                background:linear-gradient(135deg,#07142f 0%,#0b2257 45%,#123f9a 100%);
-                display:flex;flex-direction:column;align-items:center;justify-content:center;
-                font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif">
-      <div style="position:absolute;inset:0;
-                  background:radial-gradient(40% 50% at 82% 14%, rgba(59,130,246,.45), transparent 70%),
-                             radial-gradient(45% 50% at 10% 92%, rgba(96,165,250,.3), transparent 70%)"></div>
-      <img src="${lockupLightUrl}" style="position:relative;width:640px" />
-      <div style="position:relative;color:#d9e5f8;font-size:30px;font-weight:600;margin-top:34px">Banking that feels like home.</div>
-      <div style="position:absolute;bottom:40px;color:#8aa3cc;font-size:16px;letter-spacing:3px;font-weight:600">
-        MEMBER FDIC &middot; EQUAL HOUSING LENDER
-      </div>
-    </div>
-  </body></html>`;
+  // The S: the first glyph of the top line, bounded by the first empty
+  // column after it starts.
+  let lineBottom = full.top;
+  while (lineBottom < full.bottom && rows[lineBottom + 1] > 0.5) lineBottom += 1;
+  const lineCols = new Float32Array(width);
+  for (let y = full.top; y <= lineBottom; y += 1) for (let x = 0; x < width; x += 1) lineCols[x] += alpha[y * width + x];
+  const sLeft = first(lineCols, 0, width, 1);
+  let sRight = sLeft;
+  while (sRight < width - 1 && lineCols[sRight + 1] > 0.3) sRight += 1;
+  const mark = { top: full.top, bottom: lineBottom, left: sLeft, right: sRight };
+
+  function cut(box, rgb, pad = 0) {
+    const w = box.right - box.left + 1 + pad * 2;
+    const h = box.bottom - box.top + 1 + pad * 2;
+    const out = document.createElement('canvas');
+    out.width = w;
+    out.height = h;
+    const octx = out.getContext('2d');
+    const dest = octx.createImageData(w, h);
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        const sx = box.left - pad + x;
+        const sy = box.top - pad + y;
+        const o = (y * w + x) * 4;
+        dest.data[o] = rgb[0];
+        dest.data[o + 1] = rgb[1];
+        dest.data[o + 2] = rgb[2];
+        dest.data[o + 3] = sx >= 0 && sx < width && sy >= 0 && sy < height ? Math.round(alpha[sy * width + sx] * 255) : 0;
+      }
+    }
+    octx.putImageData(dest, 0, 0);
+    return out.toDataURL('image/png');
+  }
+
+  const navy = [0, 36, 69];
+  return {
+    bounds: { full, mark, bg: bg.map(Math.round) },
+    logoLight: cut(full, [255, 255, 255], 6),
+    logoDark: cut(full, navy, 6),
+    markLight: cut(mark, [255, 255, 255], 4),
+    markDark: cut(mark, navy, 4),
+  };
 }
 
 /* ---------------------------------------------------------------- ICO -- */
 
-/**
- * Wrap PNGs in an ICO container.
- *
- * The format allows a PNG payload per entry rather than a bitmap, which every
- * browser since IE11 reads, and which saves writing a BMP encoder by hand.
- */
 function ico(images) {
   const header = Buffer.alloc(6);
   header.writeUInt16LE(0, 0);
   header.writeUInt16LE(1, 2);
   header.writeUInt16LE(images.length, 4);
-
   let offset = 6 + images.length * 16;
   const entries = [];
   const payloads = [];
@@ -147,17 +148,41 @@ function ico(images) {
 
 /* ---------------------------------------------------------------- run -- */
 
-/** The site's own font files, inlined so the render needs no server. */
-function fontCss() {
-  return [600, 800].map((w) => {
-    const file = path.join(FONTS, `plus-jakarta-sans-${w}-latin.woff2`);
-    if (!fs.existsSync(file)) throw new Error(`${path.relative(ROOT, file)} is missing - run npm run build:fonts first`);
-    const data = fs.readFileSync(file).toString('base64');
-    return `@font-face { font-family: 'Plus Jakarta Sans'; font-weight: ${w}; src: url(data:font/woff2;base64,${data}) format('woff2'); }`;
-  }).join('\n');
+const dataUrlToBuffer = (url) => Buffer.from(url.split(',')[1], 'base64');
+
+/**
+ * The icon tile: a white S on the logo's navy.
+ *
+ * Set in Playfair Display, the site's headline face and the nearest match to
+ * the logo's serif, rather than cut from the artwork: the S in the supplied
+ * file is under ninety pixels tall, and a 512px icon scaled up from that is
+ * soft at every edge.
+ */
+function iconHtml(size) {
+  const font = fs.readFileSync(path.join(PUBLIC, 'assets', 'fonts', 'playfair-display-600-latin.woff2')).toString('base64');
+  return `<!doctype html><html><head><style>
+    @font-face { font-family: 'Playfair Display'; font-weight: 600; src: url(data:font/woff2;base64,${font}) format('woff2'); }
+  </style></head><body style="margin:0">
+    <div style="width:${size}px;height:${size}px;background:${NAVY};border-radius:${Math.round(size * 0.2)}px;
+                display:flex;align-items:center;justify-content:center;color:#fff;
+                font:600 ${Math.round(size * 0.74)}px/1 'Playfair Display',Georgia,serif;padding-bottom:${Math.round(size * 0.06)}px;box-sizing:border-box">S</div>
+  </body></html>`;
+}
+
+/** The link card: the lockup on its navy, as supplied. */
+function cardHtml(logoUrl) {
+  return `<!doctype html><html><body style="margin:0">
+    <div style="width:1200px;height:630px;background:${NAVY};display:flex;align-items:center;justify-content:center">
+      <img src="${logoUrl}" style="width:600px" />
+    </div>
+  </body></html>`;
 }
 
 (async () => {
+  if (!fs.existsSync(SOURCE)) {
+    console.error(`[brand] ${path.relative(ROOT, SOURCE)} is missing. That file is the logo; nothing here can be built without it.`);
+    process.exit(1);
+  }
   fs.mkdirSync(BRAND, { recursive: true });
 
   let chromium;
@@ -171,30 +196,19 @@ function fontCss() {
     .concat(process.env.CHROME_PATH || [])
     .find((candidate) => { try { return fs.existsSync(candidate); } catch (e) { return false; } });
 
-  const fonts = fontCss();
   const browser = await chromium.launch(executablePath ? { executablePath } : {});
   try {
-    /** Render some HTML and capture one element of it, background transparent. */
-    const capture = async (html, selector, scale = 2) => {
-      const p = await browser.newPage({ viewport: { width: 1400, height: 800 }, deviceScaleFactor: scale });
-      await p.setContent(html);
-      await p.evaluate(() => document.fonts.ready);
-      const buffer = await p.locator(selector).first().screenshot({ omitBackground: true });
-      const box = await p.locator(selector).first().boundingBox();
-      await p.close();
-      return { buffer, width: Math.round(box.width), height: Math.round(box.height) };
-    };
-    const write = (name, { buffer, width, height }) => {
-      fs.writeFileSync(path.join(BRAND, name), buffer);
-      console.log(`  wrote assets/bank/${name} (${width}x${height} css px, ${(buffer.length / 1024).toFixed(1)}kB)`);
-    };
+    const page = await browser.newPage();
+    const art = await page.evaluate(extract, `data:image/webp;base64,${fs.readFileSync(SOURCE).toString('base64')}`);
+    await page.close();
+    const { full, mark, bg } = art.bounds;
+    console.log(`  background rgb(${bg.join(', ')}); lockup x ${full.left}-${full.right}, y ${full.top}-${full.bottom}; S x ${mark.left}-${mark.right}`);
 
-    const lockupDark = await capture(lockupHtml('dark', fonts), '.lockup');
-    const lockupLight = await capture(lockupHtml('light', fonts), '.lockup');
-    write('logo-dark.png', lockupDark);
-    write('logo-light.png', lockupLight);
-    write('logomark-dark.png', await capture(markHtml('dark'), '.m', 1));
-    write('logomark-light.png', await capture(markHtml('light'), '.m', 1));
+    for (const [name, url] of [['logo-light.png', art.logoLight], ['logo-dark.png', art.logoDark], ['logomark-light.png', art.markLight], ['logomark-dark.png', art.markDark]]) {
+      const buf = dataUrlToBuffer(url);
+      fs.writeFileSync(path.join(BRAND, name), buf);
+      console.log(`  wrote assets/bank/${name} (${(buf.length / 1024).toFixed(1)}kB)`);
+    }
 
     const shoot = async (html, width, height) => {
       const p = await browser.newPage({ viewport: { width, height } });
@@ -212,8 +226,7 @@ function fontCss() {
     fs.writeFileSync(path.join(PUBLIC, 'favicon.ico'), ico([16, 32, 48].map((size) => ({ size, png: icons[size] }))));
     console.log('  wrote favicon.png, apple-touch-icon.png, favicon.ico, assets/bank/icon-512.png');
 
-    const lightUrl = `data:image/png;base64,${lockupLight.buffer.toString('base64')}`;
-    const card = await shoot(`<style>${fonts}</style>${cardHtml(lightUrl)}`, 1200, 630);
+    const card = await shoot(cardHtml(art.logoLight), 1200, 630);
     fs.writeFileSync(path.join(BRAND, 'og-image.png'), card);
     console.log(`  wrote assets/bank/og-image.png (${(card.length / 1024).toFixed(1)}kB)`);
   } finally {

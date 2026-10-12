@@ -233,7 +233,7 @@ function sidebar(active) {
   return `
     <aside class="rf-side" id="rf-side">
       <div class="rf-side-brand">
-        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="28" height="28" />
+        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="21" height="28" />
         <span>
           <strong>${BANK.shortName}</strong>
           <small>Online banking</small>
@@ -326,7 +326,7 @@ function authPage({ title, description, content, extraScripts = [] }) {
     `  <div class="rf-auth-wrap">
     <section class="rf-auth-aside">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-lockup" src="/assets/bank/logo-dark.png" alt="${BANK.name}" width="482" height="124" style="width:260px" />
+        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" style="width:240px" />
       </a>
       <h2>Your money, held the way a bank should hold it.</h2>
       <p>${BANK.tagline} Deposits insured by the FDIC to the maximum permitted by law, and a real person on the phone when you need one.</p>
@@ -344,7 +344,7 @@ function authPage({ title, description, content, extraScripts = [] }) {
     </section>
     <section class="rf-auth-panel">
       <a class="rf-auth-brand" href="/" aria-label="${BANK.name} home">
-        <img src="/assets/bank/logomark-light.png" alt="" width="28" height="28" />
+        <img src="/assets/bank/logomark-light.png" alt="" width="21" height="28" />
         <span>
           <strong>${BANK.name}</strong>
           <small>Online banking</small>
@@ -367,7 +367,7 @@ function marketingNav(active = '') {
   <header class="rf-marketing-nav">
     <div class="wrap inner">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-nav-logo" src="/assets/bank/logo-dark.png" alt="${BANK.name}" width="482" height="124" />
+        <img class="rf-nav-logo" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" />
       </a>
       <nav>
         ${link('/personal', 'Personal', 'personal')}
@@ -389,16 +389,13 @@ function marketingFooter() {
   return `
   <section class="rf-cta" aria-label="Open an account">
     <div class="wrap">
-      <div class="rf-cta-card">
-        <div>
-          <span class="rf-eyebrow">Ready when you are</span>
-          <h2>Open an account in about ten minutes.</h2>
-          <p>No monthly fee on Everyday Checking, 4.35% APY on savings, and a banker who answers when you call.</p>
-        </div>
-        <div class="rf-cta-actions">
-          <a class="rf-btn lg pill light" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
-          <a class="rf-btn lg pill glass" href="/support">Talk to us</a>
-        </div>
+      <span class="rf-eyebrow">Ready when you are</span>
+      <h2>Open an account in about ten minutes.</h2>
+      <span class="rf-rule" aria-hidden="true"></span>
+      <p>No monthly fee on Everyday Checking, 4.35% APY on savings, and a banker who answers when you call.</p>
+      <div class="rf-cta-actions">
+        <a class="rf-btn lg light" href="/open-account">Open an account</a>
+        <a class="rf-btn lg glass" href="/support">Talk to us</a>
       </div>
     </div>
   </section>
@@ -406,7 +403,7 @@ function marketingFooter() {
     <div class="wrap">
       <div class="cols">
         <div>
-          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="482" height="124" style="width:220px;margin-bottom:18px" />
+          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" style="width:210px;margin-bottom:22px" />
           <p style="margin:0 0 12px;max-width:34ch">${BANK.tagline} Personal and business banking since ${BANK.established}.</p>
           <p style="margin:0;font-size:12.5px" data-site-row="address" hidden><span data-site="address"></span></p>
         </div>

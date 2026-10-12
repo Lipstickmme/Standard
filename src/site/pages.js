@@ -42,7 +42,7 @@ function header({ eyebrow, title, lede, image }) {
   <header class="rf-hero compact ${image ? 'has-photo' : 'has-mark'}">
     ${image
       ? `<img class="rf-hero-photo" src="${image}" alt="" aria-hidden="true" />`
-      : `<img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="368" height="372" />`}
+      : `<img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="66" height="86" />`}
     <div class="wrap">
       <span class="rf-eyebrow">${eyebrow}</span>
       <h1 style="font-size:clamp(32px,4.6vw,52px)">${title}</h1>
@@ -98,15 +98,14 @@ const ceo = leadership[0];
 const homeContent = `
   <section class="rf-hero tall has-photo home">
     <img class="rf-hero-photo" src="${images.hero}" alt="" aria-hidden="true" fetchpriority="high" />
-    <span class="rf-slab one" aria-hidden="true"></span>
-    <span class="rf-slab two" aria-hidden="true"></span>
     <div class="wrap">
       <div class="rf-hero-copy">
         <span class="rf-eyebrow">The key to your family&rsquo;s money</span>
         <h1>Banking that<br />feels like home.</h1>
+        <span class="rf-rule" aria-hidden="true"></span>
         <p class="lede">No monthly fee on checking, 4.35% APY on savings, and a real banker on the line whenever anyone in the household needs one &mdash; wherever in the world they happen to be.</p>
         <div class="rf-hero-actions">
-          <a class="rf-btn lg pill" href="/open-account">Open an account <span class="arw" aria-hidden="true">&rarr;</span></a>
+          <a class="rf-btn lg light" href="/open-account">Open an account</a>
           <a class="rf-hero-link" href="/security-center">How we keep you safe</a>
         </div>
         <ul class="rf-hero-features">
@@ -142,16 +141,14 @@ const homeContent = `
           <li>${icon('check', 16)}<span>Card controls: freeze, limits, travel on or off</span></li>
           <li>${icon('check', 16)}<span>Alerts within seconds, wherever the money went</span></li>
         </ul>
-        <p style="margin-top:28px"><a class="rf-btn lg pill" href="/open-account">Get started <span class="arw" aria-hidden="true">&rarr;</span></a></p>
+        <p style="margin-top:28px"><a class="rf-btn lg" href="/open-account">Get started</a></p>
       </div>
       <div class="rf-device-stage" aria-hidden="true">
-        <span class="rf-slab three"></span>
-        <span class="rf-slab four"></span>
         <div class="rf-phone">
           <div class="rf-phone-screen">
             <div class="rf-phone-top">
               <div class="rf-phone-status"><span>9:41</span><span class="dots"></span></div>
-              <img src="/assets/bank/logo-light.png" alt="" width="482" height="124" class="rf-phone-logo" />
+              <img src="/assets/bank/logo-light.png" alt="" width="744" height="210" class="rf-phone-logo" />
               <div class="rf-phone-balance">$4,250.00</div>
               <div class="rf-phone-delta">&uarr; 12% <span>vs. last month</span></div>
             </div>
@@ -173,7 +170,7 @@ const homeContent = `
           </div>
         </div>
         <div class="rf-plastic-card">
-          <img src="/assets/bank/logo-light.png" alt="" width="482" height="124" />
+          <img src="/assets/bank/logo-light.png" alt="" width="744" height="210" />
           <span class="chip"></span>
           <span class="num">&bull;&bull;&bull;&bull; 4821</span>
           <span class="kind">DEBIT</span>
@@ -669,7 +666,7 @@ const legalContent = `
 
 const notFoundContent = `
   <section class="rf-hero has-mark" style="min-height:60vh;display:flex;align-items:center">
-    <img class="rf-hero-mark" src="/assets/bank/logomark-dark.png" alt="" aria-hidden="true" width="368" height="372" />
+    <img class="rf-hero-mark" src="/assets/bank/logomark-light.png" alt="" aria-hidden="true" width="66" height="86" />
     <div class="wrap">
       <span class="rf-eyebrow">Error 404</span>
       <h1>Not on the books.</h1>
@@ -716,7 +713,7 @@ const deskContent = `
     <div class="admin-shell" id="admin-shell" hidden>
       <header class="admin-bar">
         <a class="admin-brand" href="/">
-          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="482" height="124" style="width:240px" />
+          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="744" height="210" style="width:240px" />
           <span>Client services desk</span>
         </a>
         <div class="admin-bar-end">
