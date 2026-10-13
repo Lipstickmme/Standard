@@ -430,7 +430,8 @@
     </svg>`;
   }
 
-  const CHART_COLORS = ['#155248', '#b8502b', '#c9a227', '#a3352b', '#4a6fa5', '#8a6a1f', '#2f8f8f', '#6b4c9a', '#9aa1ab'];
+  // Led by the bank's blues, then distinct hues that stay apart from them.
+  const CHART_COLORS = ['#1d5bbf', '#0c2550', '#5b9bf0', '#14a38b', '#f0a43a', '#e05d5d', '#8b6fd6', '#2bb3d6', '#a3afc2'];
 
   /* ------------------------------------------------------------ session -- */
 

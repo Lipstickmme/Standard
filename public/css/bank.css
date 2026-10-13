@@ -2221,3 +2221,26 @@ html.rf-invest-on .rf-tabbar a[href="/cards"] { display: none; }
 /* ---- phone tab bar ---- */
 .rf-app .rf-tabbar { background: rgba(255, 255, 255, .94); border-top: 1px solid var(--rf-line); }
 .rf-app .rf-tabbar a.is-active { color: var(--rf-blue); }
+
+/* ---- status colours that sit with the blue ---- */
+.rf-app {
+  --rf-credit: #15803d;
+  --rf-credit-soft: #e6f6ec;
+  --rf-debit: #c0362c;
+  --rf-debit-soft: #fdecea;
+  --rf-pending: #a15c07;
+  --rf-pending-soft: #fdf3e1;
+  --rf-info: #1d5bbf;
+  --rf-info-soft: #e9f1fd;
+}
+.rf-app .rf-badge { font-weight: 700; padding: 3px 10px; border: 1px solid transparent; }
+.rf-app .rf-badge.ok, .rf-app .rf-badge.completed, .rf-app .rf-badge.active, .rf-app .rf-badge.posted,
+.rf-app .rf-badge.verified, .rf-app .rf-badge.sent, .rf-app .rf-badge.accepted { border-color: #c9ebd5; }
+.rf-app .rf-badge.pending, .rf-app .rf-badge.pending_review, .rf-app .rf-badge.pending_verification, .rf-app .rf-badge.review,
+.rf-app .rf-badge.scheduled, .rf-app .rf-badge.processing, .rf-app .rf-badge.queued { border-color: #f6dfb4; }
+.rf-app .rf-badge.bad, .rf-app .rf-badge.rejected, .rf-app .rf-badge.failed, .rf-app .rf-badge.suspended, .rf-app .rf-badge.closed,
+.rf-app .rf-badge.blocked, .rf-app .rf-badge.frozen, .rf-app .rf-badge.lost, .rf-app .rf-badge.stolen { border-color: #f6cbc6; }
+.rf-app .rf-badge.info, .rf-app .rf-badge.not_configured { border-color: #cfe0fa; }
+/* Tables: a light header band and a soft blue hover. */
+.rf-app .rf-table thead th { background: var(--rf-surface-2); color: var(--rf-ink-3); }
+.rf-app .rf-table tbody tr:hover td { background: #f6f9fe; }

@@ -410,7 +410,7 @@ function tabbar(active, staff = false) {
  */
 function appPage({ title, description, heading, sub, active, content, extraScripts = [], actions = '', wide = false, staff = false }) {
   return [
-    head({ title, description, noindex: true, bodyClass: 'rf-app' }),
+    head({ title, description, noindex: true, bodyClass: 'rf-app', theme: 'light' }),
     `  <div class="rf-shell${staff ? ' is-staff' : ''}">`,
     sidebar(active, staff),
     `    <div class="rf-main">
