@@ -118,14 +118,23 @@ come next.
 1. Create a project at <https://supabase.com> (free tier), or connect Supabase from
    the Vercel **Storage** tab.
 
-2. Create the tables. In the Supabase dashboard open **SQL Editor, New query**, and
-   run these in order. Each file is guarded, so re-running one is safe.
+2. Create the tables. In the Supabase dashboard open **SQL Editor, New query**,
+   paste the whole of [`supabase/setup.sql`](../supabase/setup.sql) and run it.
+   That one file is every migration below, in order. It is guarded throughout,
+   so running it again - after an update, or on a half-set-up database - is
+   safe, and is the upgrade path too. (It is generated: after changing a
+   migration, run `npm run build:sql`.)
+
+   The individual files, if you would rather run them one at a time:
 
    | File | Creates |
    | ---- | ------- |
    | [`supabase/migrations/0001_init.sql`](../supabase/migrations/0001_init.sql) | `admins`, `is_admin()`, `enquiries`, `applications`, `chat_sessions`, `chat_messages`, the activity trigger and the realtime publication |
    | [`supabase/migrations/0002_email.sql`](../supabase/migrations/0002_email.sql) | `email_threads`, `email_messages` (skip if you are not receiving mail) |
    | [`supabase/migrations/0003_bank.sql`](../supabase/migrations/0003_bank.sql) | The banking application: customers, accounts, the ledger, transfers, cards, documents, alerts, the activity log, sessions and settings |
+   | [`supabase/migrations/0004_bank_sms.sql`](../supabase/migrations/0004_bank_sms.sql) | Text-message delivery status on banking alerts |
+   | [`supabase/migrations/0005_bank_invest.sql`](../supabase/migrations/0005_bank_invest.sql) | Investments: holdings, trades, and the last price seen for each asset |
+   | [`supabase/migrations/0006_bank_backposting.sql`](../supabase/migrations/0006_bank_backposting.sql) | Staff booking, re-timing and reversing conversions after the fact |
 
    Everything is behind row level security. `enquiries` has no anon policy at all:
    writes arrive through the API using the service role.
@@ -163,7 +172,7 @@ come next.
 
 6. **Redeploy** so the function picks the variables up.
 
-The function logs `[rockfield] storage: Supabase` on the next request. Confirm what the
+The function logs `[smb] storage: Supabase` on the next request. Confirm what the
 running server can actually see with:
 
 ```bash
@@ -408,6 +417,109 @@ and `inbound_emails`.
 
 ---
 
+## The setup checklist in the staff console
+
+Sign in to `/console` as the administrator and open **Setup checklist** (in the
+left-hand menu, under Bank). It checks this deployment live and lists every
+piece of the backend as **Done**, **To do**, **Waiting** or **Optional**:
+Supabase connected, each migration's tables, the browser key for chat, the
+encryption key, your own admin sign-in, sign-in codes kept private, email
+sending, where notifications go, inbound mail, your web address, and live
+prices. Each item that is not done says exactly what to set and where. Fix,
+redeploy, press **Check again**. Until everything required is done, the
+console's Overview shows a banner with the number left.
+
+## Live prices and converting balances (Invest)
+
+Every page carries a live price strip under the nav, and online banking has an
+**Invest** screen (`/invest`) where a customer converts part or all of a
+checking or savings balance into one of ten listed assets: the S&P 500 (SPY),
+the Nasdaq-100 (QQQ), Apple, Amazon, Microsoft, NVIDIA, Alphabet, Tesla,
+Bitcoin and gold. They get a fraction of a share - to a millionth, or to the
+satoshi for Bitcoin - at the price of the moment they confirm, and can sell any
+part of a holding back into an account at any time.
+
+What it needs:
+
+1. Run `supabase/migrations/0005_bank_invest.sql` (Step 4). Without it the
+   holdings fall back to file storage, which does not survive on Vercel.
+2. Optional but recommended: a free API key from <https://finnhub.io> as
+   `FINNHUB_API_KEY`. The free sources used without it (Yahoo Finance, Stooq)
+   sometimes refuse requests from cloud hosts; Finnhub does not.
+3. Redeploy, then check `https://<your-app>/api/bank/markets`: every asset
+   should have a `quote` with a `price` and a `source`.
+
+How it behaves:
+
+- Each conversion is a normal ledger debit (category **Investments**, method
+  **Investment**), so it appears in transactions and statements and is left out
+  of the spending chart. A sale is a ledger credit.
+- The price is fetched by the server at the moment of the trade, never taken
+  from the browser. If it has moved more than 2% from the price the customer
+  was shown, the trade is refused with the new price and they confirm again.
+- If no price fresher than two minutes can be had, buying and selling that
+  asset are refused with a message saying so; the ticker keeps showing the
+  last price with its time.
+- Every trade is written to the activity log and raises an
+  **Investments** alert, which customers can turn off under Alerts.
+
+This is a demonstration of the flow. Holdings are recorded by the bank; no
+order is sent to an exchange or broker, and nothing is bought on a market.
+Offering this to real customers needs a brokerage or custody partner and the
+licences that go with it.
+
+## Paying another SMB customer
+
+On the Transfers screen, **SMB customer** sends money to another person
+who banks here. The sender enters the recipient's email, phone number or
+SMB account number and presses **Find**; the bank answers with a masked
+name ("Mara V.") and the last digits of the account, and nothing more, so the
+sender can confirm the right person without the lookup revealing who banks
+here. The lookup is rate limited.
+
+The payment clears the same code and transfer PIN as any outgoing transfer,
+counts against its own daily limit (**To other SMB customers** under
+Settings, $10,000 by default), and then posts instantly to both accounts: the
+sender sees "Sent to Mara V.", the recipient "Received from Jordan E." and gets
+the usual money-in alert. Because the money never leaves the bank it is held
+for review only above the review threshold, not by the "hold every transfer"
+switch, which is for payments going out to other banks.
+
+## Back-posting: walk-ins and network outages (staff only)
+
+Some instructions reach the bank before they reach the system: a customer at
+the counter, or a call taken while the network was down. The staff console
+records them at the time and price they were actually agreed. Open the
+customer (search in the console header), then:
+
+- **Adjust** on an account posts a credit or debit with a **value date and
+  time** - leave both blank for now.
+- **Edit** on any entry changes its date and time, description, category, memo
+  and - for a posted entry that is not a conversion - its **amount**, moving the
+  balance by the difference. Every edit asks for an internal note.
+- **Investments, Book a conversion** converts cash to an asset, or sells an
+  asset to cash, at an **entered price** (prefilled with the live price) and an
+  optional earlier **time**. The receipt says "Entered by staff".
+- On each conversion, **Change time** moves it and its ledger entry to when it
+  really happened; **Reverse** undoes it completely - units off (or back on) the
+  holding and the cash back through a ledger reversal. The ordinary Reverse on a
+  conversion's entry does the same, so cash and units never disagree.
+
+Whenever an entry is dated in the past, the running "balance after" figures of
+the entries after it are restated, so statements and the transaction list add
+up; the account balance itself is the anchor and does not change. Nothing can
+be dated in the future. Every one of these actions is recorded in the activity
+log against the member of staff, with before-and-after figures. Customers
+cannot reach any of it.
+
+## Asset logos
+
+The ticker, dashboard and Invest screen show a round badge for each asset,
+drawn in the asset's colours. To use real logos instead, put files named by
+symbol in `public/assets/img/logos/` (`AAPL.svg`, `BTC.png`, ...) and rebuild;
+any asset without a file keeps its badge. Company logos are trademarks: use
+them only where you have the right to.
+
 ## Local development
 
 ```bash
@@ -429,8 +541,8 @@ notifications, so you can work entirely offline. To test notifications locally, 
 | Variable | Required | Purpose |
 | -------- | -------- | ------- |
 | `SUPABASE_URL` | for the database | Project URL (`VITE_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` accepted) |
-| `SUPABASE_ANON_KEY` | for chat and `/admin` | anon key; public by design, sent to the browser |
-| `SUPABASE_SERVICE_ROLE_KEY` | for the database | service_role key; server side only |
+| `SUPABASE_ANON_KEY` | for chat and `/admin` | anon key; public by design, sent to the browser (`SUPABASE_PUBLISHABLE_KEY` and the `NEXT_PUBLIC_` / `VITE_` forms accepted) |
+| `SUPABASE_SERVICE_ROLE_KEY` | for the database | service_role key; server side only (`SUPABASE_SECRET_KEY` accepted) |
 | `RESEND_API_KEY` | for email | Resend API key |
 | `FORM_TO` | for email | Where enquiries and chat land |
 | `FORM_FROM` | for email | Verified sender identity |
@@ -439,6 +551,9 @@ notifications, so you can work entirely offline. To test notifications locally, 
 | `MAILBOX_ADDRESS` | for inbound | The address that receives mail |
 | `FORWARD_TO` | for inbound | Where received mail is forwarded. No default: unset means nothing is forwarded |
 | `NOTIFY_WEBHOOK_URL` | no | Slack / Discord / desk webhook |
+| `RESEND_API_BASE` | no | Override for the Resend API base (default `https://api.resend.com`) |
+| `BANK_NAME` | no | Sender display name for replies and alerts (default `Standard Merchant Bank`; `STUDIO_NAME` accepted) |
+| `BANK_SHOW_DEV_CODES` | no | `1` returns one-time codes in responses and shows demo logins. Public demonstrations only |
 | `DATA_DIR` | no | Override local file storage path |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | no | API rate limiting (default 60000 / 30) |
 | `PORT` | no | Local port (default 3000) |
@@ -451,10 +566,23 @@ notifications, so you can work entirely offline. To test notifications locally, 
 | `PINGRAM_SMS_FROM` | for texts | The sending number, in E.164 (`+18005559999`) |
 | `PINGRAM_DEFAULT_COUNTRY` | no | Country code assumed for a ten-digit number with no `+` (default `1`) |
 | `PINGRAM_SMS_URL` | no | Override for Pingram's send endpoint (default `https://api.pingram.io/sms`) |
+| `FINNHUB_API_KEY` | recommended | Free key from finnhub.io: real-time stock and ETF prices for the ticker and Invest. Without it, Yahoo Finance and Stooq are used |
+| `MARKET_CACHE_SECONDS` | no | How long one round of prices is reused (default 30) |
+| `MARKET_TRADE_MAX_AGE_SECONDS` | no | A conversion is refused if the freshest price is older than this (default 120) |
+| `MARKET_DATA_FIXTURE` | no | `1` uses fixed demonstration prices. Tests and offline only; never on a deployment |
 | `PUBLIC_BASE_URL` | for email | Absolute base for the links inside alert emails. `BANK_BASE_URL` and `APP_URL` are accepted too, for when Vercel refuses the `PUBLIC_` prefix |
 | `BANK_RATE_LIMIT_MAX` | no | Requests per minute per IP against `/api/bank` (default 300) |
 | `BANK_LOGIN_RATE_LIMIT` | no | Sign-in attempts per five minutes per IP (default 20) |
-| `BANK_COOKIE_INSECURE` | no | `1` drops the Secure flag from the session cookie, for plain HTTP locally |
+| `BANK_COOKIE_INSECURE` | no | `1` drops the Secure flag from the session cookie, for plain HTTP locally. Never on Vercel |
+
+**Minimum for a working production deployment:** `SUPABASE_URL`,
+`SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BANK_ENCRYPTION_KEY`,
+`BANK_ADMIN_EMAIL`, `BANK_ADMIN_PASSWORD`, `PUBLIC_BASE_URL`. Add
+`RESEND_API_KEY`, `FORM_TO`, `FORM_FROM` and `BANK_ALERT_FROM` for email, which
+one-time codes depend on. Set each for **Production and Preview**, then
+redeploy. `.env.example` lists every variable with the same grouping.
+
+Do not set `PORT`, `DATA_DIR`, `NODE_ENV` or `BANK_COOKIE_INSECURE` on Vercel.
 
 Legacy aliases `CONTACT_NOTIFY_EMAIL` and `NOTIFY_FROM` still work if `FORM_TO` and
 `FORM_FROM` are unset.
@@ -486,6 +614,21 @@ sidebar gains **Admin console**. A customer who types `/console` is sent back
 to their dashboard.
 
 ## Troubleshooting
+
+**The deployment is blocked or never starts: "Git author ... must have access to
+the team on Vercel", or "could not associate the committer with a GitHub
+user".** Vercel only builds commits whose author it can match to a member of
+the project, and on the Hobby plan only to the owner. A commit written by a bot
+or tool under its own address is refused before the build runs. Push a commit
+authored by your own GitHub identity (`git commit --allow-empty -m redeploy`
+with your `user.email` set to your GitHub address), or in Vercel open the latest
+deployment and choose **Redeploy**.
+
+**The build succeeds and then fails with `No entrypoint found in output
+directory: "public"`.** The Framework Preset in Vercel's project settings is not
+**Other**. `vercel.json` sets `"framework": null`, but a preset chosen in the
+dashboard overrides it. Change it to **Other** and redeploy.
+
 
 **`/signin` says "Something went wrong (404)", or a request "did not reach the
 bank".** The request was answered before it got to this application. Every

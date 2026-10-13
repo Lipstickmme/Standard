@@ -26,6 +26,8 @@ const profile = require('../controllers/bank/profileController');
 const money = require('../controllers/bank/moneyController');
 const messaging = require('../controllers/bank/messagingController');
 const admin = require('../controllers/bank/adminController');
+const invest = require('../controllers/bank/investController');
+const setupController = require('../controllers/bank/setupController');
 
 const router = express.Router();
 
@@ -76,6 +78,9 @@ router.get('/config', asyncHandler(async (req, res) => {
     devCodes: require('../utils/config').showDevCodes(),
   });
 }));
+
+/** Live prices for the ticker under the nav. Public, and cached at the edge. */
+router.get('/markets', invest.quotes);
 
 /* ------------------------------------------------------------------ auth --- */
 
@@ -135,6 +140,9 @@ router.get('/cards', accounts.cards);
 router.post('/cards/:id', accounts.updateCard);
 
 router.get('/transfers/options', money.transferOptions);
+// Finding another customer to pay: a tight bucket, so the lookup cannot be
+// used to walk the customer list.
+router.post('/transfers/member-lookup', limiter.create({ windowMs: 10 * 60_000, max: 40, name: 'bank-member-lookup' }), money.memberLookup);
 router.get('/transfers', money.listTransfers);
 router.post('/transfers', money.createTransfer);
 router.get('/transfers/:id', money.getTransfer);
@@ -155,6 +163,10 @@ router.delete('/payees/:id', money.deletePayee);
 router.get('/deposits', money.listDeposits);
 router.post('/deposits', money.createDeposit);
 
+router.get('/invest', invest.portfolio);
+router.post('/invest/convert', invest.convert);
+router.post('/invest/sell', invest.sell);
+
 router.get('/disputes', money.listDisputes);
 router.post('/disputes', money.createDispute);
 
@@ -172,6 +184,11 @@ const staff = express.Router();
 staff.use(auth.requireAdmin);
 
 staff.get('/overview', admin.overview);
+staff.get('/setup', setupController.setup);
+staff.get('/investments', invest.staffOverview);
+staff.post('/trades', invest.staffBook);
+staff.patch('/trades/:id', invest.staffRetime);
+staff.post('/trades/:id/reverse', invest.staffReverse);
 staff.get('/settings', admin.getSettings);
 staff.put('/settings', admin.updateSettings);
 staff.post('/scheduled/run', admin.runScheduled);
@@ -179,6 +196,7 @@ staff.post('/scheduled/run', admin.runScheduled);
 staff.get('/customers', admin.listCustomers);
 staff.post('/customers', admin.createCustomer);
 staff.get('/customers/:id', admin.customerDetail);
+staff.get('/customers/:id/investments', invest.staffCustomerHoldings);
 staff.patch('/customers/:id', admin.updateCustomer);
 staff.post('/customers/:id/status', admin.setCustomerStatus);
 staff.post('/customers/:id/kyc', admin.setKyc);

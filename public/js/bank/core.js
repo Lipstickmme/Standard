@@ -430,7 +430,7 @@
     </svg>`;
   }
 
-  const CHART_COLORS = ['#1b3457', '#b89243', '#1b7a53', '#a3352b', '#4a6fa5', '#8a6a1f', '#2f8f8f', '#6b4c9a', '#9aa1ab'];
+  const CHART_COLORS = ['#155248', '#b8502b', '#c9a227', '#a3352b', '#4a6fa5', '#8a6a1f', '#2f8f8f', '#6b4c9a', '#9aa1ab'];
 
   /* ------------------------------------------------------------ session -- */
 
@@ -473,13 +473,15 @@
   async function hydrateContact() {
     const fields = qsa('[data-site]');
     const rows = qsa('[data-site-row]');
-    if (!fields.length && !rows.length) return;
+    // Signed in, the session has already said what the bank is called.
+    if (!fields.length && !rows.length && state.session && state.session.bankName) return;
     let bank;
     try {
       bank = (await api.get('/config')).bank || {};
     } catch (err) {
       return; // The standing phrases are correct on their own.
     }
+    if (window.SMBName && bank.name) window.SMBName.apply(bank.name);
     fields.forEach((el) => {
       const value = bank[el.getAttribute('data-site')];
       if (!value) return;
@@ -499,6 +501,8 @@
     }
     state.session = session;
     state.user = session.user || null;
+    // The name staff have given the bank, over the one the page was built with.
+    if (window.SMBName && session.bankName) window.SMBName.apply(session.bankName);
 
     if (isApp) {
       if (!session.authenticated) {
@@ -518,6 +522,8 @@
         return new Promise(() => {});
       }
       paintUser(session);
+      // Confirmed: lift the loader the head script put up.
+      document.documentElement.classList.remove('rf-booting');
     }
     // Not awaited: nothing on the page is blocked on a telephone number, and a
     // slow /config should not hold up the dashboard behind it.

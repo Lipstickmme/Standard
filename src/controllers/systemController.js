@@ -66,6 +66,13 @@ const PROBES = [
   // Probed separately so the answer names the file that actually adds these,
   // rather than sending somebody back to 0003 where they are not.
   { table: 'bank_alerts', key: 'bank_alerts.sms', columns: 'id,sms_status,sms_error', migration: '0004_bank_sms.sql' },
+  // Converting balances into listed assets.
+  ...[
+    ['bank_holdings', 'id,user_id,symbol,units,cost_basis,updated_at'],
+    ['bank_trades', 'id,created_at,user_id,account_id,symbol,side,units,price,amount,realized_gain,reference,quote_source'],
+    ['bank_market_quotes', 'id,symbol,price,previous_close,change,change_pct,source,as_of,fetched_at'],
+  ].map(([table, columns]) => ({ table, columns, migration: '0005_bank_invest.sql' })),
+  { table: 'bank_trades', key: 'bank_trades.staff', columns: 'id,status,reversed_at,booked_by,note', migration: '0006_bank_backposting.sql' },
 ];
 
 async function probeSchema() {
@@ -542,3 +549,7 @@ exports.health = async (req, res) => {
     warnings,
   });
 };
+
+// The console's setup checklist asks the same questions of the schema.
+exports.PROBES = PROBES;
+exports.probeSchema = probeSchema;

@@ -25,6 +25,7 @@ process.env.BANK_ENCRYPTION_KEY = 'test-key-not-for-production';
 process.env.BANK_COOKIE_INSECURE = '1';
 process.env.BANK_RATE_LIMIT_MAX = '5000';
 process.env.BANK_LOGIN_RATE_LIMIT = '500';
+process.env.MARKET_DATA_FIXTURE = '1';
 delete process.env.RESEND_API_KEY;
 delete process.env.SUPABASE_URL;
 delete process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -169,6 +170,170 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       assert.strictEqual(absurd.status, 400);
       assert.match(absurd.body.message, /most you can send/i);
       ok(`overdraft refused: ${res.body.message}`);
+    }
+
+    /* ---- 5b. converting a balance into listed assets, and back ---- */
+    {
+      const markets_ = require(path.join(ROOT, 'src/bank/markets'));
+      markets_._setFixture(null);
+
+      // The ticker's feed is public.
+      const anon = client(base);
+      const feed = await anon.get('/api/bank/markets');
+      assert.strictEqual(feed.status, 200, feed.text);
+      const symbols = feed.body.assets.map((a) => a.symbol);
+      ['SPY', 'AAPL', 'AMZN', 'BTC', 'XAU', 'QQQ'].forEach((s) => assert.ok(symbols.includes(s), `${s} is listed`));
+      assert.ok(feed.body.assets.every((a) => a.quote && a.quote.price > 0), 'every asset has a price');
+      assert.match(feed.headers.get('cache-control') || '', /s-maxage/, 'the feed is cacheable at the edge');
+
+      const start = await customer.get('/api/bank/invest');
+      assert.strictEqual(start.status, 200, start.text);
+      const fundFrom = start.body.accounts.find((a) => a.id === checking.id);
+      assert.ok(fundFrom && fundFrom.available > 0, 'checking can fund a conversion');
+      assert.ok(!start.body.accounts.some((a) => a.isCredit), 'a credit card cannot fund one');
+
+      const balanceOf = async (id) => (await customer.get('/api/bank/accounts')).body.accounts.find((a) => a.id === id).balance;
+      const before = await balanceOf(checking.id);
+
+      // $500.00 of the S&P 500 at the fixture's $571.25.
+      const buy = await customer.post('/api/bank/invest/convert', { accountId: checking.id, symbol: 'SPY', amount: '500.00', quotedPrice: 571.25 });
+      assert.strictEqual(buy.status, 201, buy.text);
+      assert.strictEqual(buy.body.trade.units, '0.875273', 'units are rounded down to a millionth of a share');
+      assert.strictEqual(buy.body.trade.price, 57125, 'booked at the live price, in cents');
+      assert.strictEqual(buy.body.trade.amount, 50000);
+      assert.strictEqual(before - await balanceOf(checking.id), 50000, 'exactly $500.00 left checking');
+
+      // A quarter of savings into Bitcoin, by percentage.
+      const savingsAvail = start.body.accounts.find((a) => a.id === savings.id).available;
+      const btc = await customer.post('/api/bank/invest/convert', { accountId: savings.id, symbol: 'BTC', percent: 25 });
+      assert.strictEqual(btc.status, 201, btc.text);
+      assert.strictEqual(btc.body.trade.amount, Math.floor(savingsAvail / 4), '25% of what was available');
+      assert.ok(/^0\.\d{1,8}$/.test(btc.body.trade.units), 'Bitcoin is held to the satoshi');
+
+      // The doors.
+      const moved = await customer.post('/api/bank/invest/convert', { accountId: checking.id, symbol: 'AAPL', amount: '100', quotedPrice: 150 });
+      assert.strictEqual(moved.status, 409, 'a price that moved past the tolerance is not booked');
+      assert.strictEqual(moved.body.error, 'price_moved');
+      assert.strictEqual(moved.body.details.quote.price, 227.5, 'and the new price comes back to show');
+      const tooMuch = await customer.post('/api/bank/invest/convert', { accountId: checking.id, symbol: 'AAPL', amount: '9000000' });
+      assert.strictEqual(tooMuch.status, 400);
+      const tiny = await customer.post('/api/bank/invest/convert', { accountId: checking.id, symbol: 'AAPL', amount: '0.50' });
+      assert.strictEqual(tiny.status, 400, 'below the minimum');
+      const unknown = await customer.post('/api/bank/invest/convert', { accountId: checking.id, symbol: 'DOGE', amount: '10' });
+      assert.strictEqual(unknown.status, 400, 'only listed assets');
+      const noCsrf = await fetch(`${base}/api/bank/invest/convert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      assert.ok([401, 403].includes(noCsrf.status), 'signed out, nothing converts');
+
+      // The price rises 5%: the holding is worth more than it cost.
+      markets_._setFixture({ SPY: 599.81 });
+      const later = await customer.get('/api/bank/invest');
+      const spy = later.body.holdings.find((h) => h.symbol === 'SPY');
+      assert.strictEqual(spy.units, '0.875273');
+      assert.strictEqual(spy.costBasis, 50000);
+      assert.strictEqual(spy.value, Math.floor(875273 * 59981 / 1e6), 'valued at the new price');
+      assert.ok(spy.gain > 0 && later.body.totals.value > 0);
+
+      // Sell half back into checking, then all the Bitcoin.
+      const half = await customer.post('/api/bank/invest/sell', { accountId: checking.id, symbol: 'SPY', percent: 50, quotedPrice: 599.81 });
+      assert.strictEqual(half.status, 201, half.text);
+      assert.strictEqual(half.body.trade.units, '0.437636');
+      assert.strictEqual(half.body.trade.amount, Math.floor(437636 * 59981 / 1e6));
+      const afterHalf = (await customer.get('/api/bank/invest')).body.holdings.find((h) => h.symbol === 'SPY');
+      assert.strictEqual(afterHalf.units, '0.437637', 'the rest stays held');
+
+      const allBtc = await customer.post('/api/bank/invest/sell', { accountId: savings.id, symbol: 'BTC', all: true });
+      assert.strictEqual(allBtc.status, 201, allBtc.text);
+      const end = await customer.get('/api/bank/invest');
+      assert.ok(!end.body.holdings.some((h) => h.symbol === 'BTC'), 'selling everything closes the holding');
+      assert.strictEqual(end.body.trades.length, 4, 'every trade is on record');
+      const oversell = await customer.post('/api/bank/invest/sell', { accountId: checking.id, symbol: 'SPY', units: '5' });
+      assert.strictEqual(oversell.status, 400, 'you cannot sell what you do not hold');
+
+      // On the ledger as investments, and not counted as spending.
+      const tx = await customer.get('/api/bank/transactions?limit=10');
+      assert.ok(tx.body.transactions.some((t) => t.category === 'Investments' && /S&P 500/.test(t.description)));
+      const overview = await customer.get('/api/bank/overview');
+      assert.ok(!overview.body.spending.some((s) => s.category === 'Investments'), 'investing is not spending');
+
+      markets_._setFixture(null);
+      ok(`invest: $500.00 bought ${buy.body.trade.units} SPY at $571.25, half sold at $599.81, Bitcoin round trip, price-moved and overdraw refused`);
+    }
+
+    /* ---- 5d. an active session keeps its cookies; an ended one loses them ---- */
+    {
+      const db_ = require(path.join(ROOT, 'src/bank/db')).db;
+      const mine = (await db_.sessions.find({ revoked_at: null })).filter((x) => x.csrf === customer.csrf)[0];
+      assert.ok(mine, 'the test session is on record');
+      await db_.sessions.update(mine.id, { last_seen_at: new Date(Date.now() - 5 * 60000).toISOString() });
+      const slid = await customer.get('/api/bank/auth/session');
+      const set = slid.headers.getSetCookie ? slid.headers.getSetCookie() : [];
+      assert.ok(set.some((c) => /^rf_session=/.test(c) && /Max-Age=\d+/.test(c)), 'the session cookie is re-issued as the session slides');
+      assert.ok(set.some((c) => /^rf_csrf=/.test(c)), 'and the CSRF cookie with it');
+
+      await db_.sessions.update(mine.id, { last_seen_at: new Date(Date.now() - 5 * 60000).toISOString() });
+      const feed = await customer.get('/api/bank/markets');
+      assert.ok(!(feed.headers.getSetCookie ? feed.headers.getSetCookie() : []).length, 'the CDN-cached price feed never carries a cookie');
+
+      const stale = await fetch(`${base}/api/bank/auth/session`, { headers: { Cookie: 'rf_session=gone; rf_csrf=gone' } });
+      const cleared = stale.headers.getSetCookie ? stale.headers.getSetCookie() : [];
+      assert.strictEqual((await stale.json()).authenticated, false);
+      assert.ok(cleared.some((c) => /^rf_csrf=;/.test(c) && /Max-Age=0/.test(c)), 'cookies from an ended session are cleared');
+      ok('sessions: cookies slide while active, are cleared once ended, and never ride on the price feed');
+    }
+
+    /* ---- 5c. each price provider is read the way it answers ---- */
+    {
+      const markets_ = require(path.join(ROOT, 'src/bank/markets'));
+      const realFetch = global.fetch;
+      const fixtureWas = process.env.MARKET_DATA_FIXTURE;
+      delete process.env.MARKET_DATA_FIXTURE;
+      const calls = [];
+      let yahooDown = false;
+      const respond = (body, status = 200) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status });
+      global.fetch = async (url) => {
+        const u = String(url);
+        calls.push(new URL(u).host);
+        if (u.includes('finance.yahoo.com')) {
+          if (yahooDown) return respond('rate limited', 429);
+          const sym = decodeURIComponent(u.split('/chart/')[1].split('?')[0]);
+          return respond({ chart: { result: [{ meta: { regularMarketPrice: sym === 'AAPL' ? 230.1 : 100, chartPreviousClose: sym === 'AAPL' ? 225 : 99, regularMarketTime: 1760000000 } }] } });
+        }
+        if (u.includes('stooq.com')) {
+          const syms = new URL(u).searchParams.get('s').split(' ').join('+').split('+');
+          const rows = syms.map((s) => `${s.toUpperCase()},2026-10-12,20:00:00,10,11,9,${s === 'xauusd' ? '2650.5' : s === 'aapl.us' ? '228.4' : '50'},${s === 'xauusd' ? '2600' : '49'}`);
+          return respond(['Symbol,Date,Time,Open,High,Low,Close,Prev', ...rows].join('\n'));
+        }
+        if (u.includes('coingecko.com')) {
+          return respond({ bitcoin: { usd: 64000, usd_24h_change: 2.5, last_updated_at: 1760000000 }, 'pax-gold': { usd: 2640 } });
+        }
+        if (u.includes('coinbase.com')) return respond({ data: { amount: '63900.00' } });
+        return respond('not found', 404);
+      };
+      try {
+        markets_._setFixture(null);
+        let list = await markets_.list();
+        const by = (s) => list.find((a) => a.symbol === s).quote;
+        assert.strictEqual(by('AAPL').price, 230.1);
+        assert.strictEqual(by('AAPL').source, 'Yahoo Finance');
+        assert.strictEqual(by('AAPL').change, 5.1);
+        assert.strictEqual(by('BTC').price, 64000);
+        assert.strictEqual(by('BTC').source, 'CoinGecko');
+        assert.strictEqual(by('BTC').changePct, 2.5);
+        assert.strictEqual(by('XAU').price, 2650.5, 'gold is spot XAU/USD from Stooq');
+        assert.ok(!calls.includes('finnhub.io'), 'Finnhub is skipped without a key');
+
+        yahooDown = true;
+        markets_._setFixture(null);
+        list = await markets_.list();
+        assert.strictEqual(by('AAPL').price, 228.4, 'when Yahoo refuses, stocks come from Stooq');
+        assert.strictEqual(by('AAPL').source, 'Stooq');
+        assert.strictEqual(by('AAPL').previousClose, 49, 'Stooq\'s previous close is used for the change');
+        ok('prices: Yahoo, Stooq and CoinGecko parsed; Stooq takes over when Yahoo refuses');
+      } finally {
+        global.fetch = realFetch;
+        if (fixtureWas) process.env.MARKET_DATA_FIXTURE = fixtureWas;
+        markets_._setFixture(null);
+      }
     }
 
     /* ---- 6. an outside transfer needs a code, then waits for review ---- */
@@ -406,6 +571,151 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       ok('console: suspend and restore');
     }
 
+    /* ---- 18a. paying another SMB customer ---- */
+    {
+      // Dana was registered by the console above, with an opening balance.
+      const look = await customer.post('/api/bank/transfers/member-lookup', { query: 'NewCustomer@Example.com' });
+      assert.strictEqual(look.status, 200, look.text);
+      assert.strictEqual(look.body.member.name, 'Dana W.', 'a masked name, enough to confirm the person');
+      assert.ok(!JSON.stringify(look.body).includes('Whitfield'), 'and never the full surname');
+      const self = await customer.post('/api/bank/transfers/member-lookup', { query: 'demo@standardmerchantbank.com' });
+      assert.strictEqual(self.status, 400, 'your own address points you at between-accounts');
+      const nobody = await customer.post('/api/bank/transfers/member-lookup', { query: 'nobody@nowhere.test' });
+      assert.strictEqual(nobody.status, 200);
+      assert.strictEqual(nobody.body.member, null, 'nobody found is an answer, not an error');
+
+      const danaAccounts = (await admin.get(`/api/bank/admin/customers/${newCustomerId}`)).body.accounts;
+      const danaChecking = danaAccounts.find((a) => !a.isCredit);
+      const byNumber = await customer.post('/api/bank/transfers/member-lookup', { query: danaChecking.accountNumber });
+      assert.strictEqual(byNumber.status, 200, 'an account number finds the same person');
+
+      const balanceBefore = danaChecking.balance;
+      const send = await customer.post('/api/bank/transfers', {
+        type: 'member', fromAccountId: checking.id, memberQuery: 'newcustomer@example.com', amount: '42.50', memo: 'Lunch', pin: '4417',
+      });
+      assert.ok([200, 201].includes(send.status), send.text);
+      let result = send.body;
+      if (result.next === 'verify') {
+        const code = result.verification && result.verification.devCode;
+        assert.ok(code, 'the code is handed back on a laptop');
+        result = (await customer.post(`/api/bank/transfers/${result.transfer.id}/verify`, { code })).body;
+      }
+      assert.strictEqual(result.next, 'completed', `a small payment to a customer is instant, got ${result.next}`);
+
+      const after = (await admin.get(`/api/bank/admin/customers/${newCustomerId}`)).body.accounts.find((a) => a.id === danaChecking.id);
+      assert.strictEqual(after.balance - balanceBefore, 4250, 'it arrived in their account');
+      const danaTx = (await admin.get(`/api/bank/admin/customers/${newCustomerId}`)).body.transactions;
+      assert.ok(danaTx.some((t) => /Received from Jordan/.test(t.description)), 'labelled with who it came from');
+      ok(`members: found Dana W. by email and account number, $42.50 sent and arrived instantly`);
+    }
+
+    /* ---- 18c. staff back-posting: trades and entries booked after the fact ---- */
+    {
+      const found = await admin.get('/api/bank/admin/customers?q=demo%40standardmerchantbank.com&limit=5');
+      const jordan = found.body.customers[0];
+      assert.ok(jordan, 'the demo customer is found');
+      const acctOf = async () => (await admin.get(`/api/bank/admin/customers/${jordan.id}`)).body.accounts.find((a) => a.id === checking.id);
+      const holdingOf = async (sym) => ((await admin.get(`/api/bank/admin/customers/${jordan.id}/investments`)).body.holdings.find((h) => h.symbol === sym) || { units: '0' });
+      // A running balance that adds up: each posted entry's balance_after,
+      // in value-date order, ends at the account balance.
+      const chainHolds = async () => {
+        const rows = (await admin.get(`/api/bank/admin/customers/${jordan.id}`)).body.transactions
+          .filter((t) => t.accountId === checking.id && ['posted', 'reversed'].includes(t.status));
+        const latest = rows.slice().sort((a, b) => (a.date === b.date ? 0 : a.date < b.date ? 1 : -1))[0];
+        return latest && latest.balanceAfter === (await acctOf()).balance;
+      };
+
+      const before = (await acctOf()).balance;
+      const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
+      const booked = await admin.post('/api/bank/admin/trades', {
+        customerId: jordan.id, side: 'buy', accountId: checking.id, symbol: 'SPY',
+        amount: '1000.00', price: '500.00', date: twoDaysAgo, note: 'Walk-in, branch 2',
+      });
+      assert.strictEqual(booked.status, 201, booked.text);
+      assert.strictEqual(booked.body.trade.units, '2', 'exactly 2 shares at the agreed $500.00');
+      assert.strictEqual(booked.body.trade.price, 50000);
+      assert.strictEqual(booked.body.trade.createdAt, twoDaysAgo, 'booked at the agreed time');
+      assert.strictEqual(booked.body.trade.source, 'Entered by staff');
+      assert.strictEqual(before - (await acctOf()).balance, 100000, '$1,000.00 left checking');
+      assert.ok(await chainHolds(), 'running balances restated around the back-dated entry');
+
+      const asCustomer = await customer.post('/api/bank/admin/trades', { customerId: jordan.id, side: 'buy', accountId: checking.id, symbol: 'SPY', amount: '5' });
+      assert.strictEqual(asCustomer.status, 403, 'customers cannot back-post');
+      const future = await admin.post('/api/bank/admin/trades', { customerId: jordan.id, side: 'buy', accountId: checking.id, symbol: 'SPY', amount: '5', date: new Date(Date.now() + 86400000).toISOString() });
+      assert.strictEqual(future.status, 400, 'nothing dated in the future');
+
+      const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
+      const moved = await admin.patch(`/api/bank/admin/trades/${booked.body.trade.id}`, { date: threeDaysAgo, note: 'Network down; instruction taken by phone' });
+      assert.strictEqual(moved.status, 200, moved.text);
+      const movedTx = (await admin.get(`/api/bank/admin/customers/${jordan.id}`)).body.transactions.find((t) => t.id === booked.body.trade.transactionId);
+      assert.strictEqual(movedTx.date, threeDaysAgo, 'its ledger entry moved with it');
+      assert.ok(await chainHolds());
+
+      const fixAmount = await admin.patch(`/api/bank/admin/transactions/${booked.body.trade.transactionId}`, { amount: '900.00' });
+      assert.strictEqual(fixAmount.status, 409, 'a conversion is corrected by reversing, not by editing its amount');
+
+      const spyBefore = Number((await holdingOf('SPY')).units);
+      const reversed = await admin.post(`/api/bank/admin/trades/${booked.body.trade.id}/reverse`, { note: 'Booked to the wrong customer' });
+      assert.strictEqual(reversed.status, 200, reversed.text);
+      assert.strictEqual(reversed.body.trade.status, 'reversed');
+      assert.strictEqual(Math.round((spyBefore - Number((await holdingOf('SPY')).units)) * 1e6), 2e6, 'the 2 shares came off the holding');
+      assert.strictEqual((await acctOf()).balance, before, 'and the $1,000.00 came back');
+      const again = await admin.post(`/api/bank/admin/trades/${booked.body.trade.id}/reverse`, {});
+      assert.strictEqual(again.status, 409, 'a trade reverses once');
+
+      // The console's ordinary Reverse on a conversion's entry undoes the whole trade.
+      const second = await admin.post('/api/bank/admin/trades', { customerId: jordan.id, side: 'buy', accountId: checking.id, symbol: 'SPY', amount: '500.00', price: '500.00' });
+      assert.strictEqual(second.status, 201, second.text);
+      const spyMid = Number((await holdingOf('SPY')).units);
+      const viaEntry = await admin.post(`/api/bank/admin/transactions/${second.body.trade.transactionId}/settle`, { action: 'reverse', note: 'Duplicate' });
+      assert.strictEqual(viaEntry.status, 200, viaEntry.text);
+      assert.strictEqual(Math.round((spyMid - Number((await holdingOf('SPY')).units)) * 1e6), 1e6, 'units and cash both undone');
+
+      // An ordinary entry: back-dated with a time, then its amount corrected.
+      const yesterday = new Date(Date.now() - 86400000);
+      yesterday.setUTCHours(14, 35, 0, 0);
+      const walkIn = await admin.post(`/api/bank/admin/accounts/${checking.id}/adjust`, {
+        direction: 'credit', amount: '100.00', description: 'CASH DEPOSIT - BRANCH 2', date: yesterday.toISOString(), notify: false,
+      });
+      assert.strictEqual(walkIn.status, 201, walkIn.text);
+      assert.strictEqual(walkIn.body.transaction.date, yesterday.toISOString(), 'dated to the minute');
+      const balWalkIn = (await acctOf()).balance;
+      const amended = await admin.patch(`/api/bank/admin/transactions/${walkIn.body.transaction.id}`, { amount: '125.00', description: 'CASH DEPOSIT - BRANCH 2 (corrected)' });
+      assert.strictEqual(amended.status, 200, amended.text);
+      assert.strictEqual(amended.body.transaction.amount, 12500);
+      assert.strictEqual((await acctOf()).balance - balWalkIn, 2500, 'the balance moved by the difference');
+      assert.ok(await chainHolds(), 'and the running balances still add up');
+      const audit = (await admin.get('/api/bank/admin/activity?limit=40')).body.activity.map((a) => a.action);
+      ['admin.trade_reversed', 'admin.trade_retimed', 'admin.transaction_updated', 'invest.buy'].forEach((a) => assert.ok(audit.includes(a), `${a} is in the activity log`));
+      ok('back-posting: staff booked 2 SPY at $500 two days back, moved it, reversed it; a walk-in deposit dated and corrected');
+    }
+
+    /* ---- 18b. the console's setup checklist and investments views ---- */
+    {
+      const setupRes = await admin.get('/api/bank/admin/setup');
+      assert.strictEqual(setupRes.status, 200, setupRes.text);
+      const ids = setupRes.body.items.map((i) => i.id);
+      ['supabase', '0003_bank.sql', '0005_bank_invest.sql', 'encryption', 'resend', 'prices'].forEach((id) => assert.ok(ids.includes(id), `checks ${id}`));
+      const db = setupRes.body.items.find((i) => i.id === 'supabase');
+      assert.strictEqual(db.status, 'todo', 'running on files, the database is a to-do');
+      assert.ok(db.fix && /SUPABASE_URL/.test(db.fix), 'and says how to fix it');
+      assert.ok(setupRes.body.items.every((i) => ['done', 'todo', 'blocked', 'optional'].includes(i.status)));
+      assert.ok(!JSON.stringify(setupRes.body).includes('test-key-not-for-production'), 'no secret values, only names');
+      const asCustomer = await customer.get('/api/bank/admin/setup');
+      assert.strictEqual(asCustomer.status, 403, 'customers cannot see it');
+
+      const inv = await admin.get('/api/bank/admin/investments');
+      assert.strictEqual(inv.status, 200, inv.text);
+      assert.ok(inv.body.holdings.length >= 1, 'the SPY left over from the invest test is listed');
+      assert.ok(inv.body.holdings.every((h) => h.customer && h.customer.fullName), 'with who holds it');
+      assert.ok(inv.body.totals.value > 0 && inv.body.trades.length >= 4);
+      const holder = inv.body.holdings[0].customer.id;
+      const one = await admin.get(`/api/bank/admin/customers/${holder}/investments`);
+      assert.strictEqual(one.status, 200, one.text);
+      assert.ok(one.body.holdings.length >= 1);
+      ok(`console: setup checklist of ${ids.length} items, ${inv.body.holdings.length} holding(s) worth $${dollars(inv.body.totals.value)} across customers`);
+    }
+
     /* ---- 19. settings an operator changes take effect ---- */
     {
       const res = await admin.put('/api/bank/admin/settings', {
@@ -420,6 +730,21 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const config = await client(base).get('/api/bank/config');
       assert.match(config.body.announcement, /maintenance/i);
       ok('settings: a fee change reaches the transfer form and the banner reaches the public page');
+    }
+
+    /* ---- 19b. the bank's name, set at the console, reaches every page ---- */
+    {
+      const res = await admin.put('/api/bank/admin/settings', { bankName: 'SMB Global Finance' });
+      assert.strictEqual(res.status, 200, res.text);
+      const site = await client(base).get('/api/site');
+      assert.strictEqual(site.body.name, 'SMB Global Finance', 'the public pages are told the new name');
+      assert.strictEqual(site.headers.get('cache-control'), 'no-cache', 'and are not left holding the old one');
+      const session = await customer.get('/api/bank/auth/session');
+      assert.strictEqual(session.body.bankName, 'SMB Global Finance', 'so is online banking');
+      await admin.put('/api/bank/admin/settings', { bankName: '' });
+      const back = await client(base).get('/api/site');
+      assert.strictEqual(back.body.name, 'Standard Merchant Bank', 'a blank name falls back to the built one');
+      ok('settings: a new bank name reaches the public site and online banking, and a blank one restores the default');
     }
 
     /* ---- 20. CSRF and sign-out ---- */

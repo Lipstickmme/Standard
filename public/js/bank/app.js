@@ -116,10 +116,11 @@
   }
 
   const accountTile = (account) => `
-    <a class="rf-acct ${account.isCredit ? 'credit' : ''}" href="/accounts?id=${esc(account.id)}">
+    <div class="rf-acct ${account.isCredit ? 'credit' : ''}">
+      <a class="hs-acct-link" href="/accounts?id=${esc(account.id)}" aria-label="${esc(account.nickname || account.name)} details"></a>
       <div class="top">
         <strong>${esc(account.nickname || account.name)}</strong>
-        ${account.status === 'active' ? '' : badge(account.status)}
+        ${account.status === 'active' ? `<span class="hs-acct-type">${esc(account.typeLabel || '')}</span>` : badge(account.status)}
       </div>
       <div class="no">${esc(account.accountMask)}</div>
       <div class="bal">${money(account.balance)}</div>
@@ -129,12 +130,71 @@
     : `<span>${money(account.availableBalance)} available</span>`}
         ${account.holdAmount ? `<span>${money(account.holdAmount)} on hold</span>` : ''}
       </div>
-    </a>`;
+      ${account.isCredit || account.status !== 'active' ? '' : `<div class="hs-acct-actions">
+        <a href="/transfers?from=${esc(account.id)}">Transfer</a>
+        <a href="/invest?from=${esc(account.id)}" class="is-primary">Convert</a>
+      </div>`}
+    </div>`;
 
   /* ---------------------------------------------------------- dashboard -- */
 
   async function dashboard() {
     const data = await api.get('/overview');
+
+    // Investments fill in on their own, so a slow price feed never holds up the balances.
+    const cash = data.totals.deposits;
+    const paintHero = (invested) => {
+      const total = qs('[data-hero="total"]');
+      if (!total) return;
+      total.textContent = money(cash + (invested || 0));
+      qs('[data-hero="cash"]').textContent = money(cash);
+      qs('[data-hero="invested"]').textContent = invested == null ? '—' : money(invested);
+    };
+    paintHero(null);
+    // What the invested figure is made of, beside it: each asset's mark, its
+    // symbol and what it is worth now, largest first.
+    const paintHeroAssets = (holdings) => {
+      const box = qs('[data-hero="assets"]');
+      if (!box) return;
+      const held = holdings.filter((h) => h.value != null).sort((a, b) => b.value - a.value);
+      if (!held.length) { box.hidden = true; return; }
+      const L = window.HSAssets || { logo: () => '' };
+      const MAX = 5;
+      // Cents in; whole dollars once there are thousands, so the row stays short.
+      const whole = (cents) => (Math.abs(cents) >= 100000
+        ? `$${Math.round(cents / 100).toLocaleString('en-US')}`
+        : money(cents));
+      box.innerHTML = held.slice(0, MAX).map((h) => `<span class="hs-hero-asset" title="${esc(h.name)}: ${esc(h.units)} ${esc(h.symbol)}, ${money(h.value)}">
+          ${L.logo(h.symbol, 22)}<span>${esc(h.symbol)}</span><b>${whole(h.value)}</b>
+        </span>`).join('') + (held.length > MAX ? `<span class="hs-hero-asset more">+${held.length - MAX} more</span>` : '');
+      box.setAttribute('aria-label', `Invested in ${held.map((h) => `${h.name} ${money(h.value)}`).join(', ')}. Open Invest.`);
+      box.hidden = false;
+    };
+    api.get('/invest').then((inv) => {
+      paintHero(inv.totals.value);
+      paintHeroAssets(inv.holdings);
+      const box = qs('[data-dash-invest]');
+      if (!box) return;
+      if (!inv.holdings.length) {
+        box.innerHTML = '<strong>$0.00</strong><small>Turn part of your balance into the S&amp;P 500, Bitcoin, gold or leading stocks, in one tap.</small>';
+        return;
+      }
+      // The breakdown: how the portfolio is split, then every holding.
+      const L = window.HSAssets || { logo: () => '', color: () => '#0b6b50' };
+      const total = inv.totals.value || 1;
+      const rows = inv.holdings.map((h) => ({ ...h, share: h.value == null ? 0 : (h.value / total) * 100 }));
+      const pct = (n) => `${n >= 0 ? '+' : ''}${Number(n).toFixed(2)}%`;
+      box.innerHTML = `<strong>${money(inv.totals.value)}</strong>
+        <small>${inv.holdings.length} asset${inv.holdings.length === 1 ? '' : 's'} &middot; cost ${money(inv.totals.cost)} &middot; <span class="rf-amt ${inv.totals.gain >= 0 ? 'credit' : 'debit'}">${inv.totals.gain >= 0 ? '+' : '-'}${money(Math.abs(inv.totals.gain))}${inv.totals.gainPct == null ? '' : ` (${pct(inv.totals.gainPct)})`}</span> all time</small>
+        <div class="hs-alloc" role="img" aria-label="${esc(rows.map((h) => `${h.name} ${h.share.toFixed(0)}%`).join(', '))}">
+          ${rows.map((h) => `<span style="width:${Math.max(h.share, 1.5).toFixed(2)}%;background:${L.color(h.symbol)}" title="${esc(h.name)} ${h.share.toFixed(1)}%"></span>`).join('')}
+        </div>
+        <ul class="hs-dash-holdings">${rows.map((h) => `<li>
+          ${L.logo(h.symbol, 34, h.name)}
+          <span class="n"><b>${esc(h.name)}</b><em>${esc(h.units)} ${esc(h.symbol)} &middot; ${h.share.toFixed(1)}% of portfolio</em></span>
+          <span class="v">${h.value == null ? '&mdash;' : money(h.value)}<em class="${(h.gain || 0) >= 0 ? 'up' : 'down'}">${h.gain == null ? '' : `${h.gain >= 0 ? '+' : '-'}${money(Math.abs(h.gain))}${h.gainPct == null ? '' : ` (${pct(h.gainPct)})`}`}</em>${h.dayChangePct == null ? '' : `<em class="day ${h.dayChangePct >= 0 ? 'up' : 'down'}">${pct(h.dayChangePct)} today</em>`}</span>
+        </li>`).join('')}</ul>`;
+    }).catch(() => {});
 
     const heading = qs('.rf-top h1');
     if (heading && data.user) {
