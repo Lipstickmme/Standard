@@ -706,6 +706,7 @@ const deskContent = `
         <div class="field"><label for="login-password">Password</label><input type="password" id="login-password" name="password" autocomplete="current-password" required /></div>
         <div class="err" id="login-error" role="alert"></div>
         <button type="submit" class="btn" id="login-btn">Sign in <span class="arw">&rsaquo;</span></button>
+        <a class="btn ghost" href="/signin?next=/admin" style="margin-top:10px;display:flex;justify-content:center;text-decoration:none">Use your banking console login</a>
         <a class="admin-back" href="/">Back to site</a>
       </form>
     </section>

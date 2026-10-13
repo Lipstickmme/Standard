@@ -1279,6 +1279,41 @@
         </ul>
       </section>`).join('');
     qsa('[data-staff-pip="setup"]').forEach((pip) => { const left = data.counts.todo || 0; pip.textContent = String(left || ''); pip.classList.toggle('rf-hide', !left); });
+    wireTestEmail();
+  }
+
+  /** Send a real email through Resend and show exactly what came back. */
+  function wireTestEmail() {
+    const form = qs('[data-test-email]');
+    const out = qs('[data-test-email-result]');
+    if (!form || form.dataset.wired) return;
+    form.dataset.wired = '1';
+    const me = RF.state && RF.state.user && RF.state.user.email;
+    if (me && !form.to.value) form.to.value = me;
+    const flag = (v) => (v === true || v === 'enabled' ? 'on' : v === false || v === 'disabled' ? 'off' : (v || '?'));
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = qs('[data-submit]', form);
+      button.disabled = true;
+      out.innerHTML = '<p class="rf-small rf-muted">Sending&hellip;</p>';
+      try {
+        const r = await api.post('/admin/setup/test-email', { to: form.to.value.trim() });
+        const rows = (r.results || []).map((x) => `
+          <li><span class="t"><strong>${esc(x.from)}</strong><span>${x.ok ? `Accepted by Resend (id ${esc(x.id || '-')}). Check the inbox for ${esc(r.to)}, including spam.` : `Refused: ${esc(x.error || 'unknown')}`}${x.advice ? `<br><b>Likely cause:</b> ${esc(x.advice)}` : ''}</span></span>${badge(x.ok ? 'sent' : 'failed')}</li>`).join('');
+        const domains = r.domains
+          ? r.domains.map((d) => `<li><span class="t"><strong>${esc(d.name)}</strong><span>status ${esc(d.status)} &middot; sending ${esc(flag(d.sending))} &middot; receiving ${esc(flag(d.receiving))}</span></span></li>`).join('') || '<li class="rf-muted rf-small">No domains on this Resend account.</li>'
+          : `<li class="rf-muted rf-small">Resend would not list domains: ${esc(r.domainsError || 'unknown')}. A key restricted to sending cannot list them; that is fine if the sends above worked.</li>`;
+        out.innerHTML = `
+          ${(r.advice || []).map((a) => `<p class="rf-notice warn">${esc(a)}</p>`).join('')}
+          <h4 class="rf-label">Sends</h4><ul class="rf-list">${rows || '<li class="rf-muted rf-small">Nothing was sent.</li>'}</ul>
+          <h4 class="rf-label rf-mt">Domains on your Resend account</h4><ul class="rf-list">${domains}</ul>
+          <p class="rf-small rf-muted rf-mt">Receiving mail into /admin uses ${esc(r.mailbox || 'MAILBOX_ADDRESS (not set)')}; enquiries and chats are announced to ${esc(r.formTo || 'FORM_TO (not set)')}.</p>`;
+      } catch (err) {
+        out.innerHTML = `<p class="rf-notice bad">${esc(err.message)}</p>`;
+      } finally {
+        button.disabled = false;
+      }
+    });
   }
 
   /* -------------------------------------------------------------- search -- */

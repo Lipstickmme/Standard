@@ -25,7 +25,7 @@ function bearerToken(headers) {
  */
 async function requireAdmin(req) {
   const token = bearerToken(req.headers);
-  if (!token) return { ok: false, status: 401, reason: 'missing_token' };
+  if (!token) return staffSession(req);
 
   const url = config.supabaseUrl();
   const anonKey = config.supabaseAnonKey();
@@ -63,6 +63,29 @@ async function requireAdmin(req) {
   }
 
   return { ok: true, user };
+}
+
+/**
+ * The other way in: a member of staff signed in to the bank (the /console
+ * login). The desk opened with that session sends its CSRF token in a header,
+ * as every bank write does, so a page on another site cannot borrow it.
+ */
+async function staffSession(req) {
+  try {
+    const auth = require('../bank/auth');
+    const resolved = await auth.resolveSession(req);
+    if (!resolved || !resolved.user || resolved.user.role !== 'admin') {
+      return { ok: false, status: 401, reason: 'missing_token' };
+    }
+    const sent = req.headers['x-smb-csrf'];
+    const security = require('../bank/security');
+    if (!sent || !resolved.session.csrf || !security.timingSafeEqualStr(String(sent), resolved.session.csrf)) {
+      return { ok: false, status: 403, reason: 'csrf' };
+    }
+    return { ok: true, user: { id: resolved.user.id, email: resolved.user.email } };
+  } catch (err) {
+    return { ok: false, status: 401, reason: 'missing_token' };
+  }
 }
 
 module.exports = { requireAdmin };

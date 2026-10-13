@@ -199,6 +199,13 @@ staff.use(auth.requireAdmin);
 
 staff.get('/overview', admin.overview);
 staff.get('/setup', setupController.setup);
+staff.post('/setup/test-email', setupController.testEmail);
+
+// The /admin desk (live chat, enquiries, mail), for the console's own login.
+const desk = require('../controllers/bank/deskController');
+staff.get('/desk/:table', desk.select);
+staff.patch('/desk/:table', desk.update);
+staff.post('/desk/:table', desk.insert);
 staff.get('/investments', requireInvest, invest.staffOverview);
 staff.post('/trades', requireInvest, invest.staffBook);
 staff.patch('/trades/:id', requireInvest, invest.staffRetime);

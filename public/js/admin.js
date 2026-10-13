@@ -552,7 +552,10 @@
         const token = await client.auth.accessToken();
         const res = await fetch('/api/emails/reply', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          credentials: 'same-origin',
+          headers: client.staff
+            ? { 'Content-Type': 'application/json', 'X-SMB-CSRF': client.csrf }
+            : { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ threadId: row.id, body }),
         });
         const data = await res.json().catch(() => ({}));
@@ -843,7 +846,59 @@
     return show('unconfigured');
   }
 
+  /**
+   * The console's own login opens the desk too. A member of staff signed in to
+   * the bank gets a client with the same shape as the Supabase one, whose reads
+   * and writes go through /api/bank/admin/desk on the server instead.
+   */
+  async function staffClient() {
+    let session;
+    try {
+      const res = await fetch('/api/bank/auth/session', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      session = await res.json();
+    } catch (err) {
+      return null;
+    }
+    if (!session || !session.authenticated || !session.user || session.user.role !== 'admin') return null;
+    const csrf = session.csrf || '';
+    const call = async (method, table, query, body) => {
+      const res = await fetch(`/api/bank/admin/desk/${table}${query ? `?q=${encodeURIComponent(query)}` : ''}`, {
+        method,
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-SMB-CSRF': csrf },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || `The desk request failed (${res.status}).`);
+      return data;
+    };
+    return {
+      staff: true,
+      csrf,
+      select: (table, query) => call('GET', table, query),
+      update: (table, filter, patch) => call('PATCH', table, '', { filter, patch }),
+      insert: (table, rows) => call('POST', table, '', { rows }),
+      auth: {
+        accessToken: async () => null,
+        user: () => ({ email: session.user.email }),
+        signOut: () => fetch('/api/bank/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'X-SMB-CSRF': csrf } }),
+      },
+    };
+  }
+
   async function boot() {
+    // Signed in to the console already: straight in, no second account.
+    const staff = await staffClient();
+    if (staff) {
+      client = staff;
+      wire();
+      $('admin-who').textContent = `${staff.auth.user().email} (staff)`;
+      show('shell');
+      await refreshLists();
+      await refreshThread();
+      return;
+    }
+
     let cfg = {};
     try {
       const res = await fetch('/api/public-config', { headers: { Accept: 'application/json' } });

@@ -389,6 +389,17 @@ const content = `
               <div class="rf-mt"><button class="rf-btn sm" type="button" data-setup-refresh>Check again</button> <a class="rf-btn ghost sm" href="/api/health?probe=1" target="_blank" rel="noopener">Raw health report</a></div>
             </div>
           </section>
+          <section class="rf-card rf-mb">
+            <div class="rf-card-head"><h3>Test email (Resend)</h3></div>
+            <div class="rf-card-body">
+              <p class="rf-small rf-muted" style="margin:0 0 12px">Sends a real email from every address the bank sends as, and shows exactly what Resend answers, with your domains as Resend sees them.</p>
+              <form class="rf-row" data-test-email style="align-items:end">
+                <div class="rf-field" style="margin:0"><label for="te-to">Send the test to</label><input class="rf-input" id="te-to" name="to" type="email" placeholder="you@example.com" required /></div>
+                <div><button class="rf-btn" type="submit" data-submit>Send test email</button></div>
+              </form>
+              <div data-test-email-result class="rf-mt"></div>
+            </div>
+          </section>
           <div data-setup-list><div class="rf-skel" style="height:200px"></div></div>
         </section>
 

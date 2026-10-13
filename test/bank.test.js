@@ -776,6 +776,23 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       ok('settings: investments switch off freely and on only with the unlock code');
     }
 
+    /* ---- 19d. the console login opens the /admin desk; the email test reports ---- */
+    {
+      const asCustomer = await customer.get('/api/bank/admin/desk/enquiries?q=select%3D*');
+      assert.strictEqual(asCustomer.status, 403, 'a customer cannot read the desk');
+      const unknown = await admin.get('/api/bank/admin/desk/bank_users?q=select%3D*');
+      assert.strictEqual(unknown.status, 404, 'only the desk tables are reachable');
+      const noDb = await admin.get('/api/bank/admin/desk/enquiries?q=select%3D*');
+      assert.strictEqual(noDb.status, 503, 'without Supabase the desk says so');
+      const badFilter = await admin.patch('/api/bank/admin/desk/enquiries', { filter: 'status=eq.new', patch: { status: 'closed' } });
+      assert.strictEqual(badFilter.status, 400, 'writes go one row at a time, by id');
+      const mail = await admin.post('/api/bank/admin/setup/test-email', { to: 'ops@example.com' });
+      assert.strictEqual(mail.status, 200, mail.text);
+      assert.strictEqual(mail.body.ok, false);
+      assert.match(mail.body.advice[0], /RESEND_API_KEY/, 'with no key it says nothing can be sent');
+      ok('desk: staff only, desk tables only, one row per write; email test explains a missing key');
+    }
+
     /* ---- 20. CSRF and sign-out ---- */
     {
       const res = await fetch(`${base}/api/bank/me`, {

@@ -122,4 +122,58 @@ const setup = asyncHandler(async (req, res) => {
   res.json({ items, counts, customers, storage: supabase ? 'supabase' : 'filesystem', checkedAt: new Date().toISOString() });
 });
 
-module.exports = { setup };
+/**
+ * POST /api/bank/admin/setup/test-email - send a real test email and report
+ * exactly what Resend answered.
+ *
+ * The environment can say a key is set; only a send can say whether Resend
+ * accepts it. This sends from each address the bank sends as (FORM_FROM and,
+ * when different, BANK_ALERT_FROM) to the address given, lists the domains
+ * on the Resend account with their sending and receiving state, and puts
+ * Resend's own error, with what usually causes it, in front of the operator.
+ */
+const testEmail = asyncHandler(async (req, res) => {
+  const notify = require('../../utils/notify');
+  const to = String((req.body && req.body.to) || req.bankUser.email || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) {
+    return res.status(400).json({ error: 'bad_request', message: 'Give an address to send the test to.' });
+  }
+  if (!config.resendApiKey()) {
+    return res.json({ ok: false, to, results: [], advice: ['RESEND_API_KEY is not set on this deployment, so nothing can be sent.'] });
+  }
+
+  const senders = Array.from(new Set([config.formFrom(), process.env.BANK_ALERT_FROM].filter(Boolean)));
+  const explain = (error) => {
+    const e = String(error || '');
+    if (/resend_401|resend_403.*api key|invalid api key|api key is invalid/i.test(e)) return 'Resend rejected the API key. Create a new key with sending access and set it as RESEND_API_KEY, then redeploy.';
+    if (/not verified|domain is not verified|verify a domain/i.test(e)) return 'The sending domain is not verified in Resend. Open Resend, Domains, finish the DNS records for it until it shows Verified.';
+    if (/testing emails|own email address|only send testing/i.test(e)) return 'Resend is in test mode: until a domain is verified it only delivers to the account owner\'s own address. Verify the domain, or send this test to the address you signed up to Resend with.';
+    if (/resend_422/i.test(e)) return 'Resend refused the message as invalid: usually the From address is malformed. Use the form Name <name@yourdomain.com>.';
+    if (/resend_429/i.test(e)) return 'Resend is rate limiting this key. Wait a minute and try again.';
+    if (/fetch failed|ENOTFOUND|ECONN/i.test(e)) return 'The server could not reach Resend at all.';
+    return '';
+  };
+
+  const results = [];
+  for (const from of senders) {
+    const sent = await notify.send({
+      to, from,
+      subject: `Test email from ${from}`,
+      text: `This is a test from the staff console.\n\nSent as: ${from}\nTo: ${to}\nAt: ${new Date().toISOString()}\n\nIf you are reading this, sending from this address works.`,
+    });
+    results.push({ from, ok: sent.ok, id: sent.id || null, error: sent.ok ? null : sent.error, advice: sent.ok ? '' : explain(sent.error) });
+  }
+
+  const listed = notify.domains ? await notify.domains() : { ok: false, error: 'unavailable' };
+  return res.json({
+    ok: results.every((r) => r.ok),
+    to,
+    results,
+    domains: listed.ok ? listed.domains.map((d) => ({ name: d.name, status: d.status, sending: d.sending, receiving: d.receiving })) : null,
+    domainsError: listed.ok ? null : listed.error,
+    mailbox: config.mailboxAddress() || null,
+    formTo: config.formTo() || null,
+  });
+});
+
+module.exports = { setup, testEmail };
