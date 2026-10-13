@@ -826,6 +826,24 @@ async function withApp(env, fn) {
         assert.strictEqual((await bad.json()).reason, 'signature_mismatch');
         assert.strictEqual(sb.db.email_messages.rows.length, 1, 'nothing filed from an unverified post');
         console.log('  ok  a tampered body is refused and files nothing');
+
+        // Any address on the receiving domain is filed, not only the mailbox.
+        const other = JSON.stringify({ type: 'email.received', data: { from: 'Bo Reyes <bo@example.com>', to: ['info@smb.test'], subject: 'Opening hours', text: 'When are you open?' } });
+        const otherOk = await post(other, 'msg_3', ts, sign(SECRET, 'msg_3', ts, other));
+        assert.strictEqual(otherOk.status, 200);
+        assert.strictEqual(sb.db.email_messages.rows.length, 2, 'info@ on the same domain is filed');
+        // Mail for another domain is acknowledged, with the reason given.
+        const elsewhere = JSON.stringify({ type: 'email.received', data: { from: 'x@example.com', to: ['someone@elsewhere.example'], subject: 'Hi', text: 'Hi' } });
+        const skipped = await post(elsewhere, 'msg_4', ts, sign(SECRET, 'msg_4', ts, elsewhere));
+        const skippedBody = await skipped.json();
+        assert.strictEqual(skippedBody.ignored, 'not_for_mailbox');
+        assert.strictEqual(skippedBody.receivingOn, 'smb.test', 'the reply names the domain it receives on');
+        assert.strictEqual(sb.db.email_messages.rows.length, 2, 'and files nothing');
+        // A browser visit says whether the endpoint is ready.
+        const status = await (await fetch(base + '/api/inbound/resend')).json();
+        assert.strictEqual(status.ready, true);
+        assert.strictEqual(status.receivingOn, 'smb.test');
+        console.log('  ok  any address on the receiving domain is filed; others are skipped with the reason');
       }
     );
     sb.close();

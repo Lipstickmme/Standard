@@ -164,8 +164,17 @@ exports.resend = async (req, res, next) => {
 
     const email = parseEmail(payload);
     const mailbox = config.mailboxAddress();
-    if (mailbox && email.to && !email.to.toLowerCase().includes(config.parseAddress(mailbox).email)) {
-      return res.status(200).json({ ok: true, ignored: 'not_for_mailbox' });
+    // Anything addressed to the mailbox's domain is ours: support@, info@,
+    // a reply to alerts@. Matching the one exact address dropped the rest
+    // with a 200, which Resend logs as delivered while nothing reaches the
+    // desk - so the reason now goes back in the response, where the
+    // provider's delivery log shows it.
+    const mailboxEmail = config.parseAddress(mailbox).email;
+    const receivingOn = mailboxEmail.includes('@') ? mailboxEmail.slice(mailboxEmail.lastIndexOf('@') + 1) : '';
+    const recipients = String(email.to || '').toLowerCase();
+    if (receivingOn && recipients && !recipients.includes(`@${receivingOn}`)) {
+      console.warn(`[smb] inbound mail ignored: addressed to ${email.to}, this site receives on @${receivingOn}`);
+      return res.status(200).json({ ok: true, ignored: 'not_for_mailbox', to: email.to, receivingOn });
     }
 
     if (!email.text && !email.html) {
@@ -220,4 +229,21 @@ exports.resend = async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
+};
+
+/**
+ * GET on the webhook address: whether it is ready, for a person checking the
+ * URL in a browser before pasting it into Resend. Says nothing secret.
+ */
+exports.status = (req, res) => {
+  const mailbox = config.parseAddress(config.mailboxAddress()).email;
+  res.json({
+    endpoint: 'Resend inbound webhook',
+    method: 'POST',
+    ready: Boolean(config.resendWebhookSecret()),
+    receivingOn: mailbox.includes('@') ? mailbox.slice(mailbox.lastIndexOf('@') + 1) : null,
+    note: config.resendWebhookSecret()
+      ? 'Ready. Resend should POST email.received events here, signed with RESEND_WEBHOOK_SECRET.'
+      : 'Closed: RESEND_WEBHOOK_SECRET is not set, so every delivery is refused.',
+  });
 };
