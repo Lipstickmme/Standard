@@ -80,7 +80,7 @@ async function send(opts) {
     const text = await res.text().catch(() => '');
     if (!res.ok) {
       console.warn('[smb] notify email failed:', res.status, text);
-      // Resend says why in the body - "The standardmerchantbank... domain is not
+      // Resend says why in the body - "The standardmerchantfinance... domain is not
       // verified", "You can only send testing emails to your own address".
       // Dropping that and reporting a bare status code is what turns a
       // five-second fix into an afternoon.

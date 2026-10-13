@@ -24,8 +24,8 @@ const BANK = {
   swift: 'SMBKUS44XXX',
   fdicCert: '58412',
   nmls: '409127',
-  email: 'support@standardmerchantbank.com',
-  securityEmail: 'security@standardmerchantbank.com',
+  email: 'support@standardmerchantfinance.com',
+  securityEmail: 'security@standardmerchantfinance.com',
   established: 1924,
 };
 

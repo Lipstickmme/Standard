@@ -47,7 +47,7 @@
 
     qsa('[data-fill]').forEach((button) => button.addEventListener('click', () => {
       const which = button.getAttribute('data-fill');
-      qs('#rf-email').value = which === 'admin' ? 'admin@standardmerchantbank.com' : 'demo@standardmerchantbank.com';
+      qs('#rf-email').value = which === 'admin' ? 'admin@standardmerchantfinance.com' : 'demo@standardmerchantfinance.com';
       qs('#rf-password').value = which === 'admin' ? 'Merchant#Admin2026' : 'Merchant#Demo2026';
       qs('#rf-password').focus();
     }));

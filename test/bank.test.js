@@ -95,21 +95,21 @@ const dollars = (cents) => (cents / 100).toFixed(2);
     /* ---- 2. sign-in is two steps when two-step is on ---- */
     const customer = client(base);
     {
-      const bad = await customer.post('/api/bank/auth/login', { email: 'demo@standardmerchantbank.com', password: 'wrong-password' });
+      const bad = await customer.post('/api/bank/auth/login', { email: 'demo@standardmerchantfinance.com', password: 'wrong-password' });
       assert.strictEqual(bad.status, 401, 'a wrong password is refused');
       assert.ok(!/unknown|no account/i.test(bad.body.message), 'the message must not confirm the address');
 
-      const start = await customer.post('/api/bank/auth/login', { email: 'demo@standardmerchantbank.com', password: 'Merchant#Demo2026' });
+      const start = await customer.post('/api/bank/auth/login', { email: 'demo@standardmerchantfinance.com', password: 'Merchant#Demo2026' });
       assert.strictEqual(start.status, 200);
       assert.strictEqual(start.body.status, 'verification_required');
       assert.ok(start.body.devCode, 'without a mail provider the code is returned');
 
-      const wrongCode = await customer.post('/api/bank/auth/verify', { email: 'demo@standardmerchantbank.com', code: '000000' });
+      const wrongCode = await customer.post('/api/bank/auth/verify', { email: 'demo@standardmerchantfinance.com', code: '000000' });
       assert.strictEqual(wrongCode.status, 400, 'a wrong code is refused');
 
-      const done = await customer.post('/api/bank/auth/verify', { email: 'demo@standardmerchantbank.com', code: start.body.devCode });
+      const done = await customer.post('/api/bank/auth/verify', { email: 'demo@standardmerchantfinance.com', code: start.body.devCode });
       assert.strictEqual(done.status, 200, done.text);
-      assert.strictEqual(done.body.user.email, 'demo@standardmerchantbank.com');
+      assert.strictEqual(done.body.user.email, 'demo@standardmerchantfinance.com');
       assert.ok(customer.csrf, 'a CSRF token is issued');
       ok('sign-in: password, then an emailed code');
     }
@@ -451,7 +451,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
     /* ---- 12. another customer's account is simply not there ---- */
     {
       const admin = client(base);
-      const signIn = await admin.post('/api/bank/auth/login', { email: 'admin@standardmerchantbank.com', password: 'Merchant#Admin2026' });
+      const signIn = await admin.post('/api/bank/auth/login', { email: 'admin@standardmerchantfinance.com', password: 'Merchant#Admin2026' });
       assert.strictEqual(signIn.status, 200, signIn.text);
       const list = await admin.get('/api/bank/admin/customers?q=mara');
       const other = list.body.customers[0];
@@ -470,7 +470,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
     let newCustomerId;
     let newAccountId;
     {
-      const signIn = await admin.post('/api/bank/auth/login', { email: 'admin@standardmerchantbank.com', password: 'Merchant#Admin2026' });
+      const signIn = await admin.post('/api/bank/auth/login', { email: 'admin@standardmerchantfinance.com', password: 'Merchant#Admin2026' });
       assert.strictEqual(signIn.body.user.role, 'admin');
 
       const res = await admin.post('/api/bank/admin/customers', {
@@ -566,7 +566,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
         assert.ok(actions.includes(action), `the log records ${action}`);
       });
       const adjust = res.body.activity.find((a) => a.action === 'admin.balance_adjusted');
-      assert.strictEqual(adjust.actorEmail, 'admin@standardmerchantbank.com', 'the log names who did it');
+      assert.strictEqual(adjust.actorEmail, 'admin@standardmerchantfinance.com', 'the log names who did it');
       assert.ok(adjust.ip !== undefined && adjust.device, 'with where they did it from');
       ok(`activity log: ${res.body.total} rows, staff actions attributed`);
     }
@@ -588,7 +588,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       assert.strictEqual(look.status, 200, look.text);
       assert.strictEqual(look.body.member.name, 'Dana W.', 'a masked name, enough to confirm the person');
       assert.ok(!JSON.stringify(look.body).includes('Whitfield'), 'and never the full surname');
-      const self = await customer.post('/api/bank/transfers/member-lookup', { query: 'demo@standardmerchantbank.com' });
+      const self = await customer.post('/api/bank/transfers/member-lookup', { query: 'demo@standardmerchantfinance.com' });
       assert.strictEqual(self.status, 400, 'your own address points you at between-accounts');
       const nobody = await customer.post('/api/bank/transfers/member-lookup', { query: 'nobody@nowhere.test' });
       assert.strictEqual(nobody.status, 200);
@@ -621,7 +621,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
 
     /* ---- 18c. staff back-posting: trades and entries booked after the fact ---- */
     {
-      const found = await admin.get('/api/bank/admin/customers?q=demo%40standardmerchantbank.com&limit=5');
+      const found = await admin.get('/api/bank/admin/customers?q=demo%40standardmerchantfinance.com&limit=5');
       const jordan = found.body.customers[0];
       assert.ok(jordan, 'the demo customer is found');
       const acctOf = async () => (await admin.get(`/api/bank/admin/customers/${jordan.id}`)).body.accounts.find((a) => a.id === checking.id);
@@ -794,14 +794,14 @@ const dollars = (cents) => (cents / 100).toFixed(2);
     /* ---- 21. a deployment never hands a one-time code back ---- */
     {
       const api = client(base);
-      const onLaptop = await api.post('/api/bank/auth/forgot', { email: 'demo@standardmerchantbank.com' });
+      const onLaptop = await api.post('/api/bank/auth/forgot', { email: 'demo@standardmerchantfinance.com' });
       assert.ok(onLaptop.body.devCode, 'without mail configured, local development can still sign in');
 
       // The same request from something that looks deployed must not answer
       // with the code: /auth/forgot takes an address from anybody, and
       // /auth/reset takes that code, so together they would be a takeover.
       process.env.VERCEL = '1';
-      const deployed = await api.post('/api/bank/auth/forgot', { email: 'demo@standardmerchantbank.com' });
+      const deployed = await api.post('/api/bank/auth/forgot', { email: 'demo@standardmerchantfinance.com' });
       delete process.env.VERCEL;
       assert.strictEqual(deployed.status, 200, 'the endpoint still answers the same way');
       assert.strictEqual(deployed.body.devCode, undefined, 'but the code is withheld');
@@ -839,7 +839,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const alerts_ = require(ROOT + '/src/bank/alerts');
       const users_ = require(ROOT + '/src/bank/users');
 
-      const who = await users_.findByEmail('demo@standardmerchantbank.com');
+      const who = await users_.findByEmail('demo@standardmerchantfinance.com');
       const acct = (await db_.accounts.find({ user_id: who.id })).find((a) => a.type === 'checking');
       const before = (await db_.alerts.find({ user_id: who.id })).length;
 
@@ -890,7 +890,7 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const db_ = require(ROOT + '/src/bank/db').db;
       const alerts_ = require(ROOT + '/src/bank/alerts');
       const users_ = require(ROOT + '/src/bank/users');
-      const who = await users_.findByEmail('demo@standardmerchantbank.com');
+      const who = await users_.findByEmail('demo@standardmerchantfinance.com');
 
       const real = db_.alerts.update;
       let refusals = 0;

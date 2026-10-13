@@ -13,6 +13,9 @@ const { db } = require('./db');
 const { DEFAULT_SETTINGS } = require('./constants');
 
 const ROW_ID = 'global';
+
+/** Support addresses the bank shipped with before, retired with the domain. */
+const RETIRED_SUPPORT_EMAILS = ['support@rockfieldbank.com', 'support@rockfieldglobalfinance.com', 'support@standardmerchantbank.com'];
 const TTL_MS = 5000;
 
 let cached = null;
@@ -40,6 +43,11 @@ async function get() {
     console.warn('[smb] settings read failed, using defaults:', err.message);
   }
   cached = deepMerge(DEFAULT_SETTINGS, stored ? stored.values : null);
+  // A support address we used to ship, saved when the console form was first
+  // submitted, was never a choice: show the current one instead.
+  if (RETIRED_SUPPORT_EMAILS.includes(String(cached.supportEmail || '').toLowerCase())) {
+    cached.supportEmail = DEFAULT_SETTINGS.supportEmail;
+  }
   cachedAt = Date.now();
   return cached;
 }

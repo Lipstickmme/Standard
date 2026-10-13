@@ -166,7 +166,7 @@ function formToOnInboundDomain() {
 function baseUrl() {
   const set = pick('PUBLIC_BASE_URL', 'BANK_BASE_URL', 'APP_URL');
   const vercel = pick('VERCEL_URL');
-  const value = set || (vercel ? `https://${vercel}` : 'https://standardmerchantbank.com');
+  const value = set || (vercel ? `https://${vercel}` : 'https://www.standardmerchantfinance.com');
   return value.replace(/\/+$/, '');
 }
 

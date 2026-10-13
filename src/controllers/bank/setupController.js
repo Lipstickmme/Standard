@@ -80,7 +80,7 @@ const setup = asyncHandler(async (req, res) => {
   const resend = Boolean(config.resendApiKey());
   add('Email', 'resend', 'Email sending (Resend)', resend ? 'done' : 'todo',
     resend ? `Sending as ${config.formFrom()}.` : 'No email goes out: no sign-in codes, alerts or enquiry notifications.',
-    'Create an API key at resend.com, verify standardmerchantbank.com there (add its DNS records), then set RESEND_API_KEY, FORM_FROM and BANK_ALERT_FROM in Vercel.');
+    'Create an API key at resend.com, verify standardmerchantfinance.com there (add its DNS records), then set RESEND_API_KEY, FORM_FROM and BANK_ALERT_FROM in Vercel.');
   add('Email', 'formto', 'Where enquiries and chats are announced', config.formTo() ? 'done' : 'todo',
     config.formTo() ? `Notifications go to ${config.formTo()}.` : 'New enquiries and chats are stored but nobody is told.',
     'Set FORM_TO in Vercel to an inbox you read.');
@@ -93,7 +93,7 @@ const setup = asyncHandler(async (req, res) => {
   const base = process.env.PUBLIC_BASE_URL || process.env.BANK_BASE_URL || process.env.APP_URL;
   add('Site', 'baseurl', 'Your web address in emails', base ? 'done' : 'todo',
     base ? `Links in emails point at ${config.baseUrl()}.` : `Links in emails point at ${config.baseUrl()}, which may be a temporary Vercel address.`,
-    'Set PUBLIC_BASE_URL to https://standardmerchantbank.com in Vercel (plain text, not Sensitive).');
+    'Set PUBLIC_BASE_URL to https://www.standardmerchantfinance.com in Vercel (plain text, not Sensitive).');
 
   /* ---- prices ---- */
   let priced = [];
@@ -112,7 +112,7 @@ const setup = asyncHandler(async (req, res) => {
   /* ---- people ---- */
   let customers = 0;
   try { customers = (await db.users.find({ role: 'customer' })).length; } catch (err) { customers = 0; }
-  const demo = await db.users.findOne({ email: (process.env.BANK_DEMO_EMAIL || 'demo@standardmerchantbank.com').toLowerCase() }).catch(() => null);
+  const demo = await db.users.findOne({ email: (process.env.BANK_DEMO_EMAIL || 'demo@standardmerchantfinance.com').toLowerCase() }).catch(() => null);
   add('Going live', 'demo', 'Demonstration customer removed', demo ? 'optional' : 'done',
     demo ? `The seeded demonstration customer (${demo.email}) is still here with sample balances.` : 'No demonstration customer.',
     'Before taking real customers, close the demonstration customer from Customers, or keep it for training.');

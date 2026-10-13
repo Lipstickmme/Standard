@@ -22,8 +22,8 @@ npm start        # http://localhost:3000
 
 | | |
 |---|---|
-| Customer sign-in | `/signin` — `demo@standardmerchantbank.com` / `Merchant#Demo2026` |
-| Staff console | `/console` — `admin@standardmerchantbank.com` / `Merchant#Admin2026` |
+| Customer sign-in | `/signin` — `demo@standardmerchantfinance.com` / `Merchant#Demo2026` |
+| Staff console | `/console` — `admin@standardmerchantfinance.com` / `Merchant#Admin2026` |
 | Client services desk | `/admin` — website enquiries, chat and mail (Supabase auth) |
 
 The sign-in page carries both demonstration logins as buttons, so nothing needs
