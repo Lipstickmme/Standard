@@ -2118,3 +2118,106 @@ html:not(.rf-invest-on) [data-stat-invested],
 html:not(.rf-invest-on) .rf-invest-only { display: none !important; }
 /* With investments on, the phone tab bar trades Cards for Invest. */
 html.rf-invest-on .rf-tabbar a[href="/cards"] { display: none; }
+
+/* ==========================================================================
+   Online banking and the staff console: white and blue.
+
+   The signed-in screens take a lighter, rounder look than the public site: a
+   white sidebar with soft blue highlights, rounded cards, pill buttons, a
+   blue banner on the dashboard, and one bold sans (Plus Jakarta Sans) for
+   everything. Tokens are redefined on .rf-app, so every component the
+   screens already use turns over; nothing here changes what they do.
+   ========================================================================== */
+
+.rf-app {
+  --rf-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rf-display: var(--rf-sans);
+  --rf-headline: var(--rf-sans);
+  --rf-blue: #1d5bbf;
+  --rf-blue-2: #174a9c;
+  --rf-blue-soft: #e9f1fd;
+  --rf-navy: #0c2550;
+  --rf-ink: #0f1d36;
+  --rf-ink-2: #3a4a63;
+  --rf-ink-3: #6b7a91;
+  --rf-paper: #f4f7fc;
+  --rf-surface: #ffffff;
+  --rf-surface-2: #f8fafd;
+  --rf-surface-3: #eef3fa;
+  --rf-line: #e1e8f2;
+  --rf-line-2: #edf2f8;
+  --rf-radius: 16px;
+  --rf-radius-sm: 10px;
+  --rf-radius-lg: 22px;
+  --rf-shadow: 0 1px 2px rgba(15, 29, 54, .04), 0 12px 28px -18px rgba(15, 29, 54, .22);
+  --rf-shadow-lg: 0 2px 4px rgba(15, 29, 54, .04), 0 30px 60px -30px rgba(15, 29, 54, .35);
+  --rf-shadow-hover: 0 2px 6px rgba(15, 29, 54, .06), 0 24px 46px -24px rgba(29, 91, 191, .35);
+  --rf-btn-face: var(--rf-blue);
+  --rf-btn-edge: var(--rf-blue);
+  --rf-btn-ghost-face: #ffffff;
+  --rf-btn-ghost-edge: var(--rf-line);
+  font-family: var(--rf-sans);
+  background: var(--rf-paper);
+  color: var(--rf-ink);
+}
+
+/* ---- sidebar: white, with blue highlights ---- */
+.rf-app .rf-side { background: var(--rf-surface); color: var(--rf-ink-2); border-right: 1px solid var(--rf-line); }
+.rf-app .rf-side-brand { border-bottom: 1px solid var(--rf-line); }
+.rf-app .rf-side-brand strong { color: var(--rf-ink); font-family: var(--rf-sans); font-weight: 700; font-size: 15px; }
+.rf-app .rf-side-brand small { color: var(--rf-ink-3); }
+.rf-app .rf-nav-group h6 { color: var(--rf-ink-3); font-weight: 700; }
+.rf-app .rf-nav a { color: var(--rf-ink-2); border-radius: 12px; font-weight: 500; }
+.rf-app .rf-nav a:hover { background: var(--rf-surface-3); color: var(--rf-ink); }
+.rf-app .rf-nav a.is-active { background: var(--rf-blue-soft); color: var(--rf-blue-2); font-weight: 700; }
+.rf-app .rf-nav a.is-active svg { opacity: 1; }
+.rf-app .rf-nav a .rf-pip { background: var(--rf-blue); color: #fff; }
+.rf-app .rf-side-foot { border-top: 1px solid var(--rf-line); color: var(--rf-ink-3); }
+.rf-app .rf-side-foot .rf-side-user strong { color: var(--rf-ink); }
+.rf-app .rf-avatar { background: linear-gradient(150deg, #3b78d8, #173f86); }
+
+/* ---- header ---- */
+.rf-app .rf-top { background: rgba(255, 255, 255, .86); border-bottom: 1px solid var(--rf-line); }
+.rf-app .rf-top h1 { font-weight: 700; letter-spacing: -.02em; }
+
+/* ---- type ---- */
+.rf-app h1, .rf-app h2, .rf-app h3, .rf-app h4 { font-family: var(--rf-sans); letter-spacing: -.015em; }
+.rf-app .rf-card-head h2, .rf-app .rf-card-head h3 { font-weight: 700; }
+.rf-app .rf-stat .k { font-weight: 700; letter-spacing: .12em; }
+.rf-app .rf-stat .v { font-family: var(--rf-sans); font-weight: 800; letter-spacing: -.02em; }
+
+/* ---- cards ---- */
+.rf-app .rf-card, .rf-app .rf-acct, .rf-app .rf-product {
+  background: var(--rf-surface); border: 1px solid var(--rf-line); border-radius: var(--rf-radius); box-shadow: var(--rf-shadow);
+}
+.rf-app a.rf-card:hover, .rf-app .rf-acct:hover { box-shadow: var(--rf-shadow-hover); border-color: #cfdcef; }
+
+/* ---- buttons: pills ---- */
+.rf-app .rf-btn { border-radius: 999px; font-family: var(--rf-sans); font-weight: 700; letter-spacing: 0; text-transform: none; }
+.rf-app .rf-btn:not(.ghost):not(.glass):not(.link):not(.light) { --btn-face: var(--rf-blue); --btn-edge: var(--rf-blue); }
+.rf-app .rf-btn:not(.ghost):not(.glass):not(.link):not(.light):hover { --btn-face: var(--rf-blue-2); --btn-edge: var(--rf-blue-2); }
+.rf-app .rf-btn.ghost { --btn-face: #ffffff; --btn-edge: var(--rf-line); --btn-ink: var(--rf-ink); }
+.rf-app .rf-btn.ghost:hover { --btn-face: var(--rf-surface-3); --btn-edge: #cfdcef; }
+.rf-app .rf-btn:focus-visible { outline: 2px solid var(--rf-blue); outline-offset: 2px; }
+
+/* ---- form fields ---- */
+.rf-app .rf-input, .rf-app .rf-select, .rf-app .rf-textarea { border-radius: 12px; }
+.rf-app .rf-input:focus, .rf-app .rf-select:focus, .rf-app .rf-textarea:focus { border-color: var(--rf-blue); box-shadow: 0 0 0 3px rgba(29, 91, 191, .14); }
+
+/* ---- tabs, badges, links ---- */
+.rf-app .rf-tabs button.is-active { color: var(--rf-blue-2); border-bottom-color: var(--rf-blue); }
+.rf-app .rf-badge { border-radius: 999px; }
+.rf-app .rf-btn.link { --btn-ink: var(--rf-blue); }
+
+/* ---- the dashboard banner: blue ---- */
+.rf-app .hs-dash-hero {
+  background: radial-gradient(120% 160% at 100% 0%, #3b82f6 0%, #1d5bbf 42%, #0c2f75 100%);
+  box-shadow: 0 24px 50px -30px rgba(29, 91, 191, .7);
+}
+.rf-app .hs-dash-hero::after { background: radial-gradient(circle, rgba(147, 197, 253, .3), transparent 65%); }
+.rf-app .hs-dash-hero .k, .rf-app .hs-dash-hero .d { color: #dbe8fd; }
+.rf-app .hs-qa a i { background: rgba(255, 255, 255, .14); border-color: rgba(255, 255, 255, .28); }
+
+/* ---- phone tab bar ---- */
+.rf-app .rf-tabbar { background: rgba(255, 255, 255, .94); border-top: 1px solid var(--rf-line); }
+.rf-app .rf-tabbar a.is-active { color: var(--rf-blue); }

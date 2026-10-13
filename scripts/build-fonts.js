@@ -34,6 +34,7 @@ const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 const FAMILIES = [
   'Playfair+Display:ital,wght@0,500;0,600;1,500', // headlines and figures, after the logo's serif
   'Jost:wght@300;400;500;600',                    // body, labels and the wide-spaced capitals
+  'Plus+Jakarta+Sans:wght@400;500;600;700;800',   // online banking and the staff console
   'IBM+Plex+Mono:wght@400;500',                   // account numbers and amounts
 ];
 

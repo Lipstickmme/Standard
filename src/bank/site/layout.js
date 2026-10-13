@@ -310,7 +310,7 @@ function sidebar(active, staff = false) {
     return `
     <aside class="rf-side is-staff" id="rf-side">
       <div class="rf-side-brand">
-        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="21" height="28" />
+        <img class="rf-mark" src="/assets/bank/logomark-dark.png" alt="" width="21" height="28" />
         <span>
           <strong data-bank-short>${BANK.shortName}</strong>
           <small>Staff console</small>
@@ -337,7 +337,7 @@ function legacySidebar(groups) {
   return `
     <aside class="rf-side" id="rf-side">
       <div class="rf-side-brand">
-        <img class="rf-mark" src="/assets/bank/logomark-light.png" alt="" width="21" height="28" />
+        <img class="rf-mark" src="/assets/bank/logomark-dark.png" alt="" width="21" height="28" />
         <span>
           <strong data-bank-short>${BANK.shortName}</strong>
           <small>Online banking</small>
