@@ -2104,3 +2104,17 @@ img.hs-logo { object-fit: contain; background: #fff; padding: 2px; }
 @keyframes rf-reveal { to { visibility: visible; } }
 @keyframes rf-reveal-hide { to { visibility: hidden; opacity: 0; } }
 @keyframes rf-spin { to { transform: rotate(360deg); } }
+
+/* Investments are off unless staff switch them on (console Settings, with the
+   unlock code). core.js puts rf-invest-on on <html> from the session; until
+   then every way into Invest is hidden. */
+html:not(.rf-invest-on) a[href^="/invest"],
+html:not(.rf-invest-on) .hs-ticker,
+html:not(.rf-invest-on) .hs-dash-invest,
+html:not(.rf-invest-on) .hs-hero-inv,
+html:not(.rf-invest-on) [data-tab="investments"],
+html:not(.rf-invest-on) [data-panel="investments"],
+html:not(.rf-invest-on) [data-stat-invested],
+html:not(.rf-invest-on) .rf-invest-only { display: none !important; }
+/* With investments on, the phone tab bar trades Cards for Invest. */
+html.rf-invest-on .rf-tabbar a[href="/cards"] { display: none; }

@@ -170,7 +170,8 @@
       box.setAttribute('aria-label', `Invested in ${held.map((h) => `${h.name} ${money(h.value)}`).join(', ')}. Open Invest.`);
       box.hidden = false;
     };
-    api.get('/invest').then((inv) => {
+    if (!document.documentElement.classList.contains('rf-invest-on')) paintHero(0);
+    else api.get('/invest').then((inv) => {
       paintHero(inv.totals.value);
       paintHeroAssets(inv.holdings);
       const box = qs('[data-dash-invest]');

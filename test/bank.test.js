@@ -177,6 +177,16 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const markets_ = require(path.join(ROOT, 'src/bank/markets'));
       markets_._setFixture(null);
 
+      // Investments ship switched off: no prices, no portfolio, no converting.
+      const off = await client(base).get('/api/bank/markets');
+      assert.strictEqual(off.status, 404, 'the price feed is closed while investments are off');
+      assert.strictEqual((await customer.get('/api/bank/invest')).status, 404, 'so is the portfolio');
+      assert.strictEqual((await customer.get('/api/bank/auth/session')).body.investEnabled, false, 'and the pages are told so');
+      // Switched on here directly; the console route, with its unlock code,
+      // is tested with the other settings below.
+      await require(path.join(ROOT, 'src/bank/settings')).save({ investEnabled: true });
+      ok('invest: off by default, every endpoint closed');
+
       // The ticker's feed is public.
       const anon = client(base);
       const feed = await anon.get('/api/bank/markets');
@@ -745,6 +755,25 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const back = await client(base).get('/api/site');
       assert.strictEqual(back.body.name, 'Standard Merchant Bank', 'a blank name falls back to the built one');
       ok('settings: a new bank name reaches the public site and online banking, and a blank one restores the default');
+    }
+
+    /* ---- 19c. investments switch on only with the unlock code ---- */
+    {
+      const off = await admin.put('/api/bank/admin/settings', { investEnabled: false });
+      assert.strictEqual(off.status, 200, 'switching off needs no code');
+      assert.strictEqual((await customer.get('/api/bank/invest')).status, 404, 'off closes the portfolio');
+      const noCode = await admin.put('/api/bank/admin/settings', { investEnabled: true });
+      assert.strictEqual(noCode.status, 403, 'on without the code is refused');
+      const wrong = await admin.put('/api/bank/admin/settings', { investEnabled: true, investUnlockCode: '1234' });
+      assert.strictEqual(wrong.status, 403, 'on with the wrong code is refused');
+      assert.strictEqual((await customer.get('/api/bank/auth/session')).body.investEnabled, false, 'and it stays off');
+      const right = await admin.put('/api/bank/admin/settings', { investEnabled: true, investUnlockCode: '6596' });
+      assert.strictEqual(right.status, 200, right.text);
+      assert.strictEqual(right.body.settings.investEnabled, true);
+      assert.ok(!('investUnlockCode' in right.body.settings), 'the code is never stored');
+      assert.strictEqual((await customer.get('/api/bank/invest')).status, 200, 'on opens the portfolio');
+      assert.strictEqual((await customer.get('/api/bank/auth/session')).body.investEnabled, true, 'and the pages are told so');
+      ok('settings: investments switch off freely and on only with the unlock code');
     }
 
     /* ---- 20. CSRF and sign-out ---- */

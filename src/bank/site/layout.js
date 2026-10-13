@@ -239,7 +239,7 @@ const NAV = [
     ],
   },
   {
-    group: 'Wealth',
+    group: 'Wealth', investOnly: true,
     items: [
       { href: '/invest', label: 'Invest', icon: 'chart', key: 'invest' },
     ],
@@ -300,7 +300,7 @@ const STAFF_NAV = [
 
 function sidebar(active, staff = false) {
   const groups = (staff ? STAFF_NAV : NAV).map((group) => `
-        <div class="rf-nav-group">
+        <div class="rf-nav-group${group.investOnly ? ' rf-invest-only' : ''}">
           <h6>${group.group}</h6>
           ${group.items.map((item) => (staff
     ? `<a href="#${item.tab}" data-tab="${item.tab}"${item.tab === 'overview' ? ' class="is-active"' : ''}>${icon(item.icon)}<span>${item.label}</span>${item.pip ? `<em class="rf-pip rf-hide" data-staff-pip="${item.pip}"></em>` : ''}</a>`
@@ -377,6 +377,7 @@ const TABS = [
   { href: '/dashboard', label: 'Home', icon: 'home', key: 'dashboard' },
   { href: '/accounts', label: 'Accounts', icon: 'accounts', key: 'accounts' },
   { href: '/transfers', label: 'Transfer', icon: 'transfer', key: 'transfers' },
+  { href: '/cards', label: 'Cards', icon: 'card', key: 'cards' },
   { href: '/invest', label: 'Invest', icon: 'chart', key: 'invest' },
 ];
 

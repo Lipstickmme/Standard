@@ -436,6 +436,18 @@ const content = `
               </section>
 
               <section class="rf-card">
+                <div class="rf-card-head"><h3>Investments</h3></div>
+                <div class="rf-card-body">
+                  <div class="rf-switch"><span class="t">Investments and Convert to assets<small>The Invest page, every Convert button, the price ticker and the Investments tab here. Off by default.</small></span><input type="checkbox" name="investEnabled" /></div>
+                  <div class="rf-field rf-mt" data-invest-code>
+                    <label for="st-invest-code">Unlock code</label>
+                    <input class="rf-input" id="st-invest-code" name="investUnlockCode" type="password" inputmode="numeric" autocomplete="off" placeholder="Needed to switch investments on" />
+                    <div class="hint">Switching investments off needs no code. The code is checked by the server and never stored.</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rf-card">
                 <div class="rf-card-head"><h3>Daily limits</h3></div>
                 <div class="rf-card-body rf-row" data-limits></div>
               </section>

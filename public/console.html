@@ -22,7 +22,7 @@
   <link rel="icon" href="/favicon.png?v=30f1bf85" type="image/png" sizes="512x512" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=6ad3eb1c" />
   <link rel="stylesheet" href="/css/fonts.css?v=c39e6664" />
-  <link rel="stylesheet" href="/css/bank.css?v=01987359" />
+  <link rel="stylesheet" href="/css/bank.css?v=98b1396c" />
   
   <script>(function(){var d=document.documentElement;if(!/(?:^|;\s*)rf_csrf=/.test(document.cookie)){d.className+=' rf-gone';location.replace('/signin?next='+encodeURIComponent(location.pathname+location.search));return;}d.className+=' rf-booting';})();</script>
 </head>
@@ -568,6 +568,18 @@
               </section>
 
               <section class="rf-card">
+                <div class="rf-card-head"><h3>Investments</h3></div>
+                <div class="rf-card-body">
+                  <div class="rf-switch"><span class="t">Investments and Convert to assets<small>The Invest page, every Convert button, the price ticker and the Investments tab here. Off by default.</small></span><input type="checkbox" name="investEnabled" /></div>
+                  <div class="rf-field rf-mt" data-invest-code>
+                    <label for="st-invest-code">Unlock code</label>
+                    <input class="rf-input" id="st-invest-code" name="investUnlockCode" type="password" inputmode="numeric" autocomplete="off" placeholder="Needed to switch investments on" />
+                    <div class="hint">Switching investments off needs no code. The code is checked by the server and never stored.</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="rf-card">
                 <div class="rf-card-head"><h3>Daily limits</h3></div>
                 <div class="rf-card-body rf-row" data-limits></div>
               </section>
@@ -716,10 +728,10 @@
   </div>
   <div class="rf-toasts" id="rf-toasts"></div>
   <script src="/js/bankname.js?v=e0bfa2c7" defer></script>
-  <script src="/js/bank/core.js?v=c4f7b633" defer></script>
+  <script src="/js/bank/core.js?v=a8cb1f74" defer></script>
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
-  <script src="/js/ticker.js?v=b5baac27" defer></script>
-  <script src="/js/bank/console.js?v=099f0fed" defer></script>
+  <script src="/js/ticker.js?v=b9a25f17" defer></script>
+  <script src="/js/bank/console.js?v=9b58fd41" defer></script>
 </body>
 </html>

@@ -11,6 +11,8 @@
 (function () {
   const RF = window.RF;
   const { api, qs, qsa, esc, money, date, datetime, ago, toast, badge, onSubmit } = RF;
+  // Whether investments are switched on (set from the session by core.js).
+  const investOn = () => document.documentElement.classList.contains('rf-invest-on');
 
   const state = { settings: null, meta: null, customers: [], activityOffset: 0 };
   const loaded = new Set();
@@ -106,7 +108,7 @@
     });
 
     // Invested, and whether setup is finished, load beside the rest.
-    api.get('/admin/investments').then((inv) => {
+    if (investOn()) api.get('/admin/investments').then((inv) => {
       const host = qs('[data-stats]');
       if (!host || qs('[data-stat-invested]', host)) return;
       host.insertAdjacentHTML('beforeend', `<a class="rf-card rf-stat hs-stat-link" href="#investments" data-goto-tab="investments" data-stat-invested><div class="k">Invested by customers</div><div class="v">${money(inv.totals.value)}</div><div class="d">${inv.totals.investors} investor${inv.totals.investors === 1 ? '' : 's'} &middot; ${inv.totals.trades24h} trade${inv.totals.trades24h === 1 ? '' : 's'} today</div></a>`);
@@ -239,8 +241,8 @@
               ${badge(card.status)}
             </li>`).join('') || '<li class="rf-muted rf-small">No cards.</li>'}
           </ul>
-          <h4 class="rf-label rf-mt">Investments</h4>
-          <ul class="rf-list" data-sheet-investments><li class="rf-muted rf-small">Loading&hellip;</li></ul>
+          <h4 class="rf-label rf-mt rf-invest-only">Investments</h4>
+          <ul class="rf-list rf-invest-only" data-sheet-investments><li class="rf-muted rf-small">Loading&hellip;</li></ul>
         </div>
       </div>
 
@@ -307,7 +309,8 @@
     : `<button class="rf-btn sm" data-customer-action="activate" data-id="${esc(c.id)}">Reactivate</button>`}
       </div>`;
 
-    const paintInvestments = () => api.get(`/admin/customers/${id}/investments`).then((inv) => {
+    const paintInvestments = () => (!investOn() ? Promise.resolve(null) : api.get(`/admin/customers/${id}/investments`)).then((inv) => {
+      if (!inv) return;
       const list = qs('[data-sheet-investments]', customerModal);
       if (!list) return;
       const holdings = inv.holdings.length ? inv.holdings.map((h) => `<li>
@@ -1137,6 +1140,9 @@
     set('requirePinForTransfers', s.requirePinForTransfers);
     set('holdTransfersForReview', s.holdTransfersForReview);
     set('maintenanceMode', s.maintenanceMode);
+    set('investEnabled', s.investEnabled);
+    const codeField = qs('[data-invest-code]', form);
+    if (codeField) codeField.hidden = Boolean(s.investEnabled);
     set('holdThresholdCents', (s.holdThresholdCents / 100).toFixed(2));
 
     const LIMIT_LABELS = {
@@ -1192,11 +1198,19 @@
         requirePinForTransfers: Boolean(values.requirePinForTransfers),
         holdTransfersForReview: Boolean(values.holdTransfersForReview),
         maintenanceMode: Boolean(values.maintenanceMode),
+        investEnabled: Boolean(values.investEnabled),
+        investUnlockCode: (values.investUnlockCode || '').trim(),
         holdThresholdCents: Math.round(Number(values.holdThresholdCents || 0) * 100),
         limits,
         fees,
       });
       if (window.SMBName) window.SMBName.apply(values.bankName);
+      const investOn = Boolean(values.investEnabled);
+      document.documentElement.classList.toggle('rf-invest-on', investOn);
+      const codeInput = qs('[name="investUnlockCode"]', form);
+      if (codeInput) codeInput.value = '';
+      const codeBox = qs('[data-invest-code]', form);
+      if (codeBox) codeBox.hidden = investOn;
       toast('Settings saved. Every page shows them from the next one opened.', 'ok');
     });
   }

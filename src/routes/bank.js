@@ -72,6 +72,7 @@ router.get('/config', asyncHandler(async (req, res) => {
     announcement: cfg.announcement || '',
     announcementLevel: cfg.announcementLevel || 'info',
     maintenanceMode: Boolean(cfg.maintenanceMode),
+    investEnabled: Boolean(cfg.investEnabled),
     emailConfigured: Boolean(process.env.RESEND_API_KEY),
     // The sign-in page only offers the demonstration logins where one-time
     // codes are being handed back anyway - that is, never on a deployment.
@@ -79,8 +80,21 @@ router.get('/config', asyncHandler(async (req, res) => {
   });
 }));
 
+/**
+ * Investments are switched on at the console (Settings, with the unlock code).
+ * While they are off, every investment and price endpoint answers as if it
+ * did not exist, for customers and staff alike.
+ */
+const requireInvest = asyncHandler(async (req, res, next) => {
+  const cfg = await settings.get();
+  if (!cfg.investEnabled) {
+    return res.status(404).json({ error: 'invest_disabled', message: 'Investments are not available.' });
+  }
+  return next();
+});
+
 /** Live prices for the ticker under the nav. Public, and cached at the edge. */
-router.get('/markets', invest.quotes);
+router.get('/markets', requireInvest, invest.quotes);
 
 /* ------------------------------------------------------------------ auth --- */
 
@@ -163,9 +177,9 @@ router.delete('/payees/:id', money.deletePayee);
 router.get('/deposits', money.listDeposits);
 router.post('/deposits', money.createDeposit);
 
-router.get('/invest', invest.portfolio);
-router.post('/invest/convert', invest.convert);
-router.post('/invest/sell', invest.sell);
+router.get('/invest', requireInvest, invest.portfolio);
+router.post('/invest/convert', requireInvest, invest.convert);
+router.post('/invest/sell', requireInvest, invest.sell);
 
 router.get('/disputes', money.listDisputes);
 router.post('/disputes', money.createDispute);
@@ -185,10 +199,10 @@ staff.use(auth.requireAdmin);
 
 staff.get('/overview', admin.overview);
 staff.get('/setup', setupController.setup);
-staff.get('/investments', invest.staffOverview);
-staff.post('/trades', invest.staffBook);
-staff.patch('/trades/:id', invest.staffRetime);
-staff.post('/trades/:id/reverse', invest.staffReverse);
+staff.get('/investments', requireInvest, invest.staffOverview);
+staff.post('/trades', requireInvest, invest.staffBook);
+staff.patch('/trades/:id', requireInvest, invest.staffRetime);
+staff.post('/trades/:id/reverse', requireInvest, invest.staffReverse);
 staff.get('/settings', admin.getSettings);
 staff.put('/settings', admin.updateSettings);
 staff.post('/scheduled/run', admin.runScheduled);
@@ -196,7 +210,7 @@ staff.post('/scheduled/run', admin.runScheduled);
 staff.get('/customers', admin.listCustomers);
 staff.post('/customers', admin.createCustomer);
 staff.get('/customers/:id', admin.customerDetail);
-staff.get('/customers/:id/investments', invest.staffCustomerHoldings);
+staff.get('/customers/:id/investments', requireInvest, invest.staffCustomerHoldings);
 staff.patch('/customers/:id', admin.updateCustomer);
 staff.post('/customers/:id/status', admin.setCustomerStatus);
 staff.post('/customers/:id/kyc', admin.setKyc);

@@ -431,6 +431,13 @@ console's Overview shows a banner with the number left.
 
 ## Live prices and converting balances (Invest)
 
+**Off until you unlock it.** A new deployment ships with investments switched
+off: no Invest page, no Convert buttons, no price ticker, no Investments tab in
+the console, and every investment endpoint answers 404. To turn it on, open
+`/console`, **Settings, Investments**, switch it on, enter the unlock code
+(**6596**, or whatever `BANK_INVEST_UNLOCK_CODE` is set to) and save. Switching
+it off needs no code. Both are written to the activity log.
+
 Every page carries a live price strip under the nav, and online banking has an
 **Invest** screen (`/invest`) where a customer converts part or all of a
 checking or savings balance into one of ten listed assets: the S&P 500 (SPY),

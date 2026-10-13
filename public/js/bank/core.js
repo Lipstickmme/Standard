@@ -503,6 +503,11 @@
     state.user = session.user || null;
     // The name staff have given the bank, over the one the page was built with.
     if (window.SMBName && session.bankName) window.SMBName.apply(session.bankName);
+    // Investments are switched on at the console. Off, every Invest link,
+    // Convert button and the ticker stay hidden (bank.css), and the page
+    // itself sends people back to the dashboard.
+    const investOn = Boolean(session.investEnabled);
+    document.documentElement.classList.toggle('rf-invest-on', investOn);
 
     if (isApp) {
       if (!session.authenticated) {
@@ -518,6 +523,10 @@
       // customer who follows a link sees the dashboard rather than a wall of
       // 403s.
       if (location.pathname.startsWith('/console') && session.user.role !== 'admin') {
+        location.replace('/dashboard');
+        return new Promise(() => {});
+      }
+      if (!investOn && location.pathname.startsWith('/invest')) {
         location.replace('/dashboard');
         return new Promise(() => {});
       }

@@ -179,6 +179,11 @@ const DEFAULT_SETTINGS = {
   announcement: '',
   announcementLevel: 'info',
   maintenanceMode: false,
+  // Investments: converting balances into listed assets, the market ticker
+  // and the console's Investments tab. Off by default; switching it on at the
+  // console asks for the unlock code (see investUnlockCode in
+  // src/controllers/bank/adminController.js).
+  investEnabled: false,
   // Verification gates. Each one a transfer must clear before it posts.
   requireOtpForTransfers: true,
   requirePinForTransfers: true,

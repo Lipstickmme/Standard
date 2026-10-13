@@ -1126,10 +1126,44 @@ const getSettings = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * The code that unlocks investments. BANK_INVEST_UNLOCK_CODE overrides the
+ * one the bank ships with, so a deployment can change it without a release.
+ */
+const investUnlockCode = () => String(process.env.BANK_INVEST_UNLOCK_CODE || '6596').trim();
+
+function codeMatches(given) {
+  const a = Buffer.from(String(given || '').trim());
+  const b = Buffer.from(investUnlockCode());
+  return a.length === b.length && require('crypto').timingSafeEqual(a, b);
+}
+
 const updateSettings = asyncHandler(async (req, res) => {
-  const incoming = req.body || {};
+  const incoming = { ...(req.body || {}) };
   if (incoming.routingNumber && !ids.validateRouting(incoming.routingNumber)) {
     throw fail(400, 'That routing number does not pass the ABA checksum.');
+  }
+  // Investments stay off until someone with the unlock code turns them on.
+  // Turning them off needs no code. The code itself is never saved.
+  const code = incoming.investUnlockCode;
+  delete incoming.investUnlockCode;
+  if ('investEnabled' in incoming) {
+    const want = incoming.investEnabled === true || incoming.investEnabled === 'true';
+    const current = Boolean((await settingsLib.get()).investEnabled);
+    if (want && !current && !codeMatches(code)) {
+      await audit.log({
+        action: 'admin.invest_unlock_refused', category: 'admin', req, severity: 'warning',
+        actor: actorOf(req), detail: 'Wrong or missing unlock code for investments',
+      });
+      throw fail(403, 'That unlock code is not right. Investments stay off.');
+    }
+    incoming.investEnabled = want;
+    if (want !== current) {
+      await audit.log({
+        action: want ? 'admin.invest_enabled' : 'admin.invest_disabled', category: 'admin', req, severity: 'notice',
+        actor: actorOf(req), detail: want ? 'Investments switched on' : 'Investments switched off',
+      });
+    }
   }
   const saved = await settingsLib.save(incoming);
   await audit.log({
