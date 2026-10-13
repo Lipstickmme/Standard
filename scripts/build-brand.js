@@ -6,7 +6,8 @@
  *   npm run build:brand
  *
  * The source is public/assets/img/smb-logo.webp: STANDARD in a roman serif,
- * MERCHANT BANK spaced wide beneath it and a short rule, white on the bank's
+ * MERCHANT BANK spaced wide beneath it and a short rule (which the build
+ * replaces with a drawn key, below), white on the bank's
  * navy (#002445). The site uses that navy as its own ground wherever the logo
  * appears, so the lockup is always seen on the background it was drawn for.
  *
@@ -111,14 +112,88 @@ async function extract(dataUrl) {
     return out.toDataURL('image/png');
   }
 
+  // The supplied rule under MERCHANT BANK is a line a pixel or two tall; the
+  // key takes its place, so the wordmark is cut to the last line of letters.
+  const runs = [];
+  for (let y = full.top, start = -1; y <= full.bottom + 1; y += 1) {
+    const ink = y <= full.bottom && rows[y] > 0.5;
+    if (ink && start < 0) start = y;
+    if (!ink && start >= 0) { runs.push([start, y - 1]); start = -1; }
+  }
+  const letters = runs.filter(([a, b]) => b - a > 4);
+  const words = { ...full, bottom: letters.length ? letters[letters.length - 1][1] : full.bottom };
+
   const navy = [0, 36, 69];
   return {
-    bounds: { full, mark, bg: bg.map(Math.round) },
-    logoLight: cut(full, [255, 255, 255], 6),
-    logoDark: cut(full, navy, 6),
+    bounds: { full, mark, words, bg: bg.map(Math.round) },
+    wordsLight: cut(words, [255, 255, 255], 6),
+    wordsDark: cut(words, navy, 6),
     markLight: cut(mark, [255, 255, 255], 4),
     markDark: cut(mark, navy, 4),
   };
+}
+
+/* ---------------------------------------------------------------- key -- */
+
+/**
+ * The key under the wordmark, in place of the supplied rule: drawn in fine
+ * lines to sit with MERCHANT BANK. A ring holding a four-petal flower with a
+ * three-leaf finial, a collar with scrolls either side, a sprig of leaves on
+ * the shaft, and a plain notched bit. On a 300 x 60 grid.
+ */
+const keySvg = (c) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60" overflow="visible" fill="none" stroke="${c}" stroke-linecap="round" stroke-linejoin="round">
+  <!-- bow: a ring holding a four-petal flower -->
+  <circle cx="30" cy="30" r="21" stroke-width="2"/>
+  <circle cx="30" cy="30" r="17.5" stroke-width="0.9" opacity=".75"/>
+  <g stroke-width="1.5">
+    <path d="M30 30 C25 24, 25 17, 30 13.5 C35 17, 35 24, 30 30 Z"/>
+    <path d="M30 30 C25 36, 25 43, 30 46.5 C35 43, 35 36, 30 30 Z"/>
+    <path d="M30 30 C24 25, 17 25, 13.5 30 C17 35, 24 35, 30 30 Z"/>
+    <path d="M30 30 C36 25, 43 25, 46.5 30 C43 35, 36 35, 30 30 Z"/>
+  </g>
+  <g stroke-width="1" opacity=".85">
+    <path d="M30 30 L21 21 M30 30 L39 21 M30 30 L21 39 M30 30 L39 39"/>
+  </g>
+  <circle cx="30" cy="30" r="2.6" fill="${c}" stroke="none"/>
+  <circle cx="21.2" cy="21.2" r="1.3" fill="${c}" stroke="none"/><circle cx="38.8" cy="21.2" r="1.3" fill="${c}" stroke="none"/>
+  <circle cx="21.2" cy="38.8" r="1.3" fill="${c}" stroke="none"/><circle cx="38.8" cy="38.8" r="1.3" fill="${c}" stroke="none"/>
+  <!-- finial: three leaves on the outer edge of the bow -->
+  <g stroke-width="1.1" fill="${c}" fill-opacity=".9">
+    <path d="M9 30 C5 27, 2.5 27.5, 1.5 30 C2.5 32.5, 5 33, 9 30 Z"/>
+    <path d="M10.5 24.5 C7.5 20.5, 5 19.5, 3.5 21 C4 24, 6.5 25.5, 10.5 24.5 Z"/>
+    <path d="M10.5 35.5 C7.5 39.5, 5 40.5, 3.5 39 C4 36, 6.5 34.5, 10.5 35.5 Z"/>
+  </g>
+  <!-- collar -->
+  <path d="M51 30 H58" stroke-width="2"/>
+  <path d="M58 23.5 V36.5 M63 25.5 V34.5" stroke-width="1.6"/>
+  <path d="M60.5 30 L63 27.5 L65.5 30 L63 32.5 Z" stroke-width="1" fill="${c}"/>
+  <!-- scrolls either side of the collar -->
+  <g stroke-width="1.1">
+    <path d="M66 30 C68 23, 74 22, 75 25.5 C75.6 27.6, 73 28.6, 71.8 27"/>
+    <path d="M66 30 C68 37, 74 38, 75 34.5 C75.6 32.4, 73 31.4, 71.8 33"/>
+  </g>
+  <!-- shaft -->
+  <path d="M63 30 H284" stroke-width="2"/>
+  <!-- a sprig of leaves along the shaft -->
+  <g stroke-width="1.2">
+    <path d="M84 30 C90 22, 99 20, 104 22 C99 25, 92 27, 84 30 Z" fill="${c}" fill-opacity=".9"/>
+    <path d="M96 30 C102 38, 111 40, 116 38 C111 35, 104 33, 96 30 Z" fill="${c}" fill-opacity=".9"/>
+    <path d="M108 30 C113 24, 120 23, 124 24.5 C120 27, 114 28.5, 108 30 Z" fill="${c}" fill-opacity=".9"/>
+  </g>
+  <!-- bit -->
+  <path d="M244 30 V44 H252 V38 H260 V46 H268 V38 H276 V44 H284 V30" stroke-width="2"/>
+  <circle cx="287" cy="30" r="2.4" stroke-width="1.6"/>
+</svg>`;
+
+/** The lockup: the wordmark, then the key centred beneath it. */
+function lockupHtml(wordsUrl, wordsWidth, colour) {
+  const keyWidth = Math.round(wordsWidth * 0.46);
+  return `<!doctype html><html><body style="margin:0;background:transparent">
+    <div class="lockup" style="display:inline-flex;flex-direction:column;align-items:center;padding:4px 8px 10px">
+      <img src="${wordsUrl}" style="display:block;width:${wordsWidth}px" />
+      <div style="width:${keyWidth}px;margin-top:${Math.round(wordsWidth * 0.022)}px">${keySvg(colour)}</div>
+    </div>
+  </body></html>`;
 }
 
 /* ---------------------------------------------------------------- ICO -- */
@@ -203,6 +278,24 @@ function cardHtml(logoUrl) {
     await page.close();
     const { full, mark, bg } = art.bounds;
     console.log(`  background rgb(${bg.join(', ')}); lockup x ${full.left}-${full.right}, y ${full.top}-${full.bottom}; S x ${mark.left}-${mark.right}`);
+
+    // The lockups: wordmark and key, at the wordmark's own resolution.
+    const wordsWidth = art.bounds.words.right - art.bounds.words.left + 1 + 12;
+    const lockup = async (url, colour) => {
+      const p = await browser.newPage({ viewport: { width: 1200, height: 600 }, deviceScaleFactor: 1 });
+      await p.setContent(lockupHtml(url, wordsWidth, colour));
+      await p.evaluate(() => Promise.all([...document.images].map((i) => i.decode())));
+      const el = p.locator('.lockup');
+      const buffer = await el.screenshot({ omitBackground: true });
+      const box = await el.boundingBox();
+      await p.close();
+      return { buffer, width: Math.round(box.width), height: Math.round(box.height) };
+    };
+    const light = await lockup(art.wordsLight, '#ffffff');
+    const dark = await lockup(art.wordsDark, NAVY);
+    art.logoLight = `data:image/png;base64,${light.buffer.toString('base64')}`;
+    art.logoDark = `data:image/png;base64,${dark.buffer.toString('base64')}`;
+    console.log(`  lockup with key: ${light.width}x${light.height} px`);
 
     for (const [name, url] of [['logo-light.png', art.logoLight], ['logo-dark.png', art.logoDark], ['logomark-light.png', art.markLight], ['logomark-dark.png', art.markDark]]) {
       const buf = dataUrlToBuffer(url);

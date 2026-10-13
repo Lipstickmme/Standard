@@ -148,7 +148,7 @@ const homeContent = `
           <div class="rf-phone-screen">
             <div class="rf-phone-top">
               <div class="rf-phone-status"><span>9:41</span><span class="dots"></span></div>
-              <img src="/assets/bank/logo-light.png" alt="" width="744" height="210" class="rf-phone-logo" />
+              <img src="/assets/bank/logo-light.png" alt="" width="760" height="260" class="rf-phone-logo" />
               <div class="rf-phone-balance">$4,250.00</div>
               <div class="rf-phone-delta">&uarr; 12% <span>vs. last month</span></div>
             </div>
@@ -170,7 +170,7 @@ const homeContent = `
           </div>
         </div>
         <div class="rf-plastic-card">
-          <img src="/assets/bank/logo-light.png" alt="" width="744" height="210" />
+          <img src="/assets/bank/logo-light.png" alt="" width="760" height="260" />
           <span class="chip"></span>
           <span class="num">&bull;&bull;&bull;&bull; 4821</span>
           <span class="kind">DEBIT</span>
@@ -713,7 +713,7 @@ const deskContent = `
     <div class="admin-shell" id="admin-shell" hidden>
       <header class="admin-bar">
         <a class="admin-brand" href="/">
-          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="744" height="210" style="width:240px" />
+          <img src="/assets/bank/logo-light.png" alt="Standard Merchant Bank" width="760" height="260" style="width:240px" />
           <span>Client services desk</span>
         </a>
         <div class="admin-bar-end">

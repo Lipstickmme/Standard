@@ -298,8 +298,9 @@ up in place of the generated placeholders; the build log says which were found.
 Per-story images are named in `src/data/projects.json`.
 
 The logo is `public/assets/img/smb-logo.webp`: STANDARD in a roman serif over
-MERCHANT BANK in wide-spaced capitals and a short rule, white on navy
-`#002445`. The site's navy is that colour, and the logo is always shown on it.
+MERCHANT BANK in wide-spaced capitals, white on navy `#002445`. The build
+replaces the supplied short rule with a drawn key (a floral bow, a sprig of
+leaves on the shaft, a plain bit), defined in `scripts/build-brand.js`. The site's navy is that colour, and the logo is always shown on it.
 `npm run build:brand` cuts everything the site needs out of it:
 
 | Output | Built from |

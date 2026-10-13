@@ -453,7 +453,7 @@ function authPage({ title, description, content, extraScripts = [] }) {
     `  <div class="rf-auth-wrap">
     <section class="rf-auth-aside">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" style="width:240px" />
+        <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="760" height="260" style="width:240px" />
       </a>
       <h2>Your money, held the way a bank should hold it.</h2>
       <p>${BANK.tagline} Deposits insured by the FDIC to the maximum permitted by law, and a real person on the phone when you need one.</p>
@@ -494,7 +494,7 @@ function marketingNav(active = '') {
   <header class="rf-marketing-nav">
     <div class="wrap inner">
       <a class="brandline" href="/" aria-label="${BANK.name} home">
-        <img class="rf-nav-logo" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" />
+        <img class="rf-nav-logo" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="760" height="260" />
       </a>
       <nav>
         ${link('/personal', 'Personal', 'personal')}
@@ -530,7 +530,7 @@ function marketingFooter() {
     <div class="wrap">
       <div class="cols">
         <div>
-          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="744" height="210" style="width:210px;margin-bottom:22px" />
+          <img class="rf-lockup" src="/assets/bank/logo-light.png" alt="${BANK.name}" width="760" height="260" style="width:210px;margin-bottom:22px" />
           <p style="margin:0 0 12px;max-width:34ch">${BANK.tagline} Personal and business banking since ${BANK.established}.</p>
           <p style="margin:0;font-size:12.5px" data-site-row="address" hidden><span data-site="address"></span></p>
         </div>

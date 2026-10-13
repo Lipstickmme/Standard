@@ -1528,7 +1528,7 @@ a.rf-auth-brand {
 }
 .rf-site .rf-marketing-nav.is-scrolled { box-shadow: 0 14px 34px -22px rgba(0, 14, 30, .8); }
 .rf-site .rf-marketing-nav .inner { padding: 16px 0; }
-.rf-nav-logo { display: block; height: 50px; width: auto; }
+.rf-nav-logo { display: block; height: 62px; width: auto; }
 .rf-site .rf-marketing-nav nav a {
   color: rgba(255, 255, 255, .78); font: 500 12px/1 var(--rf-sans); letter-spacing: .2em; text-transform: uppercase;
   margin: 0 13px; padding: 10px 0;
@@ -1539,7 +1539,7 @@ a.rf-auth-brand {
 .rf-site .rf-marketing-nav .rf-btn.ghost:hover { --btn-face: rgba(255, 255, 255, .1); --btn-edge: #fff; }
 .rf-site .rf-marketing-nav .rf-btn:not(.ghost) { --btn-face: #fff; --btn-edge: #fff; --btn-ink: var(--rf-navy); }
 .rf-site .rf-marketing-nav .rf-btn:not(.ghost):hover { --btn-face: #eef2f7; }
-@media (max-width: 620px) { .rf-nav-logo { height: 40px; } .rf-site .rf-marketing-nav .inner { padding: 12px 0; } }
+@media (max-width: 620px) { .rf-nav-logo { height: 48px; } .rf-site .rf-marketing-nav .inner { padding: 12px 0; } }
 
 /* ---- heroes: photographs under the logo's navy ---- */
 .rf-site .rf-hero { background: var(--rf-navy); color: #fff; }
