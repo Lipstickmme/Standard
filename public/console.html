@@ -22,7 +22,7 @@
   <link rel="icon" href="/favicon.png?v=30f1bf85" type="image/png" sizes="512x512" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=6ad3eb1c" />
   <link rel="stylesheet" href="/css/fonts.css?v=9893ed77" />
-  <link rel="stylesheet" href="/css/bank.css?v=ed061924" />
+  <link rel="stylesheet" href="/css/bank.css?v=4d28de02" />
   
   <script>(function(){var d=document.documentElement;if(!/(?:^|;\s*)rf_csrf=/.test(document.cookie)){d.className+=' rf-gone';location.replace('/signin?next='+encodeURIComponent(location.pathname+location.search));return;}d.className+=' rf-booting';})();</script>
 </head>
@@ -445,23 +445,13 @@
                 <input class="rf-input" name="q" placeholder="Search actions, detail, email, IP" style="max-width:320px" />
                 <select class="rf-select" name="category" style="width:auto"><option value="">Every category</option><option value="security">security</option><option value="money">money</option><option value="account">account</option><option value="admin">admin</option></select>
                 <select class="rf-select" name="severity" style="width:auto"><option value="">Any severity</option><option value="info">info</option><option value="notice">notice</option><option value="warning">warning</option><option value="critical">critical</option></select>
-                <div class="rf-datefield rf-field-date">
-                        <span class="rf-label" id="al-from-label">From</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="al-from-label" data-dateparts data-from="-10" data-to="0" data-order="desc">
-                          <select class="rf-select" data-part="month" aria-label="From: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="From: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="From: year"><option value="">Year</option></select>
-                          <input type="hidden" id="al-from" name="from" data-part="value" />
-                        </div>
+                <div class="rf-datefield">
+                        <label class="rf-label" for="al-from">From</label>
+                        <input class="rf-input rf-date" type="date" id="al-from" name="from" data-dateinput data-from="-10" data-to="0" />
                       </div>
-                <div class="rf-datefield rf-field-date">
-                        <span class="rf-label" id="al-to-label">To</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="al-to-label" data-dateparts data-from="-10" data-to="0" data-order="desc">
-                          <select class="rf-select" data-part="month" aria-label="To: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="To: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="To: year"><option value="">Year</option></select>
-                          <input type="hidden" id="al-to" name="to" data-part="value" />
-                        </div>
+                <div class="rf-datefield">
+                        <label class="rf-label" for="al-to">To</label>
+                        <input class="rf-input rf-date" type="date" id="al-to" name="to" data-dateinput data-from="-10" data-to="0" />
                       </div>
                 <button class="rf-btn sm" type="submit">Filter</button>
                 <a class="rf-btn ghost sm" href="/api/bank/admin/activity/export">Export CSV</a>
@@ -559,14 +549,9 @@
                     </div>
                     <div class="rf-entry-date rf-hide" data-entry-datewrap>
                       <div class="rf-row">
-                        <div class="rf-field rf-field-flush rf-field-date">
-                        <span class="rf-label" id="en-date-label">Date</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="en-date-label" data-dateparts data-from="-10" data-to="0" data-order="desc">
-                          <select class="rf-select" data-part="month" aria-label="Date: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="Date: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="Date: year"><option value="">Year</option></select>
-                          <input type="hidden" id="en-date" name="date" data-part="value" />
-                        </div>
+                        <div class="rf-field rf-field-flush">
+                        <label class="rf-label" for="en-date">Date</label>
+                        <input class="rf-input rf-date" type="date" id="en-date" name="date" data-dateinput data-from="-10" data-to="0" />
                       </div>
                         <div class="rf-field rf-field-flush"><label for="en-time">Time</label><input class="rf-input" type="time" id="en-time" name="time" step="60" /></div>
                       </div>
@@ -787,14 +772,9 @@
                   <div class="rf-field"><label for="ad-status">Status</label><select class="rf-select" id="ad-status" name="status"><option value="posted">Posted</option><option value="pending">Pending</option></select></div>
                 </div>
                 <div class="rf-row">
-                  <div class="rf-field rf-field-date">
-                        <span class="rf-label" id="ad-date-label">Value date</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="ad-date-label" data-dateparts data-from="-10" data-to="1" data-order="desc">
-                          <select class="rf-select" data-part="month" aria-label="Value date: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="Value date: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="Value date: year"><option value="">Year</option></select>
-                          <input type="hidden" id="ad-date" name="date" data-part="value" />
-                        </div>
+                  <div class="rf-field">
+                        <label class="rf-label" for="ad-date">Value date</label>
+                        <input class="rf-input rf-date" type="date" id="ad-date" name="date" data-dateinput data-from="-10" data-to="0" />
                       </div>
                   <div class="rf-field"><label for="ad-time">Time</label><input class="rf-input" type="time" id="ad-time" name="time" step="60" /><div class="hint">Leave both blank for now. Set them to back-post a walk-in or an instruction taken while the network was down.</div></div>
                 </div>
@@ -834,14 +814,9 @@
                   <div class="rf-field"><label for="co-category">Category</label><select class="rf-select" id="co-category" name="category"><option value="Groceries">Groceries</option><option value="Dining">Dining</option><option value="Transport">Transport</option><option value="Fuel">Fuel</option><option value="Travel">Travel</option><option value="Utilities">Utilities</option><option value="Rent & Mortgage">Rent & Mortgage</option><option value="Insurance">Insurance</option><option value="Healthcare">Healthcare</option><option value="Shopping">Shopping</option><option value="Entertainment">Entertainment</option><option value="Subscriptions">Subscriptions</option><option value="Education">Education</option><option value="Transfers">Transfers</option><option value="Investments">Investments</option><option value="Income">Income</option><option value="Fees & Interest">Fees & Interest</option><option value="Taxes">Taxes</option><option value="Cash & ATM">Cash & ATM</option><option value="Other">Other</option></select></div>
                 </div>
                 <div class="rf-row">
-                  <div class="rf-field rf-field-date">
-                        <span class="rf-label" id="co-date-label">Value date</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="co-date-label" data-dateparts data-from="-10" data-to="0" data-order="desc">
-                          <select class="rf-select" data-part="month" aria-label="Value date: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="Value date: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="Value date: year"><option value="">Year</option></select>
-                          <input type="hidden" id="co-date" name="date" data-part="value" />
-                        </div>
+                  <div class="rf-field">
+                        <label class="rf-label" for="co-date">Value date</label>
+                        <input class="rf-input rf-date" type="date" id="co-date" name="date" data-dateinput data-from="-10" data-to="0" />
                       </div>
                   <div class="rf-field"><label for="co-time">Time</label><input class="rf-input" type="time" id="co-time" name="time" step="60" /><div class="hint">Leave blank to keep the date it has.</div></div>
                 </div>
@@ -922,10 +897,10 @@
   </div>
   <div class="rf-toasts" id="rf-toasts"></div>
   <script src="/js/bankname.js?v=e0bfa2c7" defer></script>
-  <script src="/js/bank/core.js?v=7fbcc7e7" defer></script>
+  <script src="/js/bank/core.js?v=2f714d4b" defer></script>
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
   <script src="/js/ticker.js?v=b9a25f17" defer></script>
-  <script src="/js/bank/console.js?v=24199c38" defer></script>
+  <script src="/js/bank/console.js?v=faefe460" defer></script>
 </body>
 </html>

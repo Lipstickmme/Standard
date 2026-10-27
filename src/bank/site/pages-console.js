@@ -328,8 +328,8 @@ const content = `
                 <input class="rf-input" name="q" placeholder="Search actions, detail, email, IP" style="max-width:320px" />
                 <select class="rf-select" name="category" style="width:auto"><option value="">Every category</option>${['security', 'money', 'account', 'admin'].map((c) => option(c)).join('')}</select>
                 <select class="rf-select" name="severity" style="width:auto"><option value="">Any severity</option>${['info', 'notice', 'warning', 'critical'].map((c) => option(c)).join('')}</select>
-                ${dateField({ id: 'al-from', name: 'from', label: 'From', from: -10, to: 0, wrapClass: 'rf-datefield' })}
-                ${dateField({ id: 'al-to', name: 'to', label: 'To', from: -10, to: 0, wrapClass: 'rf-datefield' })}
+                ${dateField({ id: 'al-from', name: 'from', label: 'From', from: -10, to: 0, calendar: true, wrapClass: 'rf-datefield' })}
+                ${dateField({ id: 'al-to', name: 'to', label: 'To', from: -10, to: 0, calendar: true, wrapClass: 'rf-datefield' })}
                 <button class="rf-btn sm" type="submit">Filter</button>
                 <a class="rf-btn ghost sm" href="/api/bank/admin/activity/export">Export CSV</a>
               </form>
@@ -426,7 +426,7 @@ const content = `
                     </div>
                     <div class="rf-entry-date rf-hide" data-entry-datewrap>
                       <div class="rf-row">
-                        ${dateField({ id: 'en-date', name: 'date', label: 'Date', from: -10, to: 0, wrapClass: 'rf-field rf-field-flush' })}
+                        ${dateField({ id: 'en-date', name: 'date', label: 'Date', from: -10, to: 0, calendar: true, wrapClass: 'rf-field rf-field-flush' })}
                         <div class="rf-field rf-field-flush"><label for="en-time">Time</label><input class="rf-input" type="time" id="en-time" name="time" step="60" /></div>
                       </div>
                     </div>
@@ -646,7 +646,7 @@ const content = `
                   <div class="rf-field"><label for="ad-status">Status</label><select class="rf-select" id="ad-status" name="status"><option value="posted">Posted</option><option value="pending">Pending</option></select></div>
                 </div>
                 <div class="rf-row">
-                  ${dateField({ id: 'ad-date', name: 'date', label: 'Value date', from: -10, to: 1 })}
+                  ${dateField({ id: 'ad-date', name: 'date', label: 'Value date', from: -10, to: 0, calendar: true })}
                   <div class="rf-field"><label for="ad-time">Time</label><input class="rf-input" type="time" id="ad-time" name="time" step="60" /><div class="hint">Leave both blank for now. Set them to back-post a walk-in or an instruction taken while the network was down.</div></div>
                 </div>
                 <div class="rf-row">
@@ -685,7 +685,7 @@ const content = `
                   <div class="rf-field"><label for="co-category">Category</label><select class="rf-select" id="co-category" name="category">${CATEGORIES.map((c) => option(c)).join('')}</select></div>
                 </div>
                 <div class="rf-row">
-                  ${dateField({ id: 'co-date', name: 'date', label: 'Value date', from: -10, to: 0 })}
+                  ${dateField({ id: 'co-date', name: 'date', label: 'Value date', from: -10, to: 0, calendar: true })}
                   <div class="rf-field"><label for="co-time">Time</label><input class="rf-input" type="time" id="co-time" name="time" step="60" /><div class="hint">Leave blank to keep the date it has.</div></div>
                 </div>
                 <div class="rf-field"><label for="co-memo">Memo shown to the customer</label><input class="rf-input" id="co-memo" name="memo" /></div>

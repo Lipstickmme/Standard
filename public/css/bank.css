@@ -673,6 +673,17 @@ body.rf-site {
 .rf-entry-hit .rf-amt { text-align: right; font-size: 14px; }
 .rf-entry-hit .rf-amt .sub { display: block; font-size: 11.5px; color: var(--rf-ink-3); font-weight: 400; }
 
+/* The native grid, sized and spaced like every other control on the form.
+   The indicator is given a hit area of its own and the brand's ink, since a
+   browser's default is a grey glyph the eye slides off. */
+.rf-input.rf-date { min-height: 42px; font-variant-numeric: tabular-nums; }
+.rf-input.rf-date::-webkit-calendar-picker-indicator {
+  cursor: pointer; padding: 4px; margin-right: -2px; border-radius: 6px;
+  opacity: .55; transition: opacity .12s ease, background .12s ease;
+}
+.rf-input.rf-date::-webkit-calendar-picker-indicator:hover { opacity: 1; background: var(--rf-info-soft); }
+.rf-input.rf-date::-webkit-datetime-edit { padding: 0; }
+
 .rf-entry-date { margin-top: 11px; }
 
 /* Both entry lists sit in the narrow column, where a description, a date, an

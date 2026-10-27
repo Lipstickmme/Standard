@@ -332,10 +332,23 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       const preview = await staff.textContent('[data-entry-preview]');
       assert.match(preview, /Balance after/, `the preview shows the balance to come: ${preview}`);
 
-      // "Yesterday" composes a date into the control the form already had.
+      // "Yesterday" writes into the calendar field, which is bounded in the
+      // browser so today is pickable however long ago the page was built.
       await staff.click('[data-when="1"]');
       const valued = await staff.inputValue('#en-date');
       assert.match(valued, /^\d{4}-\d{2}-\d{2}$/, `a chip composed a value date: ${valued}`);
+      const today = new Date();
+      const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      assert.strictEqual(await staff.getAttribute('#en-date', 'max'), iso, 'the calendar stops at today');
+      assert.ok(await staff.getAttribute('#en-date', 'min'), 'the calendar has a floor');
+      // A date set by hand takes over from the chips.
+      await staff.fill('#en-date', iso);
+      await staff.waitForFunction(
+        () => document.querySelector('[data-when="pick"]').classList.contains('is-on'),
+        null,
+        { timeout: 5000 }
+      );
+      await staff.click('[data-when="1"]');
       const backdated = await staff.getAttribute('[data-entry-backdated]', 'class');
       assert.ok(!backdated.includes('rf-hide'), 'back-posting says what it does to the running balance');
 

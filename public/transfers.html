@@ -22,7 +22,7 @@
   <link rel="icon" href="/favicon.png?v=30f1bf85" type="image/png" sizes="512x512" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=6ad3eb1c" />
   <link rel="stylesheet" href="/css/fonts.css?v=9893ed77" />
-  <link rel="stylesheet" href="/css/bank.css?v=ed061924" />
+  <link rel="stylesheet" href="/css/bank.css?v=4d28de02" />
   
   <script>(function(){var d=document.documentElement;if(!/(?:^|;\s*)rf_csrf=/.test(document.cookie)){d.className+=' rf-gone';location.replace('/signin?next='+encodeURIComponent(location.pathname+location.search));return;}d.className+=' rf-booting';})();</script>
 </head>
@@ -147,14 +147,9 @@
                     <label for="t-amount">Amount</label>
                     <input class="rf-input money" id="t-amount" name="amount" inputmode="decimal" placeholder="0.00" required />
                   </div>
-                  <div class="rf-field rf-field-date">
-                        <span class="rf-label" id="t-date-label">Send on</span>
-                        <div class="rf-dateparts" role="group" aria-labelledby="t-date-label" data-dateparts data-from="0" data-to="3" data-order="asc">
-                          <select class="rf-select" data-part="month" aria-label="Send on: month"><option value="">Month</option><option value="01">Jan</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Apr</option><option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Aug</option><option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
-                          <select class="rf-select" data-part="day" aria-label="Send on: day"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-                          <select class="rf-select" data-part="year" aria-label="Send on: year"><option value="">Year</option></select>
-                          <input type="hidden" id="t-date" name="scheduledFor" data-part="value" />
-                        </div>
+                  <div class="rf-field">
+                        <label class="rf-label" for="t-date">Send on</label>
+                        <input class="rf-input rf-date" type="date" id="t-date" name="scheduledFor" data-dateinput data-from="0" data-to="3" />
                         <p class="hint">Leave blank to send now.</p>
                       </div>
                 </div>
@@ -234,7 +229,7 @@
   </div>
   <div class="rf-toasts" id="rf-toasts"></div>
   <script src="/js/bankname.js?v=e0bfa2c7" defer></script>
-  <script src="/js/bank/core.js?v=7fbcc7e7" defer></script>
+  <script src="/js/bank/core.js?v=2f714d4b" defer></script>
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
   <script src="/js/ticker.js?v=b9a25f17" defer></script>

@@ -619,8 +619,23 @@ const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) =>
  * The three selects carry no name. The hidden input does, and it holds the
  * ISO date the server has always been sent, so nothing downstream of the form
  * knows this changed.
+ *
+ * `calendar` asks for the month grid instead, for the dates that argument is
+ * actually about: a value date on an entry is this week or last, where paging
+ * a calendar is one or two clicks and three selects are three. It is one
+ * native input, which types as readily as it points and brings the system's
+ * own picker on a phone; it carries the same name and yields the same ISO
+ * string, so again nothing downstream knows. The bounds are set in the
+ * browser, by core.js, for the same reason the years are.
  */
-function dateField({ id, name, label, from = -110, to = 0, order = 'desc', hint = '', wrapClass = 'rf-field' }) {
+function dateField({ id, name, label, from = -110, to = 0, order = 'desc', hint = '', wrapClass = 'rf-field', calendar = false }) {
+  if (calendar) {
+    return `<div class="${wrapClass}">
+                        <label class="rf-label" for="${id}">${label}</label>
+                        <input class="rf-input rf-date" type="date" id="${id}" name="${name}" data-dateinput data-from="${from}" data-to="${to}" />${hint ? `
+                        <p class="hint">${hint}</p>` : ''}
+                      </div>`;
+  }
   // rf-field-date marks it out for the one thing three controls need that one
   // does not: the full width of a narrow column.
   return `<div class="${wrapClass} rf-field-date">

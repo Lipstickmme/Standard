@@ -336,6 +336,31 @@
     });
   }
 
+  /**
+   * The bounds on a calendar field, set here rather than at build time.
+   *
+   * Same reason the year list is filled here: a page built in October and
+   * still being served in December would otherwise cap a value date at the
+   * day it was deployed, and staff would find today greyed out in the grid.
+   * `from` and `to` are the same year offsets dateField() takes, so to: 0
+   * means today and nothing after it.
+   */
+  function wireDateInputs(root) {
+    qsa('[data-dateinput]', root || document).forEach((el) => {
+      if (el.dataset.wired) return;
+      el.dataset.wired = '1';
+      const edge = (years) => {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + Number(years || 0));
+        // Local parts, not toISOString: that converts to UTC and can hand back
+        // yesterday or tomorrow for anyone west or east of it.
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      };
+      el.min = edge(el.dataset.from || -10);
+      el.max = edge(el.dataset.to || 0);
+    });
+  }
+
   /* ------------------------------------------------------- fit to box -- */
 
   /**
@@ -593,6 +618,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     wireShell();
     wireDateParts();
+    wireDateInputs();
     watchFit();
     booted = bootstrap().then((session) => {
       readyQueue.splice(0).forEach((fn) => {
@@ -632,6 +658,7 @@
     donut,
     fit,
     wireDateParts,
+    wireDateInputs,
     CHART_COLORS,
     ready,
     state,

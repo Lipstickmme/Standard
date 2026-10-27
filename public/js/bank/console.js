@@ -725,7 +725,7 @@
     const dirInput = qs('[data-entry-direction]', panel);
     const preview = qs('[data-entry-preview]', panel);
     const dateWrap = qs('[data-entry-datewrap]', panel);
-    const dateParts = qs('[data-dateparts]', dateWrap);
+    const dateInput = qs('#en-date', panel);
     const time = qs('#en-time', panel);
     const narratives = qs('[data-entry-narratives]', panel);
 
@@ -845,34 +845,33 @@
 
     /* ------------------------------------------------------ the value date -- */
 
-    /** Fill the three date selects, or empty them, and compose the hidden value. */
+    /** The chips and the calendar write to one field; empty means now. */
     function setDate(when) {
-      const month = qs('[data-part="month"]', dateParts);
-      const day = qs('[data-part="day"]', dateParts);
-      const year = qs('[data-part="year"]', dateParts);
-      if (!when) {
-        month.value = ''; day.value = ''; year.value = ''; time.value = '';
-      } else {
-        year.value = String(when.getFullYear());
-        month.value = String(when.getMonth() + 1).padStart(2, '0');
-        day.value = String(when.getDate()).padStart(2, '0');
-      }
-      // The composer lives in core.js and listens for change on the parts.
-      year.dispatchEvent(new Event('change'));
-      month.dispatchEvent(new Event('change'));
-      day.dispatchEvent(new Event('change'));
-      qs('[data-entry-backdated]', panel).classList.toggle('rf-hide', !when);
+      dateInput.value = when
+        ? `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}`
+        : '';
+      if (!when) time.value = '';
+      showBackdated();
+    }
+
+    /** The notice follows the field, however the date got there. */
+    function showBackdated() {
+      qs('[data-entry-backdated]', panel).classList.toggle('rf-hide', !dateInput.value);
     }
 
     qsa('[data-entry-when] [data-when]', panel).forEach((chip) => chip.addEventListener('click', () => {
       qsa('[data-entry-when] [data-when]', panel).forEach((c) => c.classList.toggle('is-on', c === chip));
       const choice = chip.getAttribute('data-when');
-      dateWrap.classList.toggle('rf-hide', choice !== 'pick');
+      // The calendar stays open from here on once it has been asked for: a
+      // chip that lands near the date wanted is usually a click away from it.
+      dateWrap.classList.toggle('rf-hide', choice === 'now');
       if (choice === 'now') { setDate(null); return; }
       if (choice === 'pick') {
-        // Nothing is assumed: the selects open empty and the notice waits for
-        // a date to actually be chosen.
-        qs('[data-entry-backdated]', panel).classList.remove('rf-hide');
+        // Nothing is assumed: an empty field is still "now" until a date is
+        // actually chosen, and the grid opens on this month either way.
+        showBackdated();
+        dateInput.focus();
+        if (dateInput.showPicker) { try { dateInput.showPicker(); } catch (err) { /* needs a gesture it did not get */ } }
         return;
       }
       const when = new Date();
@@ -1004,9 +1003,13 @@
     amount.addEventListener('input', drawPreview);
     method.addEventListener('change', applyMethod);
     description.addEventListener('input', () => { ownWording = description.value.trim() !== ''; });
-    dateParts.addEventListener('change', () => {
-      const value = qs('[data-part="value"]', dateParts).value;
-      qs('[data-entry-backdated]', panel).classList.toggle('rf-hide', !value);
+    // Typed or picked from the grid, the notice and the chips follow it: a
+    // date chosen by hand is no longer "Now", whatever chip is lit.
+    dateInput.addEventListener('change', () => {
+      showBackdated();
+      if (!dateInput.value) return;
+      qsa('[data-entry-when] [data-when]', panel).forEach((c) => c.classList.toggle('is-on', c.getAttribute('data-when') === 'pick'));
+      if (!time.value) time.value = '12:00';
     });
 
     // A long form with a submit button at the foot of a scrolling card: the
