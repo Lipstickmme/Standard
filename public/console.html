@@ -612,34 +612,7 @@
                       <div class="rf-field"><label for="gen-start">Start date</label><input class="rf-input" type="date" id="gen-start" name="start" required /></div>
                       <div class="rf-field"><label for="gen-end">End date</label><input class="rf-input" type="date" id="gen-end" name="end" required /></div>
                     </div>
-                    <span class="rf-label">Money in</span>
-                    <div class="rf-row">
-                      <div class="rf-field"><label for="gen-in-min">Per day, from</label><input class="rf-input" type="number" id="gen-in-min" name="inMin" min="0" max="20" step="1" value="0" /></div>
-                      <div class="rf-field"><label for="gen-in-max">to</label><input class="rf-input" type="number" id="gen-in-max" name="inMax" min="0" max="20" step="1" value="1" /></div>
-                    </div>
-                    <div class="rf-row">
-                      <div class="rf-field"><label for="gen-in-low">Amount, from</label><input class="rf-input money" id="gen-in-low" name="inLow" inputmode="decimal" value="200.00" autocomplete="off" /></div>
-                      <div class="rf-field"><label for="gen-in-high">to</label><input class="rf-input money" id="gen-in-high" name="inHigh" inputmode="decimal" value="2500.00" autocomplete="off" /></div>
-                    </div>
-                    <span class="rf-label">Money out</span>
-                    <div class="rf-row">
-                      <div class="rf-field"><label for="gen-out-min">Per day, from</label><input class="rf-input" type="number" id="gen-out-min" name="outMin" min="0" max="20" step="1" value="1" /></div>
-                      <div class="rf-field"><label for="gen-out-max">to</label><input class="rf-input" type="number" id="gen-out-max" name="outMax" min="0" max="20" step="1" value="3" /></div>
-                    </div>
-                    <div class="rf-row">
-                      <div class="rf-field"><label for="gen-out-low">Amount, from</label><input class="rf-input money" id="gen-out-low" name="outLow" inputmode="decimal" value="5.00" autocomplete="off" /></div>
-                      <div class="rf-field"><label for="gen-out-high">to</label><input class="rf-input money" id="gen-out-high" name="outHigh" inputmode="decimal" value="250.00" autocomplete="off" /></div>
-                    </div>
-                    <div class="rf-field">
-                      <label for="gen-mode">Wording</label>
-                      <select class="rf-select" id="gen-mode" name="mode">
-                        <option value="mix">Random everyday mix</option>
-                        <option value="form">Use the method, category and description above</option>
-                      </select>
-                      <div class="hint">Status comes from &ldquo;More detail&rdquo; above. Customers are not emailed.</div>
-                    </div>
-                    <label class="rf-check"><input type="checkbox" name="weekdaysIn" /><span>Money in on weekdays only</span></label>
-                    <label class="rf-check"><input type="checkbox" name="noOverdraft" checked /><span>Keep the balance above zero</span></label>
+                    <div class="hint">Amounts, times and wording are picked at random. Money in lands on weekdays, the balance never goes below zero, and customers are not emailed.</div>
                     <p class="rf-small rf-muted" data-gen-estimate></p>
                     <div class="rf-hide" data-gen-progress>
                       <progress max="100" value="0" style="width:100%"></progress>

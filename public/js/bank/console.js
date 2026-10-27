@@ -978,7 +978,7 @@
     const genStatus = qs('[data-gen-status]', panel);
     const genEstimate = qs('[data-gen-estimate]', panel);
     const gen = { running: false, cancel: false };
-    const GEN_LIMIT = 2000;
+    const GEN_LIMIT = 200;
 
     const MERCHANTS = {
       Groceries: ['WHOLE FOODS MARKET', 'TRADER JOES', 'KROGER', 'SAFEWAY', 'COSTCO WHSE'],
@@ -1004,27 +1004,16 @@
       for (const [value, w] of pairs) { roll -= w; if (roll < 0) return value; }
       return pairs[pairs.length - 1][0];
     };
-    const toCentsOf = (v) => {
-      const n = Number(String(v).replace(/[^0-9.]/g, ''));
-      return Number.isFinite(n) ? Math.round(n * 100) : 0;
-    };
     const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     function genParams() {
       const f = genForm.elements;
-      const int = (el) => Math.max(0, Math.min(20, Math.floor(Number(el.value) || 0)));
-      const p = {
+      return {
         start: f.start.value, end: f.end.value,
-        inMin: int(f.inMin), inMax: int(f.inMax), outMin: int(f.outMin), outMax: int(f.outMax),
-        inLow: toCentsOf(f.inLow.value), inHigh: toCentsOf(f.inHigh.value),
-        outLow: toCentsOf(f.outLow.value), outHigh: toCentsOf(f.outHigh.value),
-        mode: f.mode.value, weekdaysIn: f.weekdaysIn.checked, noOverdraft: f.noOverdraft.checked,
+        inMin: 0, inMax: 1, outMin: 1, outMax: 3,
+        inLow: 20000, inHigh: 250000, outLow: 500, outHigh: 25000,
+        weekdaysIn: true, noOverdraft: true,
       };
-      if (p.inMax < p.inMin) [p.inMin, p.inMax] = [p.inMax, p.inMin];
-      if (p.outMax < p.outMin) [p.outMin, p.outMax] = [p.outMax, p.outMin];
-      if (p.inHigh < p.inLow) [p.inLow, p.inHigh] = [p.inHigh, p.inLow];
-      if (p.outHigh < p.outLow) [p.outLow, p.outHigh] = [p.outHigh, p.outLow];
-      return p;
     }
 
     function genDays(p) {
@@ -1044,20 +1033,12 @@
       const days = genDays(p);
       if (!days.length) { genEstimate.textContent = 'Pick a start date on or before the end date.'; return; }
       const inDays = p.weekdaysIn ? days.filter((d) => d.getDay() % 6 !== 0).length : days.length;
-      const est = Math.round(inDays * (p.inMin + p.inMax) / 2 + days.length * (p.outMin + p.outMax) / 2);
-      genEstimate.textContent = `${days.length} day${days.length === 1 ? '' : 's'} \u00b7 about ${est} entr${est === 1 ? 'y' : 'ies'}${est > GEN_LIMIT ? ` (capped at ${GEN_LIMIT})` : ''}.`;
+      const raw = Math.round(inDays * (p.inMin + p.inMax) / 2 + days.length * (p.outMin + p.outMax) / 2);
+      const est = Math.min(raw, GEN_LIMIT);
+      genEstimate.textContent = `${days.length} day${days.length === 1 ? '' : 's'} \u00b7 about ${est} entr${est === 1 ? 'y' : 'ies'}${raw > GEN_LIMIT ? ` (max ${GEN_LIMIT} per run, spread across the range)` : ''}.`;
     }
 
-    /** One entry's wording, from the everyday mix or from the form above. */
-    function genWording(dir, p) {
-      if (p.mode === 'form') {
-        const spec = NARRATIVES[method.value];
-        return {
-          method: method.value,
-          category: category.value,
-          description: description.value.trim() || pick((spec && spec[dir]) || [dir === 'credit' ? 'Deposit' : 'Withdrawal']),
-        };
-      }
+    function genWording(dir) {
       const m = weighted(dir === 'credit' ? CREDIT_MIX : DEBIT_MIX);
       const spec = NARRATIVES[m] || { category: 'Other', credit: ['Deposit'], debit: ['Withdrawal'] };
       if (dir === 'debit' && m === 'card') {
@@ -1095,8 +1076,11 @@
           plan.push(item);
         }
       }
-      plan.sort((a, b) => a.when - b.when);
-      return plan.slice(0, GEN_LIMIT).filter((item) => item.amount > 0);
+      for (let i = plan.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [plan[i], plan[j]] = [plan[j], plan[i]];
+      }
+      return plan.slice(0, GEN_LIMIT).filter((item) => item.amount > 0).sort((a, b) => a.when - b.when);
     }
 
     function genBusy(on) {
@@ -1116,12 +1100,8 @@
       if (!p.start || !p.end) return fail('Pick a start and an end date.');
       if (p.start > p.end) return fail('The start date must be on or before the end date.');
       if (p.start > ymd(new Date())) return fail('Entries cannot be dated in the future.');
-      if (p.inMax > 0 && p.inHigh <= 0) return fail('Give money in an amount range above zero.');
-      if (p.outMax > 0 && p.outHigh <= 0) return fail('Give money out an amount range above zero.');
-      if (p.mode === 'form' && !NARRATIVES[method.value] && !description.value.trim()) return fail('Add a description above, or use the random mix.');
-
       const plan = genPlan(p);
-      if (!plan.length) return fail('Those settings produce no entries. Raise the per-day counts.');
+      if (!plan.length) return fail('No entries for that range. Try a wider range.');
       const account = desk.account;
       const label = `${account.nickname || account.name} ${account.accountMask}`;
       if (!window.confirm(`Post ${plan.length} generated entries to ${label} between ${p.start} and ${p.end}?`)) return;
@@ -1142,7 +1122,7 @@
           if (balance >= 100) item.amount = randInt(100, balance);
           else { skipped += 1; genBar.value = i + 1; continue; }
         }
-        const wording = genWording(item.direction, p);
+        const wording = genWording(item.direction);
         try {
           await api.post(`/admin/accounts/${account.id}/adjust`, {
             direction: item.direction,
