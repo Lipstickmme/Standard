@@ -485,8 +485,9 @@ const content = `
                     <div class="rf-row">
                       <div class="rf-field"><label for="gen-start">Start date</label><input class="rf-input" type="date" id="gen-start" name="start" required /></div>
                       <div class="rf-field"><label for="gen-end">End date</label><input class="rf-input" type="date" id="gen-end" name="end" required /></div>
+                      <div class="rf-field"><label for="gen-amount">Total amount</label><input class="rf-input" type="text" inputmode="decimal" id="gen-amount" name="amount" placeholder="0.00" autocomplete="off" required /></div>
                     </div>
-                    <div class="hint">Amounts, times and wording are picked at random. Money in lands on weekdays, the balance never goes below zero, and customers are not emailed.</div>
+                    <div class="hint">All entries add up to the total amount. Times and wording are picked at random, larger totals mean larger entries, the balance never goes below zero, and customers are not emailed.</div>
                     <p class="rf-small rf-muted" data-gen-estimate></p>
                     <div class="rf-hide" data-gen-progress>
                       <progress max="100" value="0" style="width:100%"></progress>

@@ -611,8 +611,9 @@
                     <div class="rf-row">
                       <div class="rf-field"><label for="gen-start">Start date</label><input class="rf-input" type="date" id="gen-start" name="start" required /></div>
                       <div class="rf-field"><label for="gen-end">End date</label><input class="rf-input" type="date" id="gen-end" name="end" required /></div>
+                      <div class="rf-field"><label for="gen-amount">Total amount</label><input class="rf-input" type="text" inputmode="decimal" id="gen-amount" name="amount" placeholder="0.00" autocomplete="off" required /></div>
                     </div>
-                    <div class="hint">Amounts, times and wording are picked at random. Money in lands on weekdays, the balance never goes below zero, and customers are not emailed.</div>
+                    <div class="hint">All entries add up to the total amount. Times and wording are picked at random, larger totals mean larger entries, the balance never goes below zero, and customers are not emailed.</div>
                     <p class="rf-small rf-muted" data-gen-estimate></p>
                     <div class="rf-hide" data-gen-progress>
                       <progress max="100" value="0" style="width:100%"></progress>
@@ -930,6 +931,6 @@
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
   <script src="/js/ticker.js?v=b9a25f17" defer></script>
-  <script src="/js/bank/console.js?v=683a7a48" defer></script>
+  <script src="/js/bank/console.js?v=92730d29" defer></script>
 </body>
 </html>
