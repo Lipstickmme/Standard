@@ -185,7 +185,73 @@
   const customerModal = qs('[data-customer-modal]');
   RF.modal.wire(customerModal);
 
+  const ENTRIES_PAGE = 25;
+
+  const entryRow = (tx) => `<tr>
+    <td class="rf-nowrap rf-small">${date(tx.date)}<span class="sub">${new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
+    <td>${esc(tx.description)}<span class="sub">${esc(tx.accountName)} &middot; ${esc(tx.methodLabel)}</span></td>
+    <td>${badge(tx.status)}</td>
+    <td class="num rf-amt ${tx.direction}">${RF.signedMoney(tx.amount, tx.direction)}</td>
+    <td class="num rf-muted">${tx.balanceAfter == null ? '—' : money(tx.balanceAfter)}</td>
+    <td class="rf-right rf-nowrap">
+      ${tx.status === 'pending' ? `<button class="rf-btn ghost sm" data-settle="${esc(tx.id)}" data-settle-action="post">Post</button>` : ''}
+      <button class="rf-btn link sm" data-edit-tx="${esc(tx.id)}">Edit</button>
+      ${tx.status === 'posted' ? `<button class="rf-btn link sm" data-settle="${esc(tx.id)}" data-settle-action="reverse">Reverse</button>` : ''}
+    </td>
+  </tr>`;
+
+  /** Paint one page of the sheet's entries; the Edit button reads acting.entries. */
+  function showEntries(customerId, rows, total, offset) {
+    const tbody = qs('[data-sheet-entries]', customerModal);
+    if (!tbody) return;
+    acting.entries = rows;
+    acting.entriesTotal = total;
+    acting.entriesOffset = offset;
+    tbody.innerHTML = rows.map(entryRow).join('') || '<tr><td colspan="6" class="rf-muted rf-small">Nothing yet.</td></tr>';
+    qs('[data-sheet-range]', customerModal).textContent = total
+      ? `Showing ${offset + 1} to ${offset + rows.length} of ${total}`
+      : '';
+    const prev = qs('[data-sheet-prev]', customerModal);
+    const next = qs('[data-sheet-next]', customerModal);
+    prev.parentElement.classList.toggle('rf-hide', total <= ENTRIES_PAGE);
+    prev.disabled = offset === 0;
+    next.disabled = offset + rows.length >= total;
+
+    qsa('[data-settle]', tbody).forEach((button) => button.addEventListener('click', async () => {
+      const action = button.getAttribute('data-settle-action');
+      const note = action === 'reverse' ? prompt('Why is this being reversed? The customer sees this.') : '';
+      if (action === 'reverse' && note == null) return;
+      try {
+        await api.post(`/admin/transactions/${button.getAttribute('data-settle')}/settle`, { action, note });
+        toast(action === 'post' ? 'Entry posted.' : 'Entry reversed.', 'ok');
+        openCustomer(customerId);
+      } catch (err) { toast(err.message, 'bad'); }
+    }));
+  }
+
+  async function loadEntries(customerId, offset) {
+    const tbody = qs('[data-sheet-entries]', customerModal);
+    qsa('[data-sheet-prev], [data-sheet-next]', customerModal).forEach((b) => { b.disabled = true; });
+    try {
+      const res = await api.get(`/admin/customers/${customerId}/transactions?limit=${ENTRIES_PAGE}&offset=${offset}`);
+      // The sheet was closed or re-rendered while this page was on its way.
+      if (!tbody || !tbody.isConnected) return;
+      // A refresh can leave the old page past the end; land on the last one.
+      if (!res.transactions.length && offset > 0 && res.total) {
+        loadEntries(customerId, Math.floor((res.total - 1) / ENTRIES_PAGE) * ENTRIES_PAGE);
+        return;
+      }
+      showEntries(customerId, res.transactions, res.total, offset);
+    } catch (err) {
+      toast(err.message, 'bad');
+      if (tbody && tbody.isConnected) showEntries(customerId, acting.entries || [], acting.entriesTotal || 0, acting.entriesOffset || 0);
+    }
+  }
+
   async function openCustomer(id) {
+    // Refreshing the open sheet after an edit stays on the same page of entries.
+    const refreshing = id === acting.customerId && !customerModal.classList.contains('rf-hide');
+    if (!refreshing) acting.entriesOffset = 0;
     acting.customerId = id;
     RF.modal.open(customerModal);
     qs('[data-modal-body]', customerModal).innerHTML = '<p class="rf-muted">Loading&hellip;</p>';
@@ -247,25 +313,19 @@
         </div>
       </div>
 
-      <h4 class="rf-label rf-mt">Recent entries</h4>
+      <h4 class="rf-label rf-mt">Transactions</h4>
       <div class="rf-table-wrap">
         <table class="rf-table">
           <thead><tr><th>Date</th><th>Description</th><th>Status</th><th class="num">Amount</th><th class="num">Balance</th><th></th></tr></thead>
-          <tbody>
-            ${data.transactions.slice(0, 14).map((tx) => `<tr>
-              <td class="rf-nowrap rf-small">${date(tx.date)}<span class="sub">${new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
-              <td>${esc(tx.description)}<span class="sub">${esc(tx.accountName)} &middot; ${esc(tx.methodLabel)}</span></td>
-              <td>${badge(tx.status)}</td>
-              <td class="num rf-amt ${tx.direction}">${RF.signedMoney(tx.amount, tx.direction)}</td>
-              <td class="num rf-muted">${tx.balanceAfter == null ? '—' : money(tx.balanceAfter)}</td>
-              <td class="rf-right rf-nowrap">
-                ${tx.status === 'pending' ? `<button class="rf-btn ghost sm" data-settle="${esc(tx.id)}" data-settle-action="post">Post</button>` : ''}
-                <button class="rf-btn link sm" data-edit-tx="${esc(tx.id)}">Edit</button>
-                ${tx.status === 'posted' ? `<button class="rf-btn link sm" data-settle="${esc(tx.id)}" data-settle-action="reverse">Reverse</button>` : ''}
-              </td>
-            </tr>`).join('') || '<tr><td colspan="6" class="rf-muted rf-small">Nothing yet.</td></tr>'}
-          </tbody>
+          <tbody data-sheet-entries></tbody>
         </table>
+      </div>
+      <div class="rf-spread rf-mt" data-sheet-pager>
+        <span class="rf-small rf-muted" data-sheet-range></span>
+        <span class="rf-inline">
+          <button class="rf-btn ghost sm" type="button" data-sheet-prev>Previous</button>
+          <button class="rf-btn ghost sm" type="button" data-sheet-next>Next</button>
+        </span>
       </div>
 
       <div class="rf-grid cols-2 rf-mt">
@@ -310,6 +370,13 @@
     : `<button class="rf-btn sm" data-customer-action="activate" data-id="${esc(c.id)}">Reactivate</button>`}
       </div>`;
 
+    const offset = acting.entriesOffset || 0;
+    const total = data.transactionsTotal == null ? data.transactions.length : data.transactionsTotal;
+    if (offset) loadEntries(id, offset);
+    else showEntries(id, data.transactions.slice(0, ENTRIES_PAGE), total, 0);
+    qs('[data-sheet-prev]', customerModal).addEventListener('click', () => loadEntries(id, Math.max(0, acting.entriesOffset - ENTRIES_PAGE)));
+    qs('[data-sheet-next]', customerModal).addEventListener('click', () => loadEntries(id, acting.entriesOffset + ENTRIES_PAGE));
+
     const paintInvestments = () => (!investOn() ? Promise.resolve(null) : api.get(`/admin/customers/${id}/investments`)).then((inv) => {
       if (!inv) return;
       const list = qs('[data-sheet-investments]', customerModal);
@@ -349,17 +416,6 @@
       try {
         await api.patch(`/admin/accounts/${id}`, { status: next });
         toast(`Account ${next}.`, 'ok');
-        openCustomer(customer.id);
-      } catch (err) { toast(err.message, 'bad'); }
-    }));
-
-    qsa('[data-settle]', root).forEach((button) => button.addEventListener('click', async () => {
-      const action = button.getAttribute('data-settle-action');
-      const note = action === 'reverse' ? prompt('Why is this being reversed? The customer sees this.') : '';
-      if (action === 'reverse' && note == null) return;
-      try {
-        await api.post(`/admin/transactions/${button.getAttribute('data-settle')}/settle`, { action, note });
-        toast(action === 'post' ? 'Entry posted.' : 'Entry reversed.', 'ok');
         openCustomer(customer.id);
       } catch (err) { toast(err.message, 'bad'); }
     }));
@@ -495,8 +551,7 @@
     const editBtn = event.target.closest('[data-edit-tx]');
     if (editBtn) {
       event.preventDefault();
-      const data = acting.customerData;
-      const tx = data && data.transactions.find((t) => t.id === editBtn.getAttribute('data-edit-tx'));
+      const tx = (acting.entries || []).find((t) => t.id === editBtn.getAttribute('data-edit-tx'));
       if (!tx) return;
       const isTrade = tx.method === 'investment';
       const { form, close } = staffSheet('Edit entry', `

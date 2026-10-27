@@ -217,6 +217,7 @@ staff.post('/scheduled/run', admin.runScheduled);
 staff.get('/customers', admin.listCustomers);
 staff.post('/customers', admin.createCustomer);
 staff.get('/customers/:id', admin.customerDetail);
+staff.get('/customers/:id/transactions', admin.customerTransactions);
 staff.get('/customers/:id/investments', requireInvest, invest.staffCustomerHoldings);
 staff.patch('/customers/:id', admin.updateCustomer);
 staff.post('/customers/:id/status', admin.setCustomerStatus);

@@ -234,6 +234,26 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       }
       ok('every console tab loads');
 
+      // The customer sheet pages through every entry, and Edit works on any page.
+      await staff.click('[data-tab="customers"]');
+      await staff.click('[data-panel="customers"] tr[data-customer]:has-text("demo@standardmerchantfinance.com")');
+      await staff.waitForSelector('[data-sheet-entries] tr', { timeout: 15000 });
+      const firstRange = await staff.textContent('[data-sheet-range]');
+      const [, entryTotal] = firstRange.match(/^Showing 1 to 25 of (\d+)$/) || [];
+      assert.ok(Number(entryTotal) > 25, `the sheet counts every entry: ${firstRange}`);
+      const firstPage = await staff.$$eval('[data-sheet-entries] [data-edit-tx]', (b) => b.map((x) => x.getAttribute('data-edit-tx')));
+      await staff.click('[data-sheet-next]');
+      await staff.waitForFunction(() => /^Showing 26 to /.test(document.querySelector('[data-sheet-range]').textContent), null, { timeout: 15000 });
+      const secondPage = await staff.$$eval('[data-sheet-entries] [data-edit-tx]', (b) => b.map((x) => x.getAttribute('data-edit-tx')));
+      assert.ok(secondPage.length && !secondPage.some((id) => firstPage.includes(id)), 'page two is new entries');
+      await staff.click('[data-sheet-entries] [data-edit-tx]');
+      await staff.waitForSelector('.hs-stacked [name="description"]', { timeout: 10000 });
+      await staff.click('.hs-stacked [data-close-sheet]');
+      await staff.click('[data-sheet-prev]');
+      await staff.waitForFunction(() => /^Showing 1 to 25 /.test(document.querySelector('[data-sheet-range]').textContent), null, { timeout: 15000 });
+      await staff.click('[data-customer-modal] [data-close-modal]');
+      ok(`the customer sheet pages through all ${entryTotal} entries`);
+
       // Register a customer with an opening balance.
       await staff.click('[data-tab="register"]');
       await staff.waitForSelector('#rf-register-form [data-account-row]', { timeout: 15000 });

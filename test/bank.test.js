@@ -462,7 +462,26 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       assert.strictEqual(attempt.status, 404, 'not 403: the id is not confirmed to exist');
       const attemptAdmin = await customer.get('/api/bank/admin/customers');
       assert.strictEqual(attemptAdmin.status, 403, 'a customer is not staff');
+      const attemptEntries = await customer.get(`/api/bank/admin/customers/${other.id}/transactions`);
+      assert.strictEqual(attemptEntries.status, 403, 'nor is another customer’s ledger');
       ok('isolation: another customer’s account is a 404, the console is a 403');
+
+      // The customer sheet pages through every entry, not just the newest.
+      const demo = (await admin.get('/api/bank/admin/customers?q=demo%40standardmerchantfinance.com&limit=5')).body.customers[0];
+      const demoDetail = await admin.get(`/api/bank/admin/customers/${demo.id}`);
+      const total = demoDetail.body.transactionsTotal;
+      assert.ok(total > 2, `seed gives the sheet something to page through, got ${total}`);
+      const first = await admin.get(`/api/bank/admin/customers/${demo.id}/transactions?limit=2&offset=0`);
+      const last = await admin.get(`/api/bank/admin/customers/${demo.id}/transactions?limit=2&offset=${total - 1}`);
+      assert.strictEqual(first.status, 200, first.text);
+      assert.strictEqual(first.body.total, total, 'the page and the sheet agree on the count');
+      assert.strictEqual(first.body.transactions.length, 2);
+      assert.deepStrictEqual(first.body.transactions.map((t) => t.id), demoDetail.body.transactions.slice(0, 2).map((t) => t.id), 'newest first, same as the sheet');
+      assert.strictEqual(last.body.transactions.length, 1, 'the last page holds the oldest entry');
+      assert.ok(!first.body.transactions.some((t) => t.id === last.body.transactions[0].id));
+      const missing = await admin.get('/api/bank/admin/customers/no-such-customer/transactions');
+      assert.strictEqual(missing.status, 404);
+      ok(`console: a customer's ${total} entries page through, newest first`);
     }
 
     /* ---- 13. the console registers a customer, with accounts and a balance ---- */

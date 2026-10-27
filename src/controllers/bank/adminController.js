@@ -152,7 +152,9 @@ const customerDetail = asyncHandler(async (req, res) => {
     db.disputes.find({ user_id: user.id }),
     db.alerts.find({ user_id: user.id }, { order: 'created_at.desc', limit: 25 }),
   ]);
-  const transactions = await db.transactions.find({ user_id: user.id }, { order: 'date.desc', limit: 60 });
+  // The newest 60 ride along so the sheet opens in one request; the total says
+  // how many more GET /customers/:id/transactions can page through.
+  const allTransactions = await db.transactions.find({ user_id: user.id }, { order: 'date.desc' });
   const byId = new Map(accounts.map((a) => [a.id, a]));
 
   res.json({
@@ -160,7 +162,8 @@ const customerDetail = asyncHandler(async (req, res) => {
     accounts: accounts.map(accountsLib.publicAccount),
     cards: cards.map(accountsLib.publicCard),
     transfers: transfers.map(transfersLib.publicTransfer),
-    transactions: transactions.map((t) => accountsController.publicTransaction(t, byId.get(t.account_id))),
+    transactions: allTransactions.slice(0, 60).map((t) => accountsController.publicTransaction(t, byId.get(t.account_id))),
+    transactionsTotal: allTransactions.length,
     documents: documents.map(profile.publicDocument),
     activity: activity.map(publicActivity),
     sessions: sessions.map((s) => ({ id: s.id, device: s.device, ip: s.ip, lastSeenAt: s.last_seen_at, createdAt: s.created_at })),
@@ -168,6 +171,24 @@ const customerDetail = asyncHandler(async (req, res) => {
     deposits: deposits.map(money_.publicDeposit),
     disputes: disputes.map(money_.publicDispute),
     alerts: alertRows.map((a) => ({ id: a.id, subject: a.subject, type: a.type, status: a.status, createdAt: a.created_at, readAt: a.read_at })),
+  });
+});
+
+/** Every entry on a customer's accounts, a page at a time, newest first. */
+const customerTransactions = asyncHandler(async (req, res) => {
+  const user = await customerOr404(req.params.id);
+  const { limit, offset } = page(req.query);
+  const [accounts, all] = await Promise.all([
+    db.accounts.find({ user_id: user.id }),
+    db.transactions.find({ user_id: user.id }, { order: 'date.desc' }),
+  ]);
+  const byId = new Map(accounts.map((a) => [a.id, a]));
+  const filtered = accountsController.filterTransactions(all, req.query);
+  res.json({
+    transactions: filtered.slice(offset, offset + limit).map((t) => accountsController.publicTransaction(t, byId.get(t.account_id))),
+    total: filtered.length,
+    limit,
+    offset,
   });
 });
 
@@ -1187,6 +1208,7 @@ module.exports = {
   overview,
   listCustomers,
   customerDetail,
+  customerTransactions,
   createCustomer,
   updateCustomer,
   setCustomerStatus,
