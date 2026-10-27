@@ -708,6 +708,33 @@ const settleTransaction = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Delete an entry as if it had never been keyed. The balance moves back and the
+ * running balances are restated; the activity log keeps the whole row, so what
+ * was deleted, and by whom, can always be told.
+ */
+const deleteTransaction = asyncHandler(async (req, res) => {
+  const tx = await db.transactions.findById(req.params.id);
+  if (!tx) throw fail(404, 'Transaction not found.');
+  // A conversion's cash leg has units on the other side of it. Deleting only
+  // the cash would leave the customer holding units nobody paid for.
+  const trade = await db.trades.findOne({ transaction_id: tx.id }).catch(() => null);
+  if (trade) throw fail(409, 'This entry is a conversion. Reverse the conversion instead, so its units come off as well.');
+
+  const { removed, restored } = await ledger.remove(tx.id);
+  await audit.log({
+    action: 'admin.transaction_deleted', category: 'admin', userId: tx.user_id, req, severity: 'warning',
+    actor: actorOf(req),
+    detail: `Deleted entry ${tx.reference} "${tx.description}" (${tx.direction === 'credit' ? '+' : '-'}${money(tx.amount)}, ${tx.status}, dated ${tx.date})${removed.length > 1 ? ' and its reversal' : ''}${restored ? `; ${restored.reference} is posted again` : ''}`,
+    meta: { removed, restoredId: restored ? restored.id : null },
+  });
+  const account = await db.accounts.findById(tx.account_id);
+  res.json({
+    removed: removed.map((t) => t.id),
+    account: account ? accountsLib.publicAccount(account) : null,
+  });
+});
+
 /* ------------------------------------------------------- transfer queue --- */
 
 const listTransfers = asyncHandler(async (req, res) => {
@@ -1222,6 +1249,7 @@ module.exports = {
   adjustBalance,
   updateTransaction,
   settleTransaction,
+  deleteTransaction,
   listTransfers,
   approveTransfer,
   rejectTransfer,

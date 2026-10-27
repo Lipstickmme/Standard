@@ -233,6 +233,7 @@ staff.post('/accounts/:id/adjust', admin.adjustBalance);
 
 staff.patch('/transactions/:id', admin.updateTransaction);
 staff.post('/transactions/:id/settle', admin.settleTransaction);
+staff.delete('/transactions/:id', admin.deleteTransaction);
 
 staff.get('/transfers', admin.listTransfers);
 staff.post('/transfers/:id/approve', admin.approveTransfer);

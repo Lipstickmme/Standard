@@ -261,8 +261,16 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       await staff.click('.hs-stacked [data-close-sheet]');
       await staff.click('[data-sheet-prev]');
       await staff.waitForFunction(() => /^Showing 1 to 25 /.test(document.querySelector('[data-sheet-range]').textContent), null, { timeout: 15000 });
+      // Delete sits beside Edit and Reverse, asks first, and the entry leaves the list.
+      const doomed = await staff.getAttribute('[data-sheet-entries] [data-delete-tx]', 'data-delete-tx');
+      let asked = '';
+      staff.once('dialog', (dialog) => { asked = dialog.message(); dialog.accept(); });
+      await staff.click(`[data-delete-tx="${doomed}"]`);
+      await staff.waitForFunction((n) => new RegExp(`of ${n}$`).test(document.querySelector('[data-sheet-range]').textContent), Number(entryTotal) - 1, { timeout: 15000 });
+      assert.match(asked, /^Delete this entry\?/, 'it asks before deleting');
+      assert.strictEqual(await staff.$(`[data-delete-tx="${doomed}"]`), null, 'the entry is gone from the sheet');
       await staff.click('[data-customer-modal] [data-close-modal]');
-      ok(`the customer sheet pages through all ${entryTotal} entries`);
+      ok(`the customer sheet pages through all ${entryTotal} entries, and deletes one`);
 
       // Register a customer with an opening balance.
       await staff.click('[data-tab="register"]');
@@ -413,6 +421,19 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
         { timeout: 15000 }
       );
       ok('an entry is corrected from the desk and the amended figure comes back');
+
+      const targetBefore = await staff.textContent('[data-entry-target]');
+      staff.once('dialog', (dialog) => dialog.accept());
+      await staff.click('[data-entry-session] [data-delete]');
+      await staff.waitForFunction(
+        () => !/\$1,650\.00/.test(document.querySelector('[data-entry-recent]').textContent),
+        null,
+        { timeout: 15000 }
+      );
+      const targetAfter = await staff.textContent('[data-entry-target]');
+      assert.ok(Math.abs((money(targetBefore.split('·').pop()) - money(targetAfter.split('·').pop())) - 1650) < 0.02, `the balance falls back by $1,650 (${targetBefore} -> ${targetAfter})`);
+      assert.ok(await staff.isHidden('[data-entry-session-card]'), 'nothing is left in Posted just now');
+      ok('an entry is deleted from the desk and the balance goes back');
 
       await staffContext.close();
     }

@@ -403,6 +403,56 @@ async function amend(transactionId, { amount }) {
   return { ...tx, amount: cents };
 }
 
+/**
+ * Delete an entry outright, as if it had never been keyed: the balance moves
+ * back by whatever it moved, a pending debit's hold is released, and the
+ * running balances after it are restated.
+ *
+ * Reverse is how a bank corrects a posted entry, and it leaves both on the
+ * record. This is for an entry that should not be there at all - a duplicate,
+ * a test, a batch generated against the wrong account.
+ *
+ * A reversal pair goes together. Deleting an entry that was reversed deletes
+ * its reversal too (the two had cancelled, so the balance does not move), and
+ * deleting a reversal puts the original back to posted.
+ */
+async function remove(transactionId) {
+  const tx = await db.transactions.findById(transactionId);
+  if (!tx) throw Object.assign(new Error('Transaction not found.'), { status: 404 });
+
+  const doomed = [tx];
+  if (tx.reversed_by) {
+    const reversal = await db.transactions.findById(tx.reversed_by);
+    if (reversal) doomed.push(reversal);
+  }
+  const meta = typeof tx.meta === 'string' ? (() => { try { return JSON.parse(tx.meta); } catch (err) { return null; } })() : tx.meta;
+  const original = meta && meta.reverses ? await db.transactions.findById(meta.reverses) : null;
+
+  await withLock(`account:${tx.account_id}`, async () => {
+    const account = await db.accounts.findById(tx.account_id);
+    if (!account) throw Object.assign(new Error('Account not found.'), { status: 404 });
+    let balance = Number(account.balance || 0);
+    let hold = Number(account.hold_amount || 0);
+    for (const t of doomed) {
+      if (COUNTED.includes(t.status)) balance -= signFor(account.type, t.direction) * Number(t.amount || 0);
+      if ((t.status === 'pending' || t.status === 'hold') && t.direction === 'debit') hold = Math.max(0, hold - Number(t.amount || 0));
+      // eslint-disable-next-line no-await-in-loop
+      await db.transactions.remove(t.id);
+    }
+    if (original && original.reversed_by === tx.id) {
+      await db.transactions.update(original.id, { status: 'posted', reversed_by: null });
+    }
+    await db.accounts.update(account.id, {
+      balance,
+      hold_amount: hold,
+      available_balance: availableFor({ ...account, balance, hold_amount: hold }),
+      last_activity_at: nowIso(),
+    });
+  });
+  await restate(tx.account_id);
+  return { removed: doomed, restored: original && original.reversed_by === tx.id ? original : null };
+}
+
 /** Charge a fee against an account, if the amount is non-zero. */
 async function charge(accountId, cents, description, extra = {}) {
   if (!cents) return null;
@@ -549,6 +599,7 @@ module.exports = {
   postMany,
   settle,
   reverse,
+  remove,
   charge,
   internalTransfer,
   dailyTotal,

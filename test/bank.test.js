@@ -717,6 +717,55 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const audit = (await admin.get('/api/bank/admin/activity?limit=40')).body.activity.map((a) => a.action);
       ['admin.trade_reversed', 'admin.trade_retimed', 'admin.transaction_updated', 'invest.buy'].forEach((a) => assert.ok(audit.includes(a), `${a} is in the activity log`));
       ok('back-posting: staff booked 2 SPY at $500 two days back, moved it, reversed it; a walk-in deposit dated and corrected');
+
+      // Deleting an entry: it goes, the balance moves back, the chain still adds up.
+      const txOf = async (id) => (await admin.get(`/api/bank/admin/customers/${jordan.id}/transactions?limit=200`)).body.transactions.find((t) => t.id === id);
+      const entry = (body) => admin.post(`/api/bank/admin/accounts/${checking.id}/adjust`, { notify: false, ...body });
+      const balStart = (await acctOf()).balance;
+      const threeBack = new Date(Date.now() - 3 * 86400000).toISOString();
+      const dup = await entry({ direction: 'debit', amount: '40.00', description: 'DUPLICATE KEYED', date: threeBack });
+      assert.strictEqual(dup.status, 201, dup.text);
+      assert.strictEqual((await acctOf()).balance, balStart - 4000);
+      const gone = await admin.del(`/api/bank/admin/transactions/${dup.body.transaction.id}`);
+      assert.strictEqual(gone.status, 200, gone.text);
+      assert.deepStrictEqual(gone.body.removed, [dup.body.transaction.id]);
+      assert.strictEqual((await acctOf()).balance, balStart, 'the balance moved back');
+      assert.strictEqual(await txOf(dup.body.transaction.id), undefined, 'and the entry is no longer listed');
+      assert.ok(await chainHolds(), 'running balances restated around the gap');
+
+      const availStart = (await acctOf()).availableBalance;
+      const held = await entry({ direction: 'debit', amount: '15.00', description: 'PENDING TEST', status: 'pending' });
+      assert.strictEqual(held.status, 201, held.text);
+      assert.strictEqual((await acctOf()).availableBalance, availStart - 1500, 'a pending debit holds funds');
+      await admin.del(`/api/bank/admin/transactions/${held.body.transaction.id}`);
+      assert.strictEqual((await acctOf()).availableBalance, availStart, 'deleting it releases the hold');
+      assert.strictEqual((await acctOf()).balance, balStart);
+
+      // A reversal pair: deleting the original takes the reversal with it...
+      const pairA = await entry({ direction: 'credit', amount: '60.00', description: 'PAIR A' });
+      const revA = await admin.post(`/api/bank/admin/transactions/${pairA.body.transaction.id}/settle`, { action: 'reverse', note: 'test' });
+      assert.strictEqual(revA.status, 200, revA.text);
+      const bothGone = await admin.del(`/api/bank/admin/transactions/${pairA.body.transaction.id}`);
+      assert.strictEqual(bothGone.body.removed.length, 2, 'the original and its reversal');
+      assert.strictEqual(await txOf(revA.body.transaction.id), undefined);
+      assert.strictEqual((await acctOf()).balance, balStart, 'they had cancelled, so nothing moves');
+      // ...and deleting only the reversal puts the original back to posted.
+      const pairB = await entry({ direction: 'credit', amount: '70.00', description: 'PAIR B' });
+      const revB = await admin.post(`/api/bank/admin/transactions/${pairB.body.transaction.id}/settle`, { action: 'reverse', note: 'test' });
+      await admin.del(`/api/bank/admin/transactions/${revB.body.transaction.id}`);
+      assert.strictEqual((await txOf(pairB.body.transaction.id)).status, 'posted', 'the original stands again');
+      assert.strictEqual((await acctOf()).balance, balStart + 7000);
+      await admin.del(`/api/bank/admin/transactions/${pairB.body.transaction.id}`);
+      assert.strictEqual((await acctOf()).balance, balStart);
+      assert.ok(await chainHolds());
+
+      const tradeLeg = await admin.del(`/api/bank/admin/transactions/${booked.body.trade.transactionId}`);
+      assert.strictEqual(tradeLeg.status, 409, 'a conversion is reversed, not deleted');
+      assert.strictEqual((await customer.del(`/api/bank/admin/transactions/${dup.body.transaction.id}`)).status, 403, 'customers cannot delete');
+      assert.strictEqual((await admin.del(`/api/bank/admin/transactions/${dup.body.transaction.id}`)).status, 404, 'a deleted entry stays deleted');
+      const logged = (await admin.get('/api/bank/admin/activity?limit=40')).body.activity.filter((a) => a.action === 'admin.transaction_deleted');
+      assert.ok(logged.length >= 5 && logged.some((a) => /DUPLICATE KEYED/.test(a.detail)), 'every delete is in the activity log, with what was deleted');
+      ok('delete: an entry, a pending hold and both halves of a reversal pair, with the balance and running balances put back');
     }
 
     /* ---- 18b. the console's setup checklist and investments views ---- */

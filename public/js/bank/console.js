@@ -187,6 +187,17 @@
 
   const ENTRIES_PAGE = 25;
 
+  /** The question asked before an entry is deleted, saying what happens to the money. */
+  const deleteWarning = (tx) => {
+    const effect = {
+      posted: `The balance moves back by ${money(tx.amount)}.`,
+      reversed: 'Its reversal is deleted with it, so the balance does not change.',
+      pending: tx.direction === 'debit' ? `Its ${money(tx.amount)} hold is released.` : 'It never reached the balance, so nothing moves.',
+      hold: `Its ${money(tx.amount)} hold is released.`,
+    }[tx.status] || 'The balance does not change.';
+    return `Delete this entry?\n\n${tx.description}\n${tx.direction === 'credit' ? '+' : '-'}${money(tx.amount)} - ${datetime(tx.date)} - ${tx.reference || ''}\n\n${effect} It disappears from the customer's activity and statements and cannot be undone. Reverse keeps a record of the correction instead.`;
+  };
+
   const entryRow = (tx) => `<tr>
     <td class="rf-nowrap rf-small">${date(tx.date)}<span class="sub">${new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></td>
     <td>${esc(tx.description)}<span class="sub">${esc(tx.accountName)} &middot; ${esc(tx.methodLabel)}</span></td>
@@ -197,6 +208,7 @@
       ${tx.status === 'pending' ? `<button class="rf-btn ghost sm" data-settle="${esc(tx.id)}" data-settle-action="post">Post</button>` : ''}
       <button class="rf-btn link sm" data-edit-tx="${esc(tx.id)}">Edit</button>
       ${tx.status === 'posted' ? `<button class="rf-btn link sm" data-settle="${esc(tx.id)}" data-settle-action="reverse">Reverse</button>` : ''}
+      ${tx.method === 'investment' ? '' : `<button class="rf-btn link sm hs-del" data-delete-tx="${esc(tx.id)}">Delete</button>`}
     </td>
   </tr>`;
 
@@ -224,6 +236,16 @@
       try {
         await api.post(`/admin/transactions/${button.getAttribute('data-settle')}/settle`, { action, note });
         toast(action === 'post' ? 'Entry posted.' : 'Entry reversed.', 'ok');
+        openCustomer(customerId);
+      } catch (err) { toast(err.message, 'bad'); }
+    }));
+
+    qsa('[data-delete-tx]', tbody).forEach((button) => button.addEventListener('click', async () => {
+      const tx = rows.find((t) => t.id === button.getAttribute('data-delete-tx'));
+      if (!tx || !confirm(deleteWarning(tx))) return;
+      try {
+        await api.del(`/admin/transactions/${tx.id}`);
+        toast('Entry deleted.', 'ok');
         openCustomer(customerId);
       } catch (err) { toast(err.message, 'bad'); }
     }));
@@ -948,6 +970,8 @@
       const data = await api.get(`/admin/customers/${desk.customer.id}`);
       desk.accounts = data.accounts;
       desk.account = data.accounts.find((a) => a.id === desk.account.id) || desk.account;
+      // A correction, reversal or delete moves the balance too; keep the line above the form current.
+      qs('[data-entry-target]', panel).innerHTML = `${esc(desk.customer.fullName)} &middot; ${esc(desk.account.nickname || desk.account.name)} ${esc(desk.account.accountMask)} &middot; ${money(desk.account.balance)}`;
       desk.recent = data.transactions.filter((t) => t.accountId === desk.account.id).slice(0, 12);
       list.innerHTML = desk.recent.length ? desk.recent.map(entryRow).join('') : '<li class="rf-muted rf-small">No entries on this account yet.</li>';
       drawPreview();
@@ -966,6 +990,7 @@
           <span class="rf-inline">
             <button class="rf-btn ghost sm" type="button" data-correct="${esc(t.id)}">Correct</button>
             ${settled || t.status === 'pending' ? `<button class="rf-btn ghost sm" type="button" data-reverse="${esc(t.id)}">Reverse</button>` : ''}
+            ${t.method === 'investment' ? '' : `<button class="rf-btn ghost sm hs-del" type="button" data-delete="${esc(t.id)}">Delete</button>`}
           </span>
         </span>
       </li>`;
@@ -990,6 +1015,7 @@
           <span class="rf-inline">
             <button class="rf-btn ghost sm" type="button" data-correct="${esc(t.id)}">Correct</button>
             <button class="rf-btn ghost sm" type="button" data-reverse="${esc(t.id)}">Reverse</button>
+            <button class="rf-btn ghost sm hs-del" type="button" data-delete="${esc(t.id)}">Delete</button>
           </span>
         </span>
       </li>`).join('');
@@ -1267,6 +1293,20 @@
         const id = correct.getAttribute('data-correct');
         const tx = desk.recent.find((t) => t.id === id) || desk.posted.find((t) => t.id === id);
         if (tx) openCorrect(tx, () => renderRecent().catch((err) => toast(err.message, 'bad')));
+        return;
+      }
+      const del = event.target.closest('[data-delete]');
+      if (del) {
+        const id = del.getAttribute('data-delete');
+        const tx = desk.recent.find((t) => t.id === id) || desk.posted.find((t) => t.id === id);
+        if (!tx || !window.confirm(deleteWarning(tx))) return;
+        try {
+          const res = await api.del(`/admin/transactions/${id}`);
+          toast('Entry deleted.', 'ok');
+          desk.posted = desk.posted.filter((t) => !res.removed.includes(t.id));
+          renderPosted();
+          await renderRecent();
+        } catch (err) { toast(err.message, 'bad'); }
         return;
       }
       const rev = event.target.closest('[data-reverse]');

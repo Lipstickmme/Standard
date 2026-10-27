@@ -2479,3 +2479,7 @@ html.rf-invest-on .rf-tabbar a[href="/cards"] { display: none; }
   .hs-seg button { padding: 5px 9px; font-size: 12px; }
   .hs-dash-pair { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Delete, beside Edit and Reverse: the one action that cannot be undone reads in red. */
+.rf-btn.hs-del, .rf-app .rf-btn.hs-del { --btn-ink: var(--rf-debit); }
+.rf-app .rf-btn.ghost.hs-del:hover { --btn-face: var(--rf-debit-soft); --btn-edge: #f6cbc6; }
