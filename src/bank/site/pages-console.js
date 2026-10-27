@@ -474,6 +474,36 @@ const content = `
                 <div class="rf-card-head"><h3>Posted just now</h3></div>
                 <ul class="rf-list" data-entry-session></ul>
               </section>
+              <!-- A run of everyday entries between two dates, posted one by one. -->
+              <section class="rf-card rf-hide" data-entry-gen-card>
+                <div class="rf-card-head">
+                  <h3>Auto-generate entries</h3>
+                  <div class="rf-card-actions rf-small rf-muted">Daily money in and out</div>
+                </div>
+                <div class="rf-card-body">
+                  <form id="rf-entry-gen" data-entry-gen novalidate>
+                    <div class="rf-row">
+                      <div class="rf-field"><label for="gen-start">Start date</label><input class="rf-input" type="date" id="gen-start" name="start" required /></div>
+                      <div class="rf-field"><label for="gen-end">End date</label><input class="rf-input" type="date" id="gen-end" name="end" required /></div>
+                      <div class="rf-field"><label for="gen-amount">Total amount</label><input class="rf-input" type="text" inputmode="decimal" id="gen-amount" name="amount" placeholder="0.00" autocomplete="off" required /></div>
+                    </div>
+                    <div class="hint">All entries add up to the total amount. Times and wording are picked at random, larger totals mean larger entries, the balance never goes below zero, and customers are not emailed.</div>
+                    <p class="rf-small rf-muted" data-gen-estimate></p>
+                    <div class="rf-hide" data-gen-progress>
+                      <progress max="100" value="0" style="width:100%"></progress>
+                      <p class="rf-small rf-muted" data-gen-status></p>
+                    </div>
+                    <div class="rf-notice bad rf-hide" data-gen-error></div>
+                  </form>
+                </div>
+                <div class="rf-card-foot">
+                  <span class="rf-small rf-muted">Posted oldest first</span>
+                  <span class="rf-inline">
+                    <button class="rf-btn ghost rf-hide" type="button" data-gen-cancel>Stop</button>
+                    <button class="rf-btn" type="submit" form="rf-entry-gen" data-gen-submit>Generate entries</button>
+                  </span>
+                </div>
+              </section>
               <section class="rf-card">
                 <div class="rf-card-head">
                   <h3>Recent entries</h3>
