@@ -459,8 +459,10 @@ const transfersContent = `
                 <option value="pending_review">In review</option>
                 <option value="pending_verification">Awaiting code</option>
                 <option value="scheduled">Scheduled</option>
+                <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
                 <option value="rejected">Returned</option>
+                <option value="failed">Failed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
@@ -470,6 +472,13 @@ const transfersContent = `
               <thead><tr><th>Date</th><th>Recipient</th><th class="opt">Type</th><th class="opt">Confirmation</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead>
               <tbody data-transfers><tr><td colspan="7" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
             </table>
+          </div>
+          <div class="rf-card-foot rf-spread" data-transfers-foot>
+            <span data-range></span>
+            <span class="rf-inline">
+              <button class="rf-btn ghost sm" type="button" data-prev>Previous</button>
+              <button class="rf-btn ghost sm" type="button" data-next>Next</button>
+            </span>
           </div>
         </section>`;
 
@@ -600,7 +609,27 @@ const billsContent = `
               </form>
             </div>
           </section>
-        </div>`;
+        </div>
+
+        <section class="rf-card rf-mt">
+          <div class="rf-card-head">
+            <h3>Payment history</h3>
+            <div class="rf-card-actions"><a class="rf-btn ghost sm" href="/transfers?type=bill_pay">Pay a bill</a></div>
+          </div>
+          <div class="rf-table-wrap">
+            <table class="rf-table">
+              <thead><tr><th>Date</th><th>Payee</th><th class="opt">Confirmation</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead>
+              <tbody data-payments><tr><td colspan="6" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
+            </table>
+          </div>
+          <div class="rf-card-foot rf-spread" data-payments-foot>
+            <span data-range></span>
+            <span class="rf-inline">
+              <button class="rf-btn ghost sm" type="button" data-prev>Previous</button>
+              <button class="rf-btn ghost sm" type="button" data-next>Next</button>
+            </span>
+          </div>
+        </section>`;
 
 /* ================================================================ deposit == */
 

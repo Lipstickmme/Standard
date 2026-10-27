@@ -13,6 +13,116 @@
   const RF = window.RF;
   const { api, qs, qsa, esc, money, date, datetime, toast, badge, onSubmit } = RF;
 
+  /** The receipt, which is the thing a customer screenshots. */
+  function showReceipt(transfer, statusLabel) {
+    const el = document.createElement('div');
+    el.className = 'rf-modal-backdrop';
+    el.innerHTML = `
+      <div class="rf-modal narrow">
+        <div class="rf-modal-head"><h3>${esc(statusLabel)}</h3><button type="button" data-close aria-label="Close">&times;</button></div>
+        <div class="rf-modal-body">
+          <div class="rf-center rf-mb">
+            <div class="rf-amt big">${money(transfer.amount)}</div>
+            <div class="rf-small rf-muted">${esc(transfer.typeLabel)} &middot; ${esc(transfer.statusLabel)}</div>
+          </div>
+          <dl class="rf-dl">
+            ${(transfer.receipt || []).map((row) => `<dt>${esc(row.label)}</dt><dd class="${/trace|IMAD|Confirmation/i.test(row.label) ? 'mono' : ''}">${esc(row.value)}</dd>`).join('')}
+          </dl>
+          <p class="rf-small rf-muted rf-mt">Keep the confirmation number. It is what we search on if anything needs chasing.</p>
+        </div>
+        <div class="rf-modal-foot">
+          <button class="rf-btn ghost" type="button" data-copy>Copy the receipt</button>
+          <button class="rf-btn" type="button" data-close>Done</button>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+    document.body.style.overflow = 'hidden';
+    const close = () => { el.remove(); document.body.style.overflow = ''; };
+    qsa('[data-close]', el).forEach((b) => b.addEventListener('click', close));
+    qs('[data-copy]', el).addEventListener('click', () => {
+      RF.copy((transfer.receipt || []).map((r) => `${r.label}: ${r.value}`).join('\n'), 'Receipt copied');
+    });
+  }
+
+  const STATUS_OPEN = ['pending_review', 'pending_verification', 'scheduled'];
+
+  /**
+   * A paged payment history: the transfer page's, and the bill-pay page's.
+   * Each line is a transfer made through the form or a payment out that only
+   * the ledger knows about; both open the same receipt.
+   */
+  function paymentHistory({ tbody, foot, query, showType = true, empty }) {
+    const LIMIT = 25;
+    let offset = 0;
+    const cols = showType ? 7 : 6;
+
+    const row = (t) => {
+      const who = (t.recipient && (t.recipient.nickname || t.recipient.name)) || '';
+      const sub = [t.recipient && t.recipient.accountMasked, t.fromAccountName && `from ${t.fromAccountName}`].filter(Boolean).join(' · ');
+      return `<tr>
+        <td class="rf-nowrap">${date(t.createdAt)}<span class="sub">${new Date(t.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span></td>
+        <td>${who ? esc(who) : '&mdash;'}<span class="sub">${esc(sub)}</span></td>
+        ${showType ? `<td class="rf-small opt">${esc(t.typeLabel)}</td>` : ''}
+        <td class="rf-mono rf-small opt">${esc(t.confirmation || '')}</td>
+        <td>${badge(t.status, t.statusLabel)}${t.reasonNote ? `<span class="sub">${esc(t.reasonNote)}</span>` : ''}</td>
+        <td class="num rf-amt">${money(t.total)}</td>
+        <td class="rf-right">
+          ${STATUS_OPEN.includes(t.status) && t.source !== 'ledger'
+    ? `<button class="rf-btn ghost sm" data-cancel="${esc(t.id)}">Cancel</button>`
+    : `<button class="rf-btn link sm" data-receipt="${esc(t.id)}">Receipt</button>`}
+        </td>
+      </tr>`;
+    };
+
+    async function load() {
+      const params = new URLSearchParams(Object.entries(query()).filter(([, v]) => v));
+      params.set('limit', String(LIMIT));
+      params.set('offset', String(offset));
+      const data = await api.get(`/transfers?${params.toString()}`);
+      if (!data.transfers.length && offset > 0 && data.total) {
+        offset = Math.floor((data.total - 1) / LIMIT) * LIMIT;
+        return load();
+      }
+      tbody.innerHTML = data.transfers.length
+        ? data.transfers.map(row).join('')
+        : `<tr><td colspan="${cols}" class="rf-center rf-muted">${esc(empty)}</td></tr>`;
+      if (foot) {
+        qs('[data-range]', foot).textContent = data.total ? `Showing ${offset + 1} to ${offset + data.transfers.length} of ${data.total}` : '';
+        qs('[data-prev]', foot).disabled = offset === 0;
+        qs('[data-next]', foot).disabled = offset + data.transfers.length >= data.total;
+      }
+      return data;
+    }
+
+    tbody.addEventListener('click', async (event) => {
+      const cancelBtn = event.target.closest('[data-cancel]');
+      const receiptBtn = event.target.closest('[data-receipt]');
+      if (cancelBtn) {
+        if (!confirm('Cancel this transfer? Any held funds come straight back.')) return;
+        try {
+          await api.post(`/transfers/${cancelBtn.getAttribute('data-cancel')}/cancel`);
+          toast('Transfer cancelled and the funds released.', 'ok');
+          load();
+        } catch (err) { toast(err.message, 'bad'); }
+      }
+      if (receiptBtn) {
+        try {
+          const data = await api.get(`/transfers/${receiptBtn.getAttribute('data-receipt')}`);
+          showReceipt(data.transfer, data.transfer.statusLabel);
+        } catch (err) { toast(err.message, 'bad'); }
+      }
+    });
+    if (foot) {
+      qs('[data-prev]', foot).addEventListener('click', () => { offset = Math.max(0, offset - LIMIT); load(); });
+      qs('[data-next]', foot).addEventListener('click', () => { offset += LIMIT; load(); });
+    }
+
+    return {
+      load,
+      reset() { offset = 0; return load(); },
+    };
+  }
+
   /* ----------------------------------------------------------- transfers -- */
 
   async function transfersPage() {
@@ -280,78 +390,17 @@
       });
     }
 
-    /** The receipt, which is the thing a customer screenshots. */
-    function showReceipt(transfer, statusLabel) {
-      const el = document.createElement('div');
-      el.className = 'rf-modal-backdrop';
-      el.innerHTML = `
-        <div class="rf-modal narrow">
-          <div class="rf-modal-head"><h3>${esc(statusLabel)}</h3><button type="button" data-close aria-label="Close">&times;</button></div>
-          <div class="rf-modal-body">
-            <div class="rf-center rf-mb">
-              <div class="rf-amt big">${money(transfer.amount)}</div>
-              <div class="rf-small rf-muted">${esc(transfer.typeLabel)} &middot; ${esc(transfer.statusLabel)}</div>
-            </div>
-            <dl class="rf-dl">
-              ${(transfer.receipt || []).map((row) => `<dt>${esc(row.label)}</dt><dd class="${/trace|IMAD|Confirmation/i.test(row.label) ? 'mono' : ''}">${esc(row.value)}</dd>`).join('')}
-            </dl>
-            <p class="rf-small rf-muted rf-mt">Keep the confirmation number. It is what we search on if anything needs chasing.</p>
-          </div>
-          <div class="rf-modal-foot">
-            <button class="rf-btn ghost" type="button" data-copy>Copy the receipt</button>
-            <button class="rf-btn" type="button" data-close>Done</button>
-          </div>
-        </div>`;
-      document.body.appendChild(el);
-      document.body.style.overflow = 'hidden';
-      const close = () => { el.remove(); document.body.style.overflow = ''; };
-      qsa('[data-close]', el).forEach((b) => b.addEventListener('click', close));
-      qs('[data-copy]', el).addEventListener('click', () => {
-        RF.copy((transfer.receipt || []).map((r) => `${r.label}: ${r.value}`).join('\n'), 'Receipt copied');
-      });
-    }
-
     /* History */
-    const tbody = qs('[data-transfers]');
     const statusFilter = qs('[data-status-filter]');
-
-    async function loadHistory() {
-      const status = statusFilter.value;
-      const data = await api.get(`/transfers${status ? `?status=${encodeURIComponent(status)}` : ''}`);
-      tbody.innerHTML = data.transfers.length ? data.transfers.map((t) => `
-        <tr>
-          <td class="rf-nowrap">${date(t.createdAt)}<span class="sub">${new Date(t.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span></td>
-          <td>${esc((t.recipient && (t.recipient.nickname || t.recipient.name)) || '&mdash;')}<span class="sub">${esc((t.recipient && (t.recipient.accountMasked || '')) || '')}</span></td>
-          <td class="rf-small opt">${esc(t.typeLabel)}</td>
-          <td class="rf-mono rf-small opt">${esc(t.confirmation)}</td>
-          <td>${badge(t.status, t.statusLabel)}${t.reasonNote ? `<span class="sub">${esc(t.reasonNote)}</span>` : ''}</td>
-          <td class="num rf-amt">${money(t.total)}</td>
-          <td class="rf-right">
-            ${['pending_review', 'pending_verification', 'scheduled'].includes(t.status)
-    ? `<button class="rf-btn ghost sm" data-cancel="${esc(t.id)}">Cancel</button>`
-    : `<button class="rf-btn link sm" data-receipt="${esc(t.id)}">Receipt</button>`}
-          </td>
-        </tr>`).join('') : '<tr><td colspan="7" class="rf-center rf-muted">No transfers yet.</td></tr>';
-    }
-
-    tbody.addEventListener('click', async (event) => {
-      const cancelBtn = event.target.closest('[data-cancel]');
-      const receiptBtn = event.target.closest('[data-receipt]');
-      if (cancelBtn) {
-        if (!confirm('Cancel this transfer? Any held funds come straight back.')) return;
-        try {
-          await api.post(`/transfers/${cancelBtn.getAttribute('data-cancel')}/cancel`);
-          toast('Transfer cancelled and the funds released.', 'ok');
-          loadHistory();
-        } catch (err) { toast(err.message, 'bad'); }
-      }
-      if (receiptBtn) {
-        const data = await api.get(`/transfers/${receiptBtn.getAttribute('data-receipt')}`);
-        showReceipt(data.transfer, data.transfer.statusLabel);
-      }
+    const history = paymentHistory({
+      tbody: qs('[data-transfers]'),
+      foot: qs('[data-transfers-foot]'),
+      query: () => ({ status: statusFilter.value }),
+      empty: 'No transfers yet.',
     });
+    function loadHistory() { return history.load(); }
 
-    statusFilter.addEventListener('change', loadHistory);
+    statusFilter.addEventListener('change', () => history.reset());
     await loadHistory();
   }
 
@@ -459,7 +508,16 @@
       load();
     });
 
-    await load();
+    // Every bill paid: through the form, on autopay, or posted by the bank.
+    const payments = paymentHistory({
+      tbody: qs('[data-payments]'),
+      foot: qs('[data-payments-foot]'),
+      query: () => ({ type: 'bill_pay' }),
+      showType: false,
+      empty: 'No bills paid yet.',
+    });
+
+    await Promise.all([load(), payments.load()]);
   }
 
   /* ------------------------------------------------------------- deposit -- */

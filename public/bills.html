@@ -148,6 +148,26 @@
             </div>
           </section>
         </div>
+
+        <section class="rf-card rf-mt">
+          <div class="rf-card-head">
+            <h3>Payment history</h3>
+            <div class="rf-card-actions"><a class="rf-btn ghost sm" href="/transfers?type=bill_pay">Pay a bill</a></div>
+          </div>
+          <div class="rf-table-wrap">
+            <table class="rf-table">
+              <thead><tr><th>Date</th><th>Payee</th><th class="opt">Confirmation</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead>
+              <tbody data-payments><tr><td colspan="6" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
+            </table>
+          </div>
+          <div class="rf-card-foot rf-spread" data-payments-foot>
+            <span data-range></span>
+            <span class="rf-inline">
+              <button class="rf-btn ghost sm" type="button" data-prev>Previous</button>
+              <button class="rf-btn ghost sm" type="button" data-next>Next</button>
+            </span>
+          </div>
+        </section>
       </main>
       <nav class="rf-tabbar" id="rf-tabbar" aria-label="Sections">
         <a href="/dashboard"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6" aria-hidden="true"><g stroke-width="1.6"><path d="M2.4 9.8 12 4.1l9.6 5.7"/><path d="M4.3 9.8v8.4M9.4 9.8v8.4M14.6 9.8v8.4M19.7 9.8v8.4"/><path d="M3.1 18.2h17.8"/><path d="M1.8 20.6h20.4"/></g><g stroke-width="0.95" opacity=".72"><path d="M6.85 11v6M12 11v6M17.15 11v6"/><path d="M4.3 9.8h15.4"/></g></svg><span>Home</span></a>
@@ -165,6 +185,6 @@
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
   <script src="/js/ticker.js?v=b9a25f17" defer></script>
-  <script src="/js/bank/money.js?v=adb21dce" defer></script>
+  <script src="/js/bank/money.js?v=61926df2" defer></script>
 </body>
 </html>

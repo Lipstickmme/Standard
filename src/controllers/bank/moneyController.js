@@ -75,20 +75,44 @@ const memberLookup = asyncHandler(async (req, res) => {
   return res.json({ member: transfersLib.publicMember(found) });
 });
 
+/**
+ * Every payment out, newest first: the transfers made through the form, and
+ * the ledger's outgoing transfer and bill-pay entries that have no transfer
+ * behind them. `type=bill_pay` is the bill-pay page's history.
+ */
 const listTransfers = asyncHandler(async (req, res) => {
   const { limit, offset } = page(req.query);
-  const rows = await db.transfers.find({ user_id: req.bankUser.id }, { order: 'created_at.desc' });
-  const filtered = req.query.status ? rows.filter((r) => r.status === req.query.status) : rows;
+  const [rows, debits, accounts] = await Promise.all([
+    db.transfers.find({ user_id: req.bankUser.id }, { order: 'created_at.desc' }),
+    db.transactions.find({ user_id: req.bankUser.id, direction: 'debit' }, { order: 'date.desc' }),
+    db.accounts.find({ user_id: req.bankUser.id }),
+  ]);
+  const linked = new Set(rows.map((t) => t.debit_transaction_id).filter(Boolean));
+  const all = [
+    ...rows.map(transfersLib.publicTransfer),
+    ...debits.filter((t) => transfersLib.isLedgerPayment(t) && !linked.has(t.id)).map(transfersLib.transferFromEntry),
+  ].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  const filtered = all.filter((t) => (!req.query.status || t.status === req.query.status)
+    && (!req.query.type || t.type === req.query.type));
+  const names = new Map(accounts.map((a) => [a.id, `${a.nickname || a.name} ${ids.maskAccount(a.account_number)}`]));
   res.json({
-    transfers: filtered.slice(offset, offset + limit).map(transfersLib.publicTransfer),
+    transfers: filtered.slice(offset, offset + limit).map((t) => ({ ...t, fromAccountName: names.get(t.fromAccountId) || '' })),
     total: filtered.length,
+    limit,
+    offset,
   });
 });
 
 const getTransfer = asyncHandler(async (req, res) => {
   const transfer = await db.transfers.findById(req.params.id);
-  if (!transfer || transfer.user_id !== req.bankUser.id) throw fail(404, 'Transfer not found.');
-  res.json({ transfer: transfersLib.publicTransfer(transfer) });
+  if (transfer) {
+    if (transfer.user_id !== req.bankUser.id) throw fail(404, 'Transfer not found.');
+    return res.json({ transfer: transfersLib.publicTransfer(transfer) });
+  }
+  // A payment from the ledger, listed in the history, has its receipt too.
+  const tx = await db.transactions.findById(req.params.id);
+  if (!tx || tx.user_id !== req.bankUser.id || !transfersLib.isLedgerPayment(tx)) throw fail(404, 'Transfer not found.');
+  return res.json({ transfer: transfersLib.transferFromEntry(tx) });
 });
 
 const createTransfer = asyncHandler(async (req, res) => {

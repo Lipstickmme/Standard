@@ -207,6 +207,28 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       const after = money(await page.$eval('[data-accounts] .hs-acct-row .bal', (n) => n.textContent));
       assert.ok(Math.abs((checkingBefore - 125) - after) < 0.02, `the balance fell by $125 (${checkingBefore} -> ${after})`);
       ok('a transfer made in the form moves the balance');
+
+      // The history lists that transfer and the payments the ledger already held.
+      await page.goto(`${base}/transfers`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('[data-transfers] [data-receipt]', { timeout: 15000 });
+      const range = await page.textContent('[data-transfers-foot] [data-range]');
+      const total = Number((range.match(/of (\d+)$/) || [])[1]);
+      assert.ok(total > 20, `the transfer history holds every payment out: ${range}`);
+      assert.match(await page.textContent('[data-transfers] tr'), /\$125\.00/, 'the newest is the one just made');
+      await page.click('[data-transfers] tr:nth-child(2) [data-receipt]');
+      await page.waitForSelector('.rf-modal-backdrop [data-copy]', { timeout: 10000 });
+      assert.match(await page.textContent('.rf-modal-backdrop'), /Confirmation/, 'a receipt opens for it');
+      await page.click('.rf-modal-backdrop .rf-modal-foot [data-close]');
+
+      await page.goto(`${base}/bills`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('[data-payments] [data-receipt]', { timeout: 15000 });
+      const bills = await page.$$eval('[data-payments] tr', (n) => n.length);
+      assert.ok(bills >= 6, `bill pay lists the bills already paid (${bills})`);
+      await page.click('[data-payments] [data-receipt]');
+      await page.waitForSelector('.rf-modal-backdrop [data-copy]', { timeout: 10000 });
+      assert.match(await page.textContent('.rf-modal-backdrop'), /Bill payment/, 'and each has its receipt');
+      await page.click('.rf-modal-backdrop .rf-modal-foot [data-close]');
+      ok(`transfer history: ${total} payments out; bill pay: ${bills} bills, each with a receipt`);
     }
 
     /* ---- 4. every signed-in screen renders ---- */
@@ -266,7 +288,8 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       let asked = '';
       staff.once('dialog', (dialog) => { asked = dialog.message(); dialog.accept(); });
       await staff.click(`[data-delete-tx="${doomed}"]`);
-      await staff.waitForFunction((n) => new RegExp(`of ${n}$`).test(document.querySelector('[data-sheet-range]').textContent), Number(entryTotal) - 1, { timeout: 15000 });
+      // The sheet re-renders through "Loading" after the delete, so the range may briefly be absent.
+      await staff.waitForFunction((n) => new RegExp(`of ${n}$`).test((document.querySelector('[data-sheet-range]') || {}).textContent || ''), Number(entryTotal) - 1, { timeout: 15000 });
       assert.match(asked, /^Delete this entry\?/, 'it asks before deleting');
       assert.strictEqual(await staff.$(`[data-delete-tx="${doomed}"]`), null, 'the entry is gone from the sheet');
       await staff.click('[data-customer-modal] [data-close-modal]');

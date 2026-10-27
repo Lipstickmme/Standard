@@ -766,6 +766,46 @@ const dollars = (cents) => (cents / 100).toFixed(2);
       const logged = (await admin.get('/api/bank/admin/activity?limit=40')).body.activity.filter((a) => a.action === 'admin.transaction_deleted');
       assert.ok(logged.length >= 5 && logged.some((a) => /DUPLICATE KEYED/.test(a.detail)), 'every delete is in the activity log, with what was deleted');
       ok('delete: an entry, a pending hold and both halves of a reversal pair, with the balance and running balances put back');
+
+      // Transfer history lists every payment out, however it was keyed; bill pay lists every bill.
+      const METHODS = ['internal', 'member', 'ach', 'wire_domestic', 'wire_international', 'instant', 'bill_pay'];
+      const ledgerOut = [];
+      for (const method of METHODS) {
+        // eslint-disable-next-line no-await-in-loop
+        const rows = (await admin.get(`/api/bank/admin/customers/${jordan.id}/transactions?limit=200&direction=debit&method=${method}`)).body.transactions;
+        ledgerOut.push(...rows.filter((t) => !t.transferId));
+      }
+      const hist = await customer.get('/api/bank/transfers?limit=200');
+      assert.strictEqual(hist.status, 200, hist.text);
+      const listed = hist.body.transfers;
+      const fromLedger = listed.filter((t) => t.source === 'ledger');
+      assert.ok(ledgerOut.length >= 20, `the seed has payments posted straight to the ledger (${ledgerOut.length})`);
+      assert.deepStrictEqual(fromLedger.map((t) => t.id).sort(), ledgerOut.map((t) => t.id).sort(), 'every one is in the transfer history');
+      assert.ok(listed.some((t) => t.source !== 'ledger'), 'alongside the transfers made through the form');
+      assert.strictEqual(new Set(listed.map((t) => t.id)).size, listed.length, 'nothing listed twice');
+      assert.ok(listed.every((t, i) => i === 0 || listed[i - 1].createdAt >= t.createdAt), 'newest first');
+
+      const billBefore = (await customer.get('/api/bank/transfers?type=bill_pay&limit=200')).body;
+      assert.ok(billBefore.transfers.length >= 6 && billBefore.transfers.every((t) => t.type === 'bill_pay'), 'the bill-pay history is every bill payment');
+      const water = await entry({ direction: 'debit', amount: '42.00', method: 'bill_pay', description: 'BILL PAY CITY WATER', counterpartyName: 'City Water Dept', category: 'Utilities' });
+      assert.strictEqual(water.status, 201, water.text);
+      const billAfter = (await customer.get('/api/bank/transfers?type=bill_pay&limit=200')).body;
+      assert.strictEqual(billAfter.total, billBefore.total + 1, 'a bill posted at the console joins it');
+      const listedWater = billAfter.transfers.find((t) => t.id === water.body.transaction.id);
+      assert.ok(listedWater, 'listed by its entry');
+      assert.strictEqual(listedWater.recipient.name, 'City Water Dept');
+      assert.strictEqual(listedWater.status, 'completed');
+      assert.strictEqual(listedWater.total, 4200);
+      assert.strictEqual(listedWater.confirmation, water.body.transaction.reference, 'its reference is the confirmation');
+      const receipt = await customer.get(`/api/bank/transfers/${water.body.transaction.id}`);
+      assert.strictEqual(receipt.status, 200, receipt.text);
+      assert.ok(receipt.body.transfer.receipt.some((r) => r.label === 'Confirmation' && r.value === water.body.transaction.reference), 'with a receipt');
+      const card = (await admin.get(`/api/bank/admin/customers/${jordan.id}/transactions?limit=1&method=card`)).body.transactions[0];
+      assert.strictEqual((await customer.get(`/api/bank/transfers/${card.id}`)).status, 404, 'a card purchase is not a transfer');
+      const done = (await customer.get('/api/bank/transfers?status=completed&limit=200')).body.transfers;
+      assert.ok(done.length && done.every((t) => t.status === 'completed'), 'the status filter covers both kinds');
+      await admin.del(`/api/bank/admin/transactions/${water.body.transaction.id}`);
+      ok(`history: ${fromLedger.length} payments from the ledger join the transfer history; bill pay lists ${billBefore.total} bills, and one posted by staff joins them`);
     }
 
     /* ---- 18b. the console's setup checklist and investments views ---- */

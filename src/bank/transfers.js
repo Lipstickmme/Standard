@@ -739,6 +739,52 @@ function publicTransfer(transfer) {
   };
 }
 
+/**
+ * A payment only the ledger knows about.
+ *
+ * The transfer history used to list only transfers made through the form.
+ * Money that left by the same rails any other way - posted at the console,
+ * generated there, or part of an imported history - was on the statement but
+ * missing from the history, so the two disagreed. An outgoing entry by a
+ * transfer method, with no transfer behind it, is shown in a transfer's shape.
+ */
+const LEDGER_STATUS = { posted: 'completed', pending: 'processing', hold: 'processing', failed: 'failed', reversed: 'rejected' };
+
+function isLedgerPayment(tx) {
+  return Boolean(tx && tx.direction === 'debit' && TYPE_RULES[tx.method] && !tx.transfer_id);
+}
+
+function transferFromEntry(tx) {
+  const cp = tx.counterparty || {};
+  const status = LEDGER_STATUS[tx.status] || tx.status;
+  return {
+    ...publicTransfer({
+      id: tx.id,
+      created_at: tx.date,
+      type: tx.method,
+      method: tx.method,
+      from_account_id: tx.account_id,
+      amount: tx.amount,
+      fee: 0,
+      total: tx.amount,
+      currency: tx.currency,
+      memo: tx.memo,
+      status,
+      confirmation: tx.reference,
+      trace_number: tx.trace_number,
+      completed_at: status === 'completed' ? (tx.posted_at || tx.date) : null,
+      snapshot: {
+        name: cp.name || tx.merchant || tx.description,
+        accountMasked: cp.accountMasked || cp.account_masked || '',
+        bank: cp.bank || '',
+      },
+    }),
+    source: 'ledger',
+    category: tx.category,
+    description: tx.description,
+  };
+}
+
 module.exports = {
   findMember,
   publicMember,
@@ -754,6 +800,8 @@ module.exports = {
   scheduleNext,
   issueTransferOtp,
   publicTransfer,
+  isLedgerPayment,
+  transferFromEntry,
   receiptRows,
   statusLabel,
   ruleFor,

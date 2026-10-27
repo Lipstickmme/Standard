@@ -203,8 +203,10 @@
                 <option value="pending_review">In review</option>
                 <option value="pending_verification">Awaiting code</option>
                 <option value="scheduled">Scheduled</option>
+                <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
                 <option value="rejected">Returned</option>
+                <option value="failed">Failed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
@@ -214,6 +216,13 @@
               <thead><tr><th>Date</th><th>Recipient</th><th class="opt">Type</th><th class="opt">Confirmation</th><th>Status</th><th class="num">Amount</th><th></th></tr></thead>
               <tbody data-transfers><tr><td colspan="7" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
             </table>
+          </div>
+          <div class="rf-card-foot rf-spread" data-transfers-foot>
+            <span data-range></span>
+            <span class="rf-inline">
+              <button class="rf-btn ghost sm" type="button" data-prev>Previous</button>
+              <button class="rf-btn ghost sm" type="button" data-next>Next</button>
+            </span>
           </div>
         </section>
       </main>
@@ -233,6 +242,6 @@
   <script src="/js/asset-logos.js?v=3c2a42b2" defer></script>
   <script src="/js/assets.js?v=2404995b" defer></script>
   <script src="/js/ticker.js?v=b9a25f17" defer></script>
-  <script src="/js/bank/money.js?v=adb21dce" defer></script>
+  <script src="/js/bank/money.js?v=61926df2" defer></script>
 </body>
 </html>
