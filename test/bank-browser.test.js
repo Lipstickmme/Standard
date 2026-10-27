@@ -225,7 +225,7 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       ok('an administrator lands on the console');
 
       // Every tab loads.
-      for (const tab of ['customers', 'queue', 'deposits', 'cards', 'messages', 'alerts', 'disputes', 'activity', 'settings']) {
+      for (const tab of ['customers', 'queue', 'deposits', 'cards', 'messages', 'alerts', 'disputes', 'activity', 'settings', 'entries']) {
         await staff.click(`[data-tab="${tab}"]`);
         await staff.waitForTimeout(700);
         const stillLoading = await staff.$$eval(`[data-panel="${tab}"] td`, (nodes) =>
@@ -294,6 +294,83 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       assert.match(toast, /Credited \$1,500\.00/, `the console reports the credit: ${toast}`);
       assert.match(toast, /New balance \$5,700\.00/, `the balance is the sum of the two entries: ${toast}`);
       ok('the console posts a dated ledger entry and the balance follows');
+
+      /* ---- 6. the entry desk: the same post, with the typing taken out ---- */
+
+      await staff.click('.rf-modal-backdrop:not(.rf-hide) [data-close-modal]').catch(() => {});
+      await staff.click('[data-tab="entries"]');
+      await staff.waitForSelector('[data-panel="entries"]:not([hidden])', { timeout: 10000 });
+      await staff.fill('#en-search', 'Priya Raman');
+      await staff.click('[data-entry-find]');
+      await staff.waitForSelector('[data-entry-customer]', { timeout: 15000 });
+      await staff.click('[data-entry-customer]');
+      await staff.waitForSelector('[data-entry-account]', { timeout: 15000 });
+      await staff.click('[data-entry-account]');
+      await staff.waitForSelector('#rf-entry-form:not(.rf-hide)', { timeout: 10000 });
+      await staff.waitForFunction(
+        () => !/Loading/.test(document.querySelector('[data-entry-recent]').textContent),
+        null,
+        { timeout: 15000 }
+      );
+
+      // The method carries the wording and the category with it, and the
+      // direction swaps both for the other side of the same method.
+      await staff.selectOption('#en-method', 'atm');
+      assert.strictEqual(await staff.inputValue('#en-description'), 'ATM DEPOSIT', 'the method suggests a wording');
+      assert.strictEqual(await staff.inputValue('#en-category'), 'Cash & ATM', 'the method sets the category');
+      await staff.click('[data-direction="debit"]');
+      assert.strictEqual(await staff.inputValue('#en-description'), 'ATM WITHDRAWAL', 'the direction swaps the wording');
+      await staff.click('[data-direction="credit"]');
+
+      // The figures are buttons, and Round takes the total up to the hundred.
+      await staff.click('[data-step="100000"]');
+      await staff.click('[data-step="50000"]');
+      await staff.click('[data-step="1000"]');
+      assert.strictEqual(await staff.inputValue('#en-amount'), '1510.00', 'the chips add up');
+      await staff.click('[data-round="10000"]');
+      assert.strictEqual(await staff.inputValue('#en-amount'), '1600.00', 'Round goes up to the hundred');
+      const preview = await staff.textContent('[data-entry-preview]');
+      assert.match(preview, /Balance after/, `the preview shows the balance to come: ${preview}`);
+
+      // "Yesterday" composes a date into the control the form already had.
+      await staff.click('[data-when="1"]');
+      const valued = await staff.inputValue('#en-date');
+      assert.match(valued, /^\d{4}-\d{2}-\d{2}$/, `a chip composed a value date: ${valued}`);
+      const backdated = await staff.getAttribute('[data-entry-backdated]', 'class');
+      assert.ok(!backdated.includes('rf-hide'), 'back-posting says what it does to the running balance');
+
+      await staff.fill('#en-note', 'Counter slip 4417, verified against the till');
+      await staff.click('[data-entry-foot] [data-submit]');
+      await staff.waitForFunction(
+        () => Array.from(document.querySelectorAll('.rf-toast')).some((t) => /Credited \$1,600/.test(t.textContent)),
+        null,
+        { timeout: 20000 }
+      );
+      // The account stays in hand for the next entry; only what changes clears.
+      assert.strictEqual(await staff.inputValue('#en-amount'), '', 'the amount clears for the next entry');
+      assert.ok(await staff.isVisible('#rf-entry-form'), 'the account stays in hand');
+      await staff.waitForSelector('[data-entry-session] [data-correct]', { timeout: 10000 });
+      ok('the entry desk posts a back-dated entry without a field typed twice');
+
+      // Correcting it goes through the same PATCH the console already had.
+      await staff.click('[data-entry-session] [data-correct]');
+      await staff.waitForSelector('[data-correct-modal]:not(.rf-hide)', { timeout: 10000 });
+      assert.strictEqual(await staff.inputValue('#co-amount'), '1600.00', 'the correction opens prefilled');
+      await staff.fill('#co-amount', '1650.00');
+      await staff.fill('#co-note', 'Keyed 1600, the slip said 1650');
+      await staff.click('#rf-correct-form [data-submit]');
+      await staff.waitForFunction(
+        () => Array.from(document.querySelectorAll('.rf-toast')).some((t) => /corrected/i.test(t.textContent)),
+        null,
+        { timeout: 20000 }
+      );
+      await staff.waitForFunction(
+        () => /\$1,650\.00/.test(document.querySelector('[data-entry-recent]').textContent),
+        null,
+        { timeout: 15000 }
+      );
+      ok('an entry is corrected from the desk and the amended figure comes back');
+
       await staffContext.close();
     }
 

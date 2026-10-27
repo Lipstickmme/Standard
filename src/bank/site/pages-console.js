@@ -353,6 +353,138 @@ const content = `
           </section>
         </section>
 
+        <!-- ----------------------------------------------------- entries -- -->
+        <section data-panel="entries" hidden>
+          <div class="rf-grid side">
+            <section class="rf-card">
+              <div class="rf-card-head">
+                <h3>Post an entry</h3>
+                <div class="rf-card-actions rf-small rf-muted" data-entry-target>Pick an account to start</div>
+              </div>
+              <div class="rf-card-body">
+
+                <!-- Who, and which account. Search, then one click per account. -->
+                <div class="rf-field" data-entry-picker>
+                  <label for="en-search">Customer</label>
+                  <div class="rf-inline-form">
+                    <input class="rf-input" id="en-search" placeholder="Name, email or customer number" autocomplete="off" />
+                    <button class="rf-btn ghost" type="button" data-entry-find>${icon('search', 16)}Find</button>
+                  </div>
+                  <div class="rf-entry-results" data-entry-results></div>
+                </div>
+
+                <form id="rf-entry-form" class="rf-hide" data-entry-form>
+                  <!-- Money in or money out, as two targets rather than a list. -->
+                  <div class="rf-field">
+                    <span class="rf-label">Direction</span>
+                    <div class="rf-seg" role="group" aria-label="Direction">
+                      <button type="button" class="rf-seg-btn is-on credit" data-direction="credit">Money in</button>
+                      <button type="button" class="rf-seg-btn debit" data-direction="debit">Money out</button>
+                    </div>
+                    <input type="hidden" name="direction" value="credit" data-entry-direction />
+                  </div>
+
+                  <!-- The amount, with the figures a teller reaches for most. -->
+                  <div class="rf-field">
+                    <label for="en-amount">Amount</label>
+                    <input class="rf-input money lg" id="en-amount" name="amount" inputmode="decimal" placeholder="0.00" required autocomplete="off" />
+                    <div class="rf-chips" data-entry-steps>
+                      <button type="button" class="rf-chip" data-step="1000">+10</button>
+                      <button type="button" class="rf-chip" data-step="10000">+100</button>
+                      <button type="button" class="rf-chip" data-step="50000">+500</button>
+                      <button type="button" class="rf-chip" data-step="100000">+1k</button>
+                      <button type="button" class="rf-chip" data-step="500000">+5k</button>
+                      <button type="button" class="rf-chip" data-round="10000">Round</button>
+                      <button type="button" class="rf-chip ghost" data-step="clear">Clear</button>
+                    </div>
+                    <div class="rf-entry-preview" data-entry-preview hidden></div>
+                  </div>
+
+                  <!-- Method first: it sets the category and the wording. -->
+                  <div class="rf-row">
+                    <div class="rf-field"><label for="en-method">Method</label><select class="rf-select" id="en-method" name="method">${Object.entries(TRANSACTION_METHODS).map(([id, m]) => option(id, m.label)).join('')}</select></div>
+                    <div class="rf-field"><label for="en-category">Category</label><select class="rf-select" id="en-category" name="category">${CATEGORIES.map((c) => option(c)).join('')}</select></div>
+                  </div>
+
+                  <div class="rf-field">
+                    <label for="en-description">Description on the statement</label>
+                    <input class="rf-input" id="en-description" name="description" list="en-narratives" required autocomplete="off" />
+                    <datalist id="en-narratives" data-entry-narratives></datalist>
+                    <div class="hint">What the customer reads. Pick a standard wording or type your own.</div>
+                  </div>
+
+                  <!-- Value date: now by default, two clicks for the usual back-posts. -->
+                  <div class="rf-field">
+                    <span class="rf-label">Value date</span>
+                    <div class="rf-chips" data-entry-when>
+                      <button type="button" class="rf-chip is-on" data-when="now">Now</button>
+                      <button type="button" class="rf-chip" data-when="0">Today</button>
+                      <button type="button" class="rf-chip" data-when="1">Yesterday</button>
+                      <button type="button" class="rf-chip" data-when="2">2 days ago</button>
+                      <button type="button" class="rf-chip" data-when="7">A week ago</button>
+                      <button type="button" class="rf-chip" data-when="pick">Another date&hellip;</button>
+                    </div>
+                    <div class="rf-entry-date rf-hide" data-entry-datewrap>
+                      <div class="rf-row">
+                        ${dateField({ id: 'en-date', name: 'date', label: 'Date', from: -10, to: 0, wrapClass: 'rf-field rf-field-flush' })}
+                        <div class="rf-field rf-field-flush"><label for="en-time">Time</label><input class="rf-input" type="time" id="en-time" name="time" step="60" /></div>
+                      </div>
+                    </div>
+                    <div class="rf-notice info rf-small rf-hide" data-entry-backdated>
+                      Back-posted. The running balance on every later entry is restated, and the
+                      value date, your name and your note stay on the record.
+                    </div>
+                  </div>
+
+                  <!-- Everything a correction sometimes needs, and usually not. -->
+                  <details class="rf-details">
+                    <summary>More detail</summary>
+                    <div class="rf-row">
+                      <div class="rf-field"><label for="en-status">Status</label><select class="rf-select" id="en-status" name="status"><option value="posted">Posted</option><option value="pending">Pending</option></select></div>
+                      <div class="rf-field"><label for="en-check">Check number</label><input class="rf-input mono" id="en-check" name="checkNumber" maxlength="10" /></div>
+                    </div>
+                    <div class="rf-row">
+                      <div class="rf-field"><label for="en-merchant">Merchant or counterparty</label><input class="rf-input" id="en-merchant" name="counterpartyName" /></div>
+                      <div class="rf-field"><label for="en-bank">Counterparty bank</label><input class="rf-input" id="en-bank" name="counterpartyBank" /></div>
+                    </div>
+                    <div class="rf-field"><label for="en-memo">Memo shown to the customer</label><input class="rf-input" id="en-memo" name="memo" /></div>
+                  </details>
+
+                  <div class="rf-field">
+                    <label for="en-note">Internal note &mdash; why this entry exists</label>
+                    <input class="rf-input" id="en-note" name="note" placeholder="Walk-in deposit slip 4417, taken at the counter" />
+                  </div>
+
+                  <label class="rf-check"><input type="checkbox" name="notify" checked /><span>Email the customer about this</span></label>
+                  <div class="rf-notice bad rf-hide" data-form-error></div>
+                </form>
+              </div>
+              <div class="rf-card-foot rf-hide" data-entry-foot>
+                <span class="rf-small rf-muted">${'⌘'}/Ctrl + Enter posts</span>
+                <span class="rf-inline">
+                  <button class="rf-btn ghost" type="button" data-entry-another>Another account</button>
+                  <button class="rf-btn" type="submit" form="rf-entry-form" data-submit>Post the entry</button>
+                </span>
+              </div>
+            </section>
+
+            <div class="rf-stack">
+              <!-- Posted here, this session: the undo is on the entry itself. -->
+              <section class="rf-card rf-hide" data-entry-session-card>
+                <div class="rf-card-head"><h3>Posted just now</h3></div>
+                <ul class="rf-list" data-entry-session></ul>
+              </section>
+              <section class="rf-card">
+                <div class="rf-card-head">
+                  <h3>Recent entries</h3>
+                  <div class="rf-card-actions"><button class="rf-btn ghost sm" type="button" data-entry-refresh>Refresh</button></div>
+                </div>
+                <ul class="rf-list" data-entry-recent><li class="rf-muted rf-small">Pick an account to see its entries.</li></ul>
+              </section>
+            </div>
+          </div>
+        </section>
+
         <!-- ------------------------------------------------- investments -- -->
         <section data-panel="investments" hidden>
           <div class="rf-grid cols-4 rf-mb" data-inv-stats></div>
@@ -532,6 +664,40 @@ const content = `
               <div class="rf-modal-foot">
                 <button class="rf-btn ghost" type="button" data-close-modal>Cancel</button>
                 <button class="rf-btn" type="submit" data-submit>Post the entry</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ----------------------------------------------- correct modal -- -->
+        <div class="rf-modal-backdrop rf-hide" data-correct-modal>
+          <div class="rf-modal">
+            <div class="rf-modal-head">
+              <h3>Correct an entry</h3>
+              <button type="button" data-close-modal aria-label="Close">&times;</button>
+            </div>
+            <form id="rf-correct-form">
+              <div class="rf-modal-body">
+                <p class="rf-small rf-muted" data-correct-summary></p>
+                <div class="rf-field"><label for="co-description">Description on the statement</label><input class="rf-input" id="co-description" name="description" /></div>
+                <div class="rf-row">
+                  <div class="rf-field"><label for="co-amount">Amount</label><input class="rf-input money" id="co-amount" name="amount" inputmode="decimal" /><div class="hint">The balance moves by the difference.</div></div>
+                  <div class="rf-field"><label for="co-category">Category</label><select class="rf-select" id="co-category" name="category">${CATEGORIES.map((c) => option(c)).join('')}</select></div>
+                </div>
+                <div class="rf-row">
+                  ${dateField({ id: 'co-date', name: 'date', label: 'Value date', from: -10, to: 0 })}
+                  <div class="rf-field"><label for="co-time">Time</label><input class="rf-input" type="time" id="co-time" name="time" step="60" /><div class="hint">Leave blank to keep the date it has.</div></div>
+                </div>
+                <div class="rf-field"><label for="co-memo">Memo shown to the customer</label><input class="rf-input" id="co-memo" name="memo" /></div>
+                <div class="rf-field"><label for="co-note">Internal note &mdash; what was wrong</label><input class="rf-input" id="co-note" name="note" /></div>
+                <div class="rf-notice bad rf-hide" data-form-error></div>
+              </div>
+              <div class="rf-modal-foot spread">
+                <button class="rf-btn danger ghost" type="button" data-correct-reverse>Reverse it instead</button>
+                <span class="rf-inline">
+                  <button class="rf-btn ghost" type="button" data-close-modal>Cancel</button>
+                  <button class="rf-btn" type="submit" data-submit>Save the correction</button>
+                </span>
               </div>
             </form>
           </div>

@@ -612,6 +612,98 @@ body.rf-site {
 .rf-toast strong { display: block; font-size: 13.5px; }
 .rf-toast span { opacity: .85; font-size: 12.5px; }
 
+/* ------------------------------------------------------------ entry desk -- */
+
+/* Two targets rather than a dropdown: direction is the one field on this form
+   that is always set, and a select costs a click and a read to set it. */
+.rf-seg { display: flex; gap: 0; border: 1px solid var(--rf-line); border-radius: var(--rf-radius-sm); overflow: hidden; background: var(--rf-surface-2); }
+.rf-seg-btn {
+  flex: 1; min-height: 42px; padding: 0 14px; border: 0; background: transparent;
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--rf-ink-2); cursor: pointer;
+  border-right: 1px solid var(--rf-line); transition: background .12s ease, color .12s ease;
+}
+.rf-seg-btn:last-child { border-right: 0; }
+.rf-seg-btn:hover { background: #fff; }
+.rf-seg-btn.is-on { color: #fff; font-weight: 600; }
+.rf-seg-btn.is-on.credit { background: var(--rf-credit); }
+.rf-seg-btn.is-on.debit { background: var(--rf-debit); }
+.rf-seg-btn:focus-visible { outline: 2px solid var(--rf-brass); outline-offset: -2px; }
+
+/* The figures and dates a teller reaches for, as one row of targets. */
+.rf-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.rf-chip {
+  min-height: 30px; padding: 0 11px; border: 1px solid var(--rf-line);
+  border-radius: 999px; background: #fff; font: inherit; font-size: 12.5px;
+  font-variant-numeric: tabular-nums; color: var(--rf-ink-2); cursor: pointer;
+  transition: border-color .12s ease, background .12s ease, color .12s ease;
+}
+.rf-chip:hover { border-color: var(--rf-navy); color: var(--rf-navy); }
+.rf-chip.is-on { background: var(--rf-navy); border-color: var(--rf-navy); color: #fff; }
+.rf-chip.ghost { color: var(--rf-ink-3); }
+.rf-chip:focus-visible { outline: 2px solid var(--rf-brass); outline-offset: 2px; }
+
+.rf-input.money.lg { font-size: 24px; min-height: 54px; font-weight: 500; }
+
+/* What the balance becomes, at the size of a balance - it is the figure being
+   checked against the slip, not a footnote to the amount. */
+.rf-entry-preview {
+  margin-top: 11px; padding: 11px 14px; border-radius: var(--rf-radius-sm);
+  background: var(--rf-credit-soft); border: 1px solid rgba(27, 122, 83, .18);
+  display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px;
+}
+.rf-entry-preview.debit { background: var(--rf-debit-soft); border-color: rgba(163, 53, 43, .18); }
+.rf-entry-preview.warn { background: var(--rf-pending-soft); border-color: rgba(138, 106, 31, .24); }
+.rf-entry-preview .k { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--rf-ink-3); }
+.rf-entry-preview .v { font-family: var(--rf-display); font-size: 25px; font-variant-numeric: tabular-nums; grid-row: 1 / span 2; grid-column: 2; }
+.rf-entry-preview .d { font-size: 12.5px; color: var(--rf-ink-3); font-variant-numeric: tabular-nums; }
+
+/* Search results, and the accounts behind the one chosen. */
+.rf-entry-results { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.rf-entry-results:empty { margin-top: 0; }
+.rf-entry-hit {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 10px 13px; border: 1px solid var(--rf-line); border-radius: var(--rf-radius-sm);
+  background: #fff; font: inherit; cursor: pointer; transition: border-color .12s ease, box-shadow .12s ease;
+}
+.rf-entry-hit:hover { border-color: var(--rf-navy); box-shadow: var(--rf-shadow); }
+.rf-entry-hit:focus-visible { outline: 2px solid var(--rf-brass); outline-offset: 2px; }
+.rf-entry-hit .t { flex: 1; min-width: 0; }
+.rf-entry-hit .t strong { display: block; font-size: 14px; font-weight: 600; }
+.rf-entry-hit .t span { display: block; font-size: 12.5px; color: var(--rf-ink-3); }
+.rf-entry-hit .rf-amt { text-align: right; font-size: 14px; }
+.rf-entry-hit .rf-amt .sub { display: block; font-size: 11.5px; color: var(--rf-ink-3); font-weight: 400; }
+
+.rf-entry-date { margin-top: 11px; }
+
+/* Both entry lists sit in the narrow column, where a description, a date, an
+   amount and two buttons will not share a line. The row stacks instead: the
+   entry reads first, its controls sit under it against the right edge. */
+[data-entry-session] li, [data-entry-recent] li { flex-wrap: wrap; row-gap: 8px; }
+[data-entry-session] li .t, [data-entry-recent] li .t { flex: 1 0 100%; }
+.rf-entry-row-end { flex: 1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.rf-entry-row-end .rf-amt { margin-right: auto; font-size: 14px; }
+
+/* A disclosure for the fields a correction sometimes needs and usually not. */
+.rf-details { border-top: 1px solid var(--rf-line-2); border-bottom: 1px solid var(--rf-line-2); margin-bottom: 14px; }
+.rf-details > summary {
+  padding: 12px 0; cursor: pointer; font-size: 13.5px; font-weight: 500;
+  color: var(--rf-navy); list-style: none; display: flex; align-items: center; gap: 7px;
+}
+.rf-details > summary::-webkit-details-marker { display: none; }
+.rf-details > summary::before { content: "+"; font-size: 15px; line-height: 1; width: 13px; }
+.rf-details[open] > summary::before { content: "\2212"; }
+.rf-details[open] > summary { border-bottom: 1px solid var(--rf-line-2); margin-bottom: 14px; }
+
+[data-entry-foot] { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rf-modal-foot.spread { justify-content: space-between; }
+
+@media (max-width: 720px) {
+  [data-entry-foot] { flex-direction: column-reverse; align-items: stretch; }
+  [data-entry-foot] .rf-inline { display: flex; gap: 10px; }
+  [data-entry-foot] .rf-inline .rf-btn { flex: 1; }
+  .rf-entry-preview .v { font-size: 21px; }
+}
+
 /* --------------------------------------------------------------- notice -- */
 
 .rf-notice {

@@ -38,6 +38,7 @@
     disputes: ['Claims', 'Disputed transactions.'],
     customers: ['Customers', 'Search, open and act on any customer.'],
     register: ['Register a customer', 'Open a customer and their first accounts.'],
+    entries: ['Post an entry', 'Book a deposit, a withdrawal or a correction against one account.'],
     cards: ['Cards', 'Every card the bank has issued.'],
     investments: ['Investments', 'What customers hold, valued at live prices.'],
     alerts: ['Email alerts', 'Everything the bank has sent, and to whom.'],
@@ -619,6 +620,431 @@
     }
   });
 
+  /* ------------------------------------------------------------- entries -- */
+
+  /**
+   * The entry desk: one account in hand, one entry at a time.
+   *
+   * A balance adjustment is the console's most-used control and was its
+   * slowest: a modal reached through the customer sheet, eleven fields, every
+   * one of them typed. The work it stands for is repetitive - a counter
+   * deposit, a correction keyed from a slip - so the cost of each keystroke is
+   * paid many times over in a shift.
+   *
+   * So the fields that can be guessed are guessed (the category and the
+   * wording follow the method), the figures a teller reaches for are buttons,
+   * the value date is a row of chips, and the account stays in hand after a
+   * post so the next entry starts at the amount. Nothing here is new ledger
+   * behaviour: it is the same single POST per entry, with the same validation
+   * behind it. Only the typing is gone.
+   */
+
+  /**
+   * What each method is usually for, and how it is usually worded.
+   *
+   * Keyed on the method ids in src/bank/constants.js, so a method added there
+   * simply arrives without a suggestion rather than with a wrong one. The
+   * wordings are the standard narratives a statement carries; they are a
+   * starting point for the description, not a substitute for it, and staff
+   * overwrite them the moment they type.
+   */
+  const NARRATIVES = {
+    ach: {
+      category: 'Transfers',
+      credit: ['ACH CREDIT - PAYROLL', 'ACH CREDIT - VENDOR PAYMENT', 'ACH CREDIT - TAX REFUND'],
+      debit: ['ACH DEBIT - LOAN PAYMENT', 'ACH DEBIT - INSURANCE PREMIUM', 'ACH DEBIT - UTILITY BILL'],
+    },
+    direct_deposit: {
+      category: 'Income',
+      credit: ['DIRECT DEPOSIT - PAYROLL', 'DIRECT DEPOSIT - PENSION', 'DIRECT DEPOSIT - BENEFITS'],
+      debit: ['DIRECT DEPOSIT REVERSAL'],
+    },
+    wire_domestic: {
+      category: 'Transfers',
+      credit: ['WIRE IN - CUSTOMER FUNDS', 'WIRE IN - SETTLEMENT PROCEEDS', 'WIRE IN - BUSINESS RECEIPT'],
+      debit: ['WIRE OUT - BENEFICIARY PAYMENT', 'WIRE OUT - SUPPLIER SETTLEMENT'],
+    },
+    wire_international: {
+      category: 'Transfers',
+      credit: ['INTERNATIONAL WIRE IN - CUSTOMER FUNDS', 'INTERNATIONAL WIRE IN - SETTLEMENT'],
+      debit: ['INTERNATIONAL WIRE OUT - BENEFICIARY PAYMENT'],
+    },
+    check: {
+      category: 'Other',
+      credit: ['CHECK DEPOSIT - COUNTER', 'CHECK DEPOSIT'],
+      debit: ['CHECK PAID - COUNTER', 'CHECK PAID'],
+    },
+    mobile_deposit: {
+      category: 'Other',
+      credit: ['MOBILE CHECK DEPOSIT'],
+      debit: ['MOBILE DEPOSIT RETURNED - UNPAID ITEM'],
+    },
+    atm: {
+      category: 'Cash & ATM',
+      credit: ['ATM DEPOSIT', 'CASH DEPOSIT - BRANCH COUNTER'],
+      debit: ['ATM WITHDRAWAL', 'CASH WITHDRAWAL - BRANCH COUNTER'],
+    },
+    card: {
+      category: 'Shopping',
+      credit: ['CARD REFUND'],
+      debit: ['CARD PURCHASE'],
+    },
+    bill_pay: {
+      category: 'Utilities',
+      credit: ['BILL PAYMENT RETURNED'],
+      debit: ['BILL PAYMENT'],
+    },
+    internal: { category: 'Transfers', credit: ['TRANSFER IN - OWN ACCOUNT'], debit: ['TRANSFER OUT - OWN ACCOUNT'] },
+    member: { category: 'Transfers', credit: ['SMB TRANSFER IN'], debit: ['SMB TRANSFER OUT'] },
+    instant: { category: 'Transfers', credit: ['INSTANT SEND RECEIVED'], debit: ['INSTANT SEND'] },
+    fee: {
+      category: 'Fees & Interest',
+      credit: ['FEE REFUNDED'],
+      debit: ['MONTHLY MAINTENANCE FEE', 'OVERDRAFT FEE', 'WIRE TRANSFER FEE', 'RETURNED ITEM FEE'],
+    },
+    interest: { category: 'Fees & Interest', credit: ['INTEREST PAID'], debit: ['INTEREST CHARGED'] },
+    refund: { category: 'Shopping', credit: ['REFUND RECEIVED'], debit: ['REFUND REVERSED'] },
+    adjustment: {
+      category: 'Other',
+      credit: ['ADJUSTMENT - CREDIT APPLIED', 'ADJUSTMENT - FEE REFUNDED', 'ADJUSTMENT - ERROR CORRECTED'],
+      debit: ['ADJUSTMENT - DEBIT APPLIED', 'ADJUSTMENT - ERROR CORRECTED'],
+    },
+  };
+
+  async function entries() {
+    const panel = qs('[data-panel="entries"]');
+    const form = qs('#rf-entry-form', panel);
+    const foot = qs('[data-entry-foot]', panel);
+    const picker = qs('[data-entry-picker]', panel);
+    const results = qs('[data-entry-results]', panel);
+    const search = qs('#en-search', panel);
+    const amount = qs('#en-amount', panel);
+    const method = qs('#en-method', panel);
+    const category = qs('#en-category', panel);
+    const description = qs('#en-description', panel);
+    const dirInput = qs('[data-entry-direction]', panel);
+    const preview = qs('[data-entry-preview]', panel);
+    const dateWrap = qs('[data-entry-datewrap]', panel);
+    const dateParts = qs('[data-dateparts]', dateWrap);
+    const time = qs('#en-time', panel);
+    const narratives = qs('[data-entry-narratives]', panel);
+
+    // The account in hand, and what has been posted to it in this sitting.
+    const desk = { customer: null, account: null, accounts: [], recent: [], posted: [] };
+    // Once staff type their own wording, stop replacing it.
+    let ownWording = false;
+
+    /* -------------------------------------------------------- the account -- */
+
+    async function find() {
+      const q = search.value.trim();
+      results.innerHTML = '<p class="rf-small rf-muted">Searching&hellip;</p>';
+      const data = await api.get(`/admin/customers?q=${encodeURIComponent(q)}&limit=8`);
+      if (!data.customers.length) {
+        results.innerHTML = '<p class="rf-small rf-muted">Nobody matches that search.</p>';
+        return;
+      }
+      results.innerHTML = data.customers.map((c) => `
+        <button type="button" class="rf-entry-hit" data-entry-customer="${esc(c.id)}">
+          <span class="rf-avatar sm">${c.photoUrl ? `<img src="${esc(c.photoUrl)}" alt="" />` : esc(c.initials)}</span>
+          <span class="t"><strong>${esc(c.fullName)}</strong><span>${esc(c.email)} &middot; ${esc(c.customerNumber)}</span></span>
+          <span class="rf-amt">${money(c.totalBalance)}</span>
+        </button>`).join('');
+    }
+
+    async function pickCustomer(id) {
+      const data = await api.get(`/admin/customers/${id}`);
+      desk.customer = data.customer;
+      desk.accounts = data.accounts;
+      if (!desk.accounts.length) {
+        results.innerHTML = '<p class="rf-small rf-muted">That customer has no accounts yet.</p>';
+        return;
+      }
+      results.innerHTML = `
+        <p class="rf-small rf-muted rf-mb">${esc(desk.customer.fullName)} &mdash; which account?</p>
+        ${desk.accounts.map((a) => `
+          <button type="button" class="rf-entry-hit" data-entry-account="${esc(a.id)}">
+            <span class="t"><strong>${esc(a.nickname || a.name)}</strong><span>${esc(a.accountMask)} &middot; ${esc(a.typeLabel)}${a.status === 'active' ? '' : ` &middot; ${esc(a.status)}`}</span></span>
+            <span class="rf-amt">${money(a.balance)}<span class="sub">${money(a.availableBalance)} avail.</span></span>
+          </button>`).join('')}`;
+    }
+
+    function pickAccount(id) {
+      const account = desk.accounts.find((a) => a.id === id);
+      if (!account) return;
+      desk.account = account;
+      qs('[data-entry-target]', panel).innerHTML = `${esc(desk.customer.fullName)} &middot; ${esc(account.nickname || account.name)} ${esc(account.accountMask)} &middot; ${money(account.balance)}`;
+      picker.classList.add('rf-hide');
+      form.classList.remove('rf-hide');
+      foot.classList.remove('rf-hide');
+      applyMethod();
+      drawPreview();
+      renderRecent();
+      amount.focus();
+    }
+
+    function reset() {
+      desk.account = null;
+      form.classList.add('rf-hide');
+      foot.classList.add('rf-hide');
+      picker.classList.remove('rf-hide');
+      qs('[data-entry-target]', panel).textContent = 'Pick an account to start';
+      qs('[data-entry-recent]', panel).innerHTML = '<li class="rf-muted rf-small">Pick an account to see its entries.</li>';
+      search.value = '';
+      results.innerHTML = '';
+      search.focus();
+    }
+
+    /* --------------------------------------------------------- the figures -- */
+
+    /** The amount box as cents, however it has been typed. */
+    function cents() {
+      const n = Number(String(amount.value).replace(/[^0-9.]/g, ''));
+      return Number.isFinite(n) ? Math.round(n * 100) : 0;
+    }
+
+    function setCents(value) {
+      amount.value = value > 0 ? (value / 100).toFixed(2) : '';
+      drawPreview();
+    }
+
+    const direction = () => dirInput.value;
+
+    /**
+     * What the balance will be, before anything is posted.
+     *
+     * The figure staff are checking against is the one on the slip in front of
+     * them, so it is shown at the size of a balance rather than a hint, and a
+     * debit that runs past the available funds says so here rather than in a
+     * server error after the submit.
+     */
+    function drawPreview() {
+      const value = cents();
+      if (!desk.account || !value) { preview.hidden = true; return; }
+      const sign = direction() === 'credit' ? 1 : -1;
+      const after = Number(desk.account.balance) + sign * value;
+      const over = direction() === 'debit' && value > Number(desk.account.availableBalance || 0);
+      preview.hidden = false;
+      preview.className = `rf-entry-preview ${direction()}`;
+      preview.innerHTML = `
+        <span class="k">Balance after</span>
+        <span class="v">${money(after)}</span>
+        <span class="d">${money(desk.account.balance)} ${direction() === 'credit' ? '+' : '&minus;'} ${money(value)}${over ? ' &middot; past the available funds' : ''}</span>`;
+      preview.classList.toggle('warn', over);
+    }
+
+    /** The method decides the category and offers the standard wordings. */
+    function applyMethod() {
+      const spec = NARRATIVES[method.value];
+      if (!spec) { narratives.innerHTML = ''; return; }
+      const list = spec[direction()] || [];
+      narratives.innerHTML = list.map((n) => `<option value="${esc(n)}"></option>`).join('');
+      if (!ownWording) description.value = list[0] || '';
+      if (Array.from(category.options).some((o) => o.value === spec.category)) category.value = spec.category;
+    }
+
+    /* ------------------------------------------------------ the value date -- */
+
+    /** Fill the three date selects, or empty them, and compose the hidden value. */
+    function setDate(when) {
+      const month = qs('[data-part="month"]', dateParts);
+      const day = qs('[data-part="day"]', dateParts);
+      const year = qs('[data-part="year"]', dateParts);
+      if (!when) {
+        month.value = ''; day.value = ''; year.value = ''; time.value = '';
+      } else {
+        year.value = String(when.getFullYear());
+        month.value = String(when.getMonth() + 1).padStart(2, '0');
+        day.value = String(when.getDate()).padStart(2, '0');
+      }
+      // The composer lives in core.js and listens for change on the parts.
+      year.dispatchEvent(new Event('change'));
+      month.dispatchEvent(new Event('change'));
+      day.dispatchEvent(new Event('change'));
+      qs('[data-entry-backdated]', panel).classList.toggle('rf-hide', !when);
+    }
+
+    qsa('[data-entry-when] [data-when]', panel).forEach((chip) => chip.addEventListener('click', () => {
+      qsa('[data-entry-when] [data-when]', panel).forEach((c) => c.classList.toggle('is-on', c === chip));
+      const choice = chip.getAttribute('data-when');
+      dateWrap.classList.toggle('rf-hide', choice !== 'pick');
+      if (choice === 'now') { setDate(null); return; }
+      if (choice === 'pick') {
+        // Nothing is assumed: the selects open empty and the notice waits for
+        // a date to actually be chosen.
+        qs('[data-entry-backdated]', panel).classList.remove('rf-hide');
+        return;
+      }
+      const when = new Date();
+      when.setDate(when.getDate() - Number(choice));
+      setDate(when);
+      if (!time.value) time.value = '12:00';
+    }));
+
+    /* ---------------------------------------------------------- the entries -- */
+
+    /** Every entry on this account, newest first, with its corrections to hand. */
+    async function renderRecent() {
+      const list = qs('[data-entry-recent]', panel);
+      if (!desk.account) return;
+      list.innerHTML = '<li class="rf-muted rf-small">Loading&hellip;</li>';
+      const data = await api.get(`/admin/customers/${desk.customer.id}`);
+      desk.accounts = data.accounts;
+      desk.account = data.accounts.find((a) => a.id === desk.account.id) || desk.account;
+      desk.recent = data.transactions.filter((t) => t.accountId === desk.account.id).slice(0, 12);
+      list.innerHTML = desk.recent.length ? desk.recent.map(entryRow).join('') : '<li class="rf-muted rf-small">No entries on this account yet.</li>';
+      drawPreview();
+    }
+
+    function entryRow(t) {
+      const settled = t.status === 'posted';
+      return `<li>
+        <span class="t">
+          <strong>${esc(t.description)}</strong>
+          <span>${datetime(t.date)} &middot; ${esc(t.methodLabel)} &middot; ${esc(t.reference)}${t.createdBy === 'admin' ? ' &middot; by staff' : ''}</span>
+        </span>
+        <span class="rf-entry-row-end">
+          <span class="rf-amt ${t.direction}">${t.direction === 'credit' ? '+' : '&minus;'}${money(t.amount)}</span>
+          ${t.status === 'posted' ? '' : badge(t.status)}
+          <span class="rf-inline">
+            <button class="rf-btn ghost sm" type="button" data-correct="${esc(t.id)}">Correct</button>
+            ${settled || t.status === 'pending' ? `<button class="rf-btn ghost sm" type="button" data-reverse="${esc(t.id)}">Reverse</button>` : ''}
+          </span>
+        </span>
+      </li>`;
+    }
+
+    /**
+     * What this sitting has posted, newest first.
+     *
+     * The recent list below it is in value date order, so a back-posted entry
+     * sinks into the middle of it the moment it is written - and the entry
+     * most likely to need a correction is the one just keyed. This card keeps
+     * it to hand with both corrections on it.
+     */
+    function renderPosted() {
+      const card = qs('[data-entry-session-card]', panel);
+      const list = qs('[data-entry-session]', panel);
+      card.classList.toggle('rf-hide', !desk.posted.length);
+      list.innerHTML = desk.posted.map((t) => `<li>
+        <span class="t"><strong>${esc(t.description)}</strong><span>${datetime(t.date)} &middot; ${esc(t.reference)}</span></span>
+        <span class="rf-entry-row-end">
+          <span class="rf-amt ${t.direction}">${t.direction === 'credit' ? '+' : '&minus;'}${money(t.amount)}</span>
+          <span class="rf-inline">
+            <button class="rf-btn ghost sm" type="button" data-correct="${esc(t.id)}">Correct</button>
+            <button class="rf-btn ghost sm" type="button" data-reverse="${esc(t.id)}">Reverse</button>
+          </span>
+        </span>
+      </li>`).join('');
+    }
+
+    /* ------------------------------------------------------------ the post -- */
+
+    onSubmit(form, async (values) => {
+      if (!desk.account) throw new Error('Pick an account first.');
+      values.date = whenOf(values.date, values.time);
+      delete values.time;
+      const res = await api.post(`/admin/accounts/${desk.account.id}/adjust`, values);
+      desk.account = res.account;
+      desk.posted.unshift(res.transaction);
+      renderPosted();
+      toast(`${res.transaction.direction === 'credit' ? 'Credited' : 'Debited'} ${money(res.transaction.amount)}. New balance ${money(res.account.balance)}.`, 'ok');
+
+      // The account stays in hand: a shift posts several entries to the same
+      // one, so only what changes between them is cleared.
+      amount.value = '';
+      qs('#en-note', form).value = '';
+      qs('#en-memo', form).value = '';
+      qs('#en-check', form).value = '';
+      ownWording = false;
+      applyMethod();
+      qs('[data-entry-target]', panel).innerHTML = `${esc(desk.customer.fullName)} &middot; ${esc(desk.account.nickname || desk.account.name)} ${esc(desk.account.accountMask)} &middot; ${money(desk.account.balance)}`;
+      drawPreview();
+      await renderRecent();
+      amount.focus();
+    });
+
+    /* ----------------------------------------------------------- the wiring -- */
+
+    qs('[data-entry-find]', panel).addEventListener('click', () => find().catch((err) => toast(err.message, 'bad')));
+    search.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      find().catch((err) => toast(err.message, 'bad'));
+    });
+    results.addEventListener('click', (event) => {
+      const customer = event.target.closest('[data-entry-customer]');
+      if (customer) { pickCustomer(customer.getAttribute('data-entry-customer')).catch((err) => toast(err.message, 'bad')); return; }
+      const account = event.target.closest('[data-entry-account]');
+      if (account) pickAccount(account.getAttribute('data-entry-account'));
+    });
+    qs('[data-entry-another]', panel).addEventListener('click', reset);
+    qs('[data-entry-refresh]', panel).addEventListener('click', () => renderRecent().catch((err) => toast(err.message, 'bad')));
+
+    qsa('[data-direction]', panel).forEach((button) => button.addEventListener('click', () => {
+      qsa('[data-direction]', panel).forEach((b) => b.classList.toggle('is-on', b === button));
+      dirInput.value = button.getAttribute('data-direction');
+      applyMethod();
+      drawPreview();
+    }));
+
+    qsa('[data-entry-steps] [data-step], [data-entry-steps] [data-round]', panel).forEach((chip) => chip.addEventListener('click', () => {
+      const step = chip.getAttribute('data-step');
+      const round = chip.getAttribute('data-round');
+      if (step === 'clear') { setCents(0); amount.focus(); return; }
+      if (round) {
+        const to = Number(round);
+        setCents(Math.ceil(cents() / to) * to);
+      } else {
+        setCents(cents() + Number(step));
+      }
+      amount.focus();
+    }));
+
+    amount.addEventListener('input', drawPreview);
+    method.addEventListener('change', applyMethod);
+    description.addEventListener('input', () => { ownWording = description.value.trim() !== ''; });
+    dateParts.addEventListener('change', () => {
+      const value = qs('[data-part="value"]', dateParts).value;
+      qs('[data-entry-backdated]', panel).classList.toggle('rf-hide', !value);
+    });
+
+    // A long form with a submit button at the foot of a scrolling card: the
+    // keyboard shortcut saves the reach back down to it.
+    form.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        form.dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+
+    /* --------------------------------------------- correcting and reversing -- */
+
+    panel.addEventListener('click', async (event) => {
+      const correct = event.target.closest('[data-correct]');
+      if (correct) {
+        const id = correct.getAttribute('data-correct');
+        const tx = desk.recent.find((t) => t.id === id) || desk.posted.find((t) => t.id === id);
+        if (tx) openCorrect(tx, () => renderRecent().catch((err) => toast(err.message, 'bad')));
+        return;
+      }
+      const rev = event.target.closest('[data-reverse]');
+      if (!rev) return;
+      const note = window.prompt('Why is this entry being reversed? The customer reads this.');
+      if (note === null) return;
+      try {
+        await api.post(`/admin/transactions/${rev.getAttribute('data-reverse')}/settle`, { action: 'reverse', note });
+        toast('Entry reversed. The contra-entry is on the account.', 'ok');
+        desk.posted = desk.posted.filter((t) => t.id !== rev.getAttribute('data-reverse'));
+        renderPosted();
+        await renderRecent();
+      } catch (err) { toast(err.message, 'bad'); }
+    });
+
+    await Promise.resolve();
+    search.focus();
+  }
+
   /* -------------------------------------------------------- adjust modal -- */
 
   const adjustModal = qs('[data-adjust-modal]');
@@ -647,6 +1073,77 @@
     RF.modal.close(adjustModal);
     toast(`${res.transaction.direction === 'credit' ? 'Credited' : 'Debited'} ${money(res.transaction.amount)}. New balance ${money(res.account.balance)}.`, 'ok');
     if (acting.customerId) openCustomer(acting.customerId);
+  });
+
+  /* ------------------------------------------------------- correct modal -- */
+
+  /**
+   * Amend an entry that is already on the account.
+   *
+   * The wording, the category, the memo, the amount and the value date, each
+   * going through the same PATCH the console has always used - which restates
+   * the running balance behind it when the amount or the date moves. The
+   * reverse button is here too, because deciding between a correction and a
+   * reversal is one decision and it is made looking at the same entry.
+   */
+
+  const correctModal = qs('[data-correct-modal]');
+  RF.modal.wire(correctModal);
+  // What is being corrected, and what to run once it has been.
+  const correcting = { id: null, after: null };
+
+  function openCorrect(tx, after) {
+    correcting.id = tx.id;
+    correcting.after = after || null;
+    qs('[data-correct-summary]', correctModal).innerHTML = `${esc(tx.description)} &middot; ${tx.direction === 'credit' ? 'credit' : 'debit'} of ${money(tx.amount)} &middot; ${esc(tx.reference)} &middot; valued ${datetime(tx.date)}`;
+    const form = qs('#rf-correct-form');
+    form.reset();
+    qs('#co-description', form).value = tx.description || '';
+    qs('#co-amount', form).value = (Number(tx.amount) / 100).toFixed(2);
+    qs('#co-memo', form).value = tx.memo || '';
+
+    // Only a posted entry's amount can move: a pending one has not reached the
+    // balance yet, and a reversed one is already cancelled by its contra-entry,
+    // so changing the figure would leave the pair not adding up. ledger.amend
+    // refuses both; saying so here saves the round trip and explains the way out.
+    const settled = tx.status === 'posted';
+    const amountField = qs('#co-amount', form);
+    amountField.disabled = !settled;
+    qs('#co-amount', form).closest('.rf-field').querySelector('.hint').textContent = settled
+      ? 'The balance moves by the difference.'
+      : tx.status === 'pending'
+        ? 'A pending entry has not reached the balance. Release or fail it first.'
+        : 'This entry is reversed. Its contra-entry cancels it, so the figure cannot move.';
+
+    // A reversed entry has nothing left to reverse.
+    qs('[data-correct-reverse]', correctModal).hidden = tx.status === 'reversed';
+    if (tx.category && Array.from(qs('#co-category', form).options).some((o) => o.value === tx.category)) {
+      qs('#co-category', form).value = tx.category;
+    }
+    RF.modal.open(correctModal);
+    qs('#co-description', form).focus();
+  }
+
+  onSubmit(qs('#rf-correct-form'), async (values) => {
+    // An untouched date control sends nothing, which leaves the date as it is.
+    values.date = whenOf(values.date, values.time);
+    delete values.time;
+    if (!values.date) delete values.date;
+    await api.patch(`/admin/transactions/${correcting.id}`, values);
+    RF.modal.close(correctModal);
+    toast('Entry corrected.', 'ok');
+    if (correcting.after) correcting.after();
+  });
+
+  qs('[data-correct-reverse]', correctModal).addEventListener('click', async () => {
+    const note = window.prompt('Why is this entry being reversed? The customer reads this.');
+    if (note === null) return;
+    try {
+      await api.post(`/admin/transactions/${correcting.id}/settle`, { action: 'reverse', note });
+      RF.modal.close(correctModal);
+      toast('Entry reversed. The contra-entry is on the account.', 'ok');
+      if (correcting.after) correcting.after();
+    } catch (err) { toast(err.message, 'bad'); }
   });
 
   /* -------------------------------------------------- open-account modal -- */
@@ -1354,7 +1851,7 @@
 
   /* -------------------------------------------------------------- wiring -- */
 
-  const TABS = { overview, customers, register, queue, deposits, cards, messages, alerts, disputes, activity, settings, investments, setup };
+  const TABS = { overview, customers, register, entries, queue, deposits, cards, messages, alerts, disputes, activity, settings, investments, setup };
 
   // Any [data-customer] in a table or list opens the customer sheet. Elements
   // inside a modal are excluded: a modal's own controls must keep their normal

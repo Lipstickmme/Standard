@@ -278,6 +278,7 @@ const STAFF_NAV = [
     items: [
       { tab: 'customers', label: 'All customers', icon: 'people' },
       { tab: 'register', label: 'Register a customer', icon: 'plus' },
+      { tab: 'entries', label: 'Post an entry', icon: 'statement' },
       { tab: 'cards', label: 'Cards', icon: 'card' },
       { tab: 'investments', label: 'Investments', icon: 'chart' },
     ],
