@@ -158,8 +158,8 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       await page.waitForURL('**/dashboard', { timeout: 20000 });
       ok('sign-in: password, then the emailed code');
 
-      await page.waitForSelector('[data-accounts] .rf-acct', { timeout: 20000 });
-      const tiles = await page.$$eval('[data-accounts] .rf-acct .bal', (nodes) => nodes.map((n) => n.textContent));
+      await page.waitForSelector('[data-accounts] .hs-acct-row', { timeout: 20000 });
+      const tiles = await page.$$eval('[data-accounts] .hs-acct-row .bal', (nodes) => nodes.map((n) => n.textContent));
       assert.ok(tiles.length >= 3, 'the dashboard shows the accounts');
       const total = money(await page.textContent('[data-total="deposits"]'));
       const deposits = tiles.slice(0, 2).reduce((sum, t) => sum + money(t), 0);
@@ -168,6 +168,16 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       assert.ok(rows > 5, 'recent activity is populated');
       checkingBefore = money(tiles[0]);
       ok(`dashboard: ${tiles.length} accounts, $${checkingBefore.toFixed(2)} on the first, ${rows} recent entries`);
+
+      // Every line carries its time, and the quick filter narrows the table.
+      const times = await page.$$eval('[data-recent] td.hs-when .sub', (n) => n.map((x) => x.textContent));
+      assert.ok(times.length === rows && times.every((t) => /^\d{1,2}:\d{2} [AP]M$/.test(t)), `each entry shows its time: ${times.slice(0, 3)}`);
+      await page.click('[data-recent-filter] [data-filter="credit"]');
+      const moneyIn = await page.$$eval('[data-recent] tr', (n) => n.map((x) => (x.querySelector('.rf-amt') || {}).className || 'empty'));
+      assert.ok(moneyIn.length < rows && moneyIn.every((c) => /credit|empty/.test(c)), 'Money in shows only credits');
+      await page.click('[data-recent-filter] [data-filter="all"]');
+      assert.strictEqual(await page.$$eval('[data-recent] tr', (n) => n.length), rows, 'All puts every line back');
+      ok('dashboard activity: a time on every line, and the filter narrows it');
     }
 
     /* ---- 3. a transfer made in the UI moves the money ---- */
@@ -193,8 +203,8 @@ const IGNORE = /fonts\.googleapis|fonts\.gstatic|ERR_CONNECTION_RESET|ERR_NAME_N
       await page.click('.rf-modal-backdrop [data-close]');
 
       await page.goto(`${base}/dashboard`, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('[data-accounts] .rf-acct', { timeout: 20000 });
-      const after = money(await page.$eval('[data-accounts] .rf-acct .bal', (n) => n.textContent));
+      await page.waitForSelector('[data-accounts] .hs-acct-row', { timeout: 20000 });
+      const after = money(await page.$eval('[data-accounts] .hs-acct-row .bal', (n) => n.textContent));
       assert.ok(Math.abs((checkingBefore - 125) - after) < 0.02, `the balance fell by $125 (${checkingBefore} -> ${after})`);
       ok('a transfer made in the form moves the balance');
     }

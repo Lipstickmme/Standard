@@ -15,18 +15,95 @@
 
   /* ------------------------------------------------------------- shared -- */
 
-  /** One row of the transaction tables, used on three different screens. */
+  /**
+   * A small drawing for each spending category, on the same 24px grid as the
+   * sidebar's icons, with the colour its round mark is tinted in. Anything
+   * without one falls back to an arrow in or out.
+   */
+  const MARKS = {
+    Groceries: ['#15803d', '<path d="M3 4h2.2l2.1 10.2h10.4l2-7.2H6.1"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>'],
+    Dining: ['#c2410c', '<path d="M7 3v18M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M17 21V3c-2.2 1.2-3.4 3.6-3.4 6.6V13H17"/>'],
+    Transport: ['#0369a1', '<rect x="4.5" y="3.5" width="15" height="14" rx="2.5"/><path d="M4.5 11h15M8 17.5V20M16 17.5V20M8.3 14.3h.01M15.7 14.3h.01"/>'],
+    Fuel: ['#b45309', '<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3.5 21h13M5 10h10"/><path d="M15 8h2.2a1.8 1.8 0 0 1 1.8 1.8v6.7a1.5 1.5 0 0 0 3 0V8.5L19 6"/>'],
+    Travel: ['#7c3aed', '<rect x="3.5" y="7" width="17" height="12.5" rx="2"/><path d="M9 7V5.2A1.2 1.2 0 0 1 10.2 4h3.6A1.2 1.2 0 0 1 15 5.2V7M3.5 12.5h17"/>'],
+    Utilities: ['#a16207', '<path d="M13 2.5 5 13.5h6l-1 8 8-11h-6z"/>'],
+    'Rent & Mortgage': ['#1d4ed8', '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.8 9.5V20h12.4V9.5"/><path d="M10 20v-5.5h4V20"/>'],
+    Insurance: ['#0f766e', '<path d="M12 2.7 4.6 5.4v6.2c0 4.5 3 7.8 7.4 9.7 4.4-1.9 7.4-5.2 7.4-9.7V5.4z"/>'],
+    Healthcare: ['#be123c', '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>'],
+    Shopping: ['#be185d', '<path d="M5 8h14l-1 12.5H6z"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/>'],
+    Entertainment: ['#9333ea', '<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z"/>'],
+    Subscriptions: ['#4f46e5', '<path d="M4 11V9.5A3.5 3.5 0 0 1 7.5 6H19"/><path d="m16 3 3 3-3 3"/><path d="M20 13v1.5a3.5 3.5 0 0 1-3.5 3.5H5"/><path d="m8 21-3-3 3-3"/>'],
+    Education: ['#0369a1', '<path d="M2.5 9.5 12 5l9.5 4.5L12 14z"/><path d="M6.5 11.6V16c1.5 1.6 3.4 2.4 5.5 2.4s4-.8 5.5-2.4v-4.4M21.5 9.5v5"/>'],
+    Transfers: ['#1f5fae', '<path d="M3.4 8.8h14.2"/><path d="M13.9 5.1 17.6 8.8l-3.7 3.7"/><path d="M20.6 15.2H6.4"/><path d="M10.1 11.5 6.4 15.2l3.7 3.7"/>'],
+    Investments: ['#0d9488', '<path d="M3 17 9.5 10.5l4 4L21 7"/><path d="M15 7h6v6"/>'],
+    Income: ['#15803d', '<path d="M17.6 6.4 6.4 17.6"/><path d="M6.4 8.8v8.8h8.8"/>'],
+    'Fees & Interest': ['#64748b', '<path d="M18.5 5.5 5.5 18.5"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/>'],
+    Taxes: ['#475569', '<path d="M5.8 3h12.4v18l-2.5-1.7-2.5 1.7-2.6-1.7-2.4 1.7-2.4-1.6z"/><path d="M8.6 7.6h6.8M8.6 11h6.8M8.6 14.4h3.9"/>'],
+    'Cash & ATM': ['#047857', '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5h.01M18 14.5h.01"/>'],
+    out: ['#475569', '<path d="M6.4 17.6 17.6 6.4"/><path d="M8.8 6.4h8.8v8.8"/>'],
+    pending: ['#a16207', '<circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.6 2.2"/>'],
+    bill: ['#1f5fae', '<path d="M5.8 3h12.4v18l-2.5-1.7-2.5 1.7-2.6-1.7-2.4 1.7-2.4-1.6z"/><path d="M8.6 7.6h6.8M8.6 11h6.8M8.6 14.4h3.9"/>'],
+    checking: ['#1f5fae', '<path d="M2.4 9.8 12 4.1l9.6 5.7"/><path d="M4.3 9.8v8.4M9.4 9.8v8.4M14.6 9.8v8.4M19.7 9.8v8.4M3.1 18.2h17.8M1.8 20.6h20.4"/>'],
+    savings: ['#0d9488', '<ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v5.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 11.5V17c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-5.5"/>'],
+    credit: ['#b42318', '<rect x="2.4" y="4.8" width="19.2" height="14.4" rx="2"/><path d="M2.4 9.4h19.2M5.6 15h4"/>'],
+  };
+
+  /** A tinted round mark: a category, an account type, or one of the states above. */
+  function mark(key, label = '') {
+    const [color, art] = MARKS[key] || MARKS.out;
+    return `<span class="hs-mark" style="--c:${color}" ${label ? `title="${esc(label)}"` : 'aria-hidden="true"'}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${art}</svg></span>`;
+  }
+
+  const txMark = (tx) => mark(MARKS[tx.category] ? tx.category : (tx.direction === 'credit' ? 'Income' : 'out'), tx.category);
+
+  /** "Today", "Yesterday", "Oct 24", or "Jan 26, 2022" once it is another year, and the time. */
+  function when(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+    const day = days === 0 ? 'Today' : days === 1 ? 'Yesterday'
+      : d.toLocaleDateString('en-US', d.getFullYear() === now.getFullYear() ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' });
+    return { day, time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) };
+  }
+
+  function whenCell(iso) {
+    const { day, time } = when(iso);
+    return `<td class="rf-nowrap hs-when" title="${esc(datetime(iso))}">${day}<span class="sub">${time}</span></td>`;
+  }
+
+  /** One row of the account screen's transaction table. */
   function txRow(tx, { showAccount = true, showBalance = true } = {}) {
     return `<tr class="clickable" data-tx="${esc(tx.id)}">
-      <td class="rf-nowrap">${date(tx.date, { month: 'short', day: 'numeric' })}<span class="sub">${new Date(tx.date).getFullYear()}</span></td>
+      ${whenCell(tx.date)}
       <td>
-        <strong>${esc(tx.description)}</strong>
-        <span class="sub">${esc(tx.category)}${tx.memo ? ` &middot; ${esc(tx.memo)}` : ''}</span>
+        <span class="hs-tx">${txMark(tx)}<span>
+          <strong>${esc(tx.description)}</strong>
+          <span class="sub">${esc(tx.category)}${tx.memo ? ` &middot; ${esc(tx.memo)}` : ''}</span>
+        </span></span>
       </td>
       ${showAccount ? `<td class="rf-nowrap rf-small opt">${esc(tx.accountName || '')}<span class="sub">&bull;&bull;${esc(tx.accountLast4 || '')}</span></td>` : ''}
       <td>${tx.status === 'posted' ? '' : badge(tx.status)}</td>
       <td class="num rf-amt ${tx.direction}">${signedMoney(tx.amount, tx.direction)}</td>
       ${showBalance ? `<td class="num rf-muted opt">${tx.balanceAfter == null ? '&mdash;' : money(tx.balanceAfter)}</td>` : ''}
+    </tr>`;
+  }
+
+  /** One row of the dashboard's activity table: everything a statement line carries. */
+  function activityRow(tx) {
+    const settled = tx.status === 'posted';
+    return `<tr class="clickable" data-tx="${esc(tx.id)}">
+      ${whenCell(tx.date)}
+      <td>
+        <span class="hs-tx">${txMark(tx)}<span>
+          <strong>${esc(tx.description)}</strong>
+          <span class="sub"><span class="hs-when-sm">${esc(`${when(tx.date).day}, ${when(tx.date).time}`)} &middot; </span>${settled ? '' : '<b class="hs-pend">Pending &middot; </b>'}${esc(tx.category)}${tx.memo ? ` &middot; ${esc(tx.memo)}` : ''}</span>
+        </span></span>
+      </td>
+      <td class="rf-small rf-nowrap opt">${esc(tx.methodLabel || '')}</td>
+      <td class="rf-nowrap rf-small opt">${esc(tx.accountName || '')}<span class="sub">&bull;&bull;${esc(tx.accountLast4 || '')}</span></td>
+      <td class="opt-sm">${settled ? badge('posted', 'Completed') : badge(tx.status, tx.status.charAt(0).toUpperCase() + tx.status.slice(1))}</td>
+      <td class="num rf-amt ${tx.direction}">${signedMoney(tx.amount, tx.direction)}</td>
+      <td class="num rf-muted opt">${tx.balanceAfter == null ? '&mdash;' : money(tx.balanceAfter)}</td>
     </tr>`;
   }
 
@@ -136,6 +213,18 @@
       </div>`}
     </div>`;
 
+  /** An account as one line of the dashboard's list. */
+  const accountRow = (a) => {
+    const kind = a.isCredit ? 'credit' : (a.type === 'checking' ? 'checking' : 'savings');
+    return `<li class="hs-acct-row">
+      <a href="/accounts?id=${esc(a.id)}">
+        ${mark(kind)}
+        <span class="t"><strong>${esc(a.nickname || a.name)}</strong><span>${esc(a.typeLabel || '')} &middot; <span class="rf-mono">${esc(a.accountMask)}</span>${a.status === 'active' ? '' : ` &middot; ${esc(a.status)}`}</span></span>
+        <span class="v"${a.holdAmount ? ` title="${esc(money(a.holdAmount))} on hold"` : ''}><b class="bal${a.isCredit ? ' owed' : ''}" data-fit>${money(a.balance)}</b><span>${money(a.availableBalance)} ${a.isCredit ? 'to spend' : 'avail.'}</span></span>
+      </a>
+    </li>`;
+  };
+
   /* ---------------------------------------------------------- dashboard -- */
 
   async function dashboard() {
@@ -204,25 +293,64 @@
       heading.textContent = `${part}, ${data.user.preferredName || data.user.firstName || ''}`.trim();
     }
 
-    qs('[data-total="deposits"]').textContent = money(data.totals.deposits);
-    qs('[data-total="available"]').textContent = money(data.totals.available);
-    qs('[data-total="owed"]').textContent = money(data.totals.owed);
-    qs('[data-total="creditAvailable"]').textContent = money(data.totals.creditAvailable);
-    const deposits = data.accounts.filter((a) => !a.isCredit).length;
-    qs('[data-total-sub="deposits"]').textContent = `across ${deposits} ${deposits === 1 ? 'account' : 'accounts'}`;
-    const owedSub = qs('[data-total-sub="owed"]');
-    if (owedSub) owedSub.textContent = data.totals.owed ? 'due on your card' : 'nothing owed';
+    const asof = qs('[data-hero="asof"]');
+    if (asof) asof.textContent = `· as of ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 
-    qs('[data-accounts]').innerHTML = data.accounts.map(accountTile).join('')
-      || '<div class="rf-card rf-empty">No accounts yet.</div>';
-
-    qs('[data-recent]').innerHTML = data.recent.length
-      ? data.recent.map((tx) => txRow(tx)).join('')
-      : '<tr><td colspan="6" class="rf-center rf-muted">Nothing yet.</td></tr>';
-
-    // Six months in and out.
+    // The headline figures.
     const months = data.months || [];
+    const thisMonth = months[months.length - 1] || { in: 0, out: 0, label: '' };
+    const lastMonth = months[months.length - 2];
+    const setTotal = (key, value) => { const el = qs(`[data-total="${key}"]`); if (el) el.textContent = value; };
+    const setSub = (key, value) => { const el = qs(`[data-total-sub="${key}"]`); if (el) el.textContent = value; };
+    setTotal('deposits', money(data.totals.deposits));
+    setTotal('available', money(data.totals.available));
+    setTotal('owed', money(data.totals.owed));
+    setTotal('creditAvailable', money(data.totals.creditAvailable));
+    setTotal('monthIn', `+${money(thisMonth.in)}`);
+    setTotal('monthOut', `−${money(thisMonth.out)}`);
+    qsa('[data-month-label]').forEach((el) => { el.textContent = thisMonth.label ? `· ${thisMonth.label}` : 'this month'; });
+    if (lastMonth) {
+      setSub('monthIn', `${money(lastMonth.in)} in ${lastMonth.label}`);
+      setSub('monthOut', `${money(lastMonth.out)} in ${lastMonth.label}`);
+    }
+    const deposits = data.accounts.filter((a) => !a.isCredit).length;
+    setSub('deposits', `across ${deposits} ${deposits === 1 ? 'account' : 'accounts'}`);
+    setSub('owed', data.totals.owed ? 'due on your card' : 'nothing owed');
+
+    qs('[data-accounts]').innerHTML = data.accounts.map(accountRow).join('')
+      || '<li class="rf-muted rf-small">No accounts yet.</li>';
+
+    // Recent activity, with a quick filter over what is already on the page.
+    const recentBody = qs('[data-recent]');
+    const paintRecent = (filter) => {
+      const rows = data.recent.filter((tx) => filter === 'all'
+        || (filter === 'pending' ? tx.status === 'pending' : tx.direction === filter));
+      recentBody.innerHTML = rows.length
+        ? rows.map(activityRow).join('')
+        : `<tr><td colspan="7" class="rf-center rf-muted">${data.recent.length ? 'Nothing like that in your recent activity.' : 'Nothing yet.'}</td></tr>`;
+    };
+    paintRecent('all');
+    const seg = qs('[data-recent-filter]');
+    if (seg) {
+      seg.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-filter]');
+        if (!button) return;
+        qsa('[data-filter]', seg).forEach((b) => {
+          b.classList.toggle('is-active', b === button);
+          b.setAttribute('aria-pressed', String(b === button));
+        });
+        paintRecent(button.getAttribute('data-filter'));
+      });
+    }
+
+    // Six months in and out, with the totals above the bars.
     const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
+    const sumIn = months.reduce((n, m) => n + m.in, 0);
+    const sumOut = months.reduce((n, m) => n + m.out, 0);
+    qs('[data-months-sum]').innerHTML = `
+      <span><em>In</em><b class="rf-amt credit">+${money(sumIn)}</b></span>
+      <span><em>Out</em><b class="rf-amt">−${money(sumOut)}</b></span>
+      <span><em>Net</em><b class="rf-amt ${sumIn >= sumOut ? 'credit' : 'debit'}">${sumIn >= sumOut ? '+' : '−'}${money(Math.abs(sumIn - sumOut))}</b></span>`;
     qs('[data-months]').innerHTML = months.map((m) => `
       <div class="col">
         <div class="pair">
@@ -233,36 +361,47 @@
       </div>`).join('');
 
     // Spending by category.
-    const spending = (data.spending || []).slice(0, 6);
+    const spending = (data.spending || []).slice(0, 5);
     const spendHost = qs('[data-spending]');
     if (spending.length) {
       const coloured = spending.map((s, i) => ({ ...s, color: RF.CHART_COLORS[i % RF.CHART_COLORS.length] }));
-      const total = coloured.reduce((sum, s) => sum + s.amount, 0);
+      const total = (data.spending || []).reduce((sum, s) => sum + s.amount, 0);
+      const totalEl = qs('[data-spending-total]');
+      if (totalEl) totalEl.textContent = `${money(total)} · 30 days`;
       spendHost.innerHTML = `
-        ${RF.donut(coloured.map((s) => ({ label: s.category, amount: s.amount, color: s.color })))}
+        ${RF.donut(coloured.map((s) => ({ label: s.category, amount: s.amount, color: s.color })), { size: 104, thickness: 16 })}
         <ul class="rf-list legend">
           ${coloured.map((s) => `<li><span class="sw" style="background:${s.color}"></span><span>${esc(s.category)}</span><span class="amt">${money(s.amount)}</span></li>`).join('')}
-          <li><span class="sw" style="background:transparent"></span><strong>Total</strong><span class="amt">${money(total)}</span></li>
         </ul>`;
     } else {
-      spendHost.innerHTML = '<p class="rf-muted rf-small">No card spending in the last 30 days.</p>';
+      spendHost.innerHTML = '<p class="rf-muted rf-small" style="margin:0">No card spending in the last 30 days.</p>';
     }
 
+    // Pending entries, then the bills on autopay.
+    const SHOWN = 3;
     const pending = qs('[data-pending]');
-    pending.innerHTML = data.pending.length
-      ? data.pending.map((tx) => `<li>
-          <span class="t"><strong>${esc(tx.description)}</strong><span>${date(tx.date)} &middot; ${esc(tx.accountName)}</span></span>
-          <span class="rf-amt ${tx.direction}">${signedMoney(tx.amount, tx.direction)}</span>
-        </li>`).join('')
-      : '<li class="rf-muted rf-small">Nothing pending.</li>';
+    pending.innerHTML = `<li class="hs-list-label">Pending${data.pending.length ? ` · ${data.pending.length}` : ''}</li>`
+      + (data.pending.length
+        ? data.pending.slice(0, SHOWN).map((tx) => `<li>
+            ${mark('pending')}
+            <span class="t"><strong>${esc(tx.description)}</strong><span>${date(tx.date, { month: 'short', day: 'numeric' })}, ${new Date(tx.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} &middot; ${esc(tx.accountName)}</span></span>
+            <span class="rf-amt ${tx.direction}">${signedMoney(tx.amount, tx.direction)}</span>
+          </li>`).join('') + (data.pending.length > SHOWN ? `<li class="rf-small"><a href="/transactions">${data.pending.length - SHOWN} more pending</a></li>` : '')
+        : '<li class="rf-muted rf-small">Nothing pending.</li>');
 
     const upcoming = qs('[data-upcoming]');
-    upcoming.innerHTML = data.upcoming.length
-      ? data.upcoming.map((bill) => `<li>
-          <span class="t"><strong>${esc(bill.name)}</strong><span>${date(bill.dueDate)} &middot; ${esc(bill.category)}</span></span>
-          <span class="rf-amt">${money(bill.amount)}</span>
-        </li>`).join('')
-      : '<li class="rf-muted rf-small">No scheduled payments.</li>';
+    const daysTo = (iso) => Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000));
+    upcoming.innerHTML = `<li class="hs-list-label">Coming up</li>`
+      + (data.upcoming.length
+        ? data.upcoming.slice(0, SHOWN).map((bill) => {
+          const n = daysTo(bill.dueDate);
+          return `<li>
+            ${mark('bill')}
+            <span class="t"><strong>${esc(bill.name)}</strong><span>${date(bill.dueDate, { month: 'short', day: 'numeric' })} &middot; ${n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`} &middot; ${esc(bill.category)}</span></span>
+            <span class="rf-amt">${money(bill.amount)}</span>
+          </li>`;
+        }).join('')
+        : '<li class="rf-muted rf-small">No scheduled payments.</li>');
 
     wireTxTables();
   }

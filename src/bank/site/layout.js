@@ -135,6 +135,9 @@ const ICONS = {
     fine: '<path d="M2.4 16.2h19.2M2.4 11.8h19.2"/>',
   },
   plus: { body: '<path d="M12 4.4v15.2M4.4 12h15.2"/>', fine: '' },
+  // Diagonal arrows, the way a statement app marks money in and money out.
+  moneyIn: { body: '<path d="M17.6 6.4 6.4 17.6"/><path d="M6.4 8.8v8.8h8.8"/>', fine: '' },
+  moneyOut: { body: '<path d="M6.4 17.6 17.6 6.4"/><path d="M8.8 6.4h8.8v8.8"/>', fine: '' },
   // Three ruled lines. The one icon in the set that is a convention rather
   // than a drawing, because on a phone tab bar nothing else reads as "more".
   menu: { body: '<path d="M3.4 6.6h17.2M3.4 12h17.2M3.4 17.4h17.2"/>', fine: '' },

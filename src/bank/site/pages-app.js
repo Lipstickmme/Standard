@@ -157,88 +157,92 @@ const changePasswordContent = `
 const dashboardContent = `
         <section class="hs-dash-hero rf-mb">
           <div class="hs-dash-hero-main">
-            <span class="k">Total balance</span>
+            <span class="k">Total balance <span class="hs-asof" data-hero="asof"></span></span>
             <strong class="v" data-hero="total">&mdash;</strong>
             <span class="d"><span>Cash <b data-hero="cash">&mdash;</b></span><span class="hs-hero-inv"><span>Invested <b data-hero="invested">&mdash;</b></span><a class="hs-hero-assets" href="/invest" data-hero="assets" hidden></a></span></span>
           </div>
           <nav class="hs-qa" aria-label="Quick actions">
-            <a href="/transfers"><i>${icon('transfer', 20)}</i><span>Send</span></a>
-            <a href="/deposit"><i>${icon('deposit', 20)}</i><span>Deposit</span></a>
-            <a href="/bills"><i>${icon('bill', 20)}</i><span>Pay a bill</span></a>
-            <a href="/invest" class="is-primary"><i>${icon('chart', 20)}</i><span>Convert</span></a>
-            <a href="/cards"><i>${icon('card', 20)}</i><span>Cards</span></a>
+            <a href="/transfers"><i>${icon('transfer', 18)}</i><span>Send</span></a>
+            <a href="/deposit"><i>${icon('deposit', 18)}</i><span>Deposit</span></a>
+            <a href="/bills"><i>${icon('bill', 18)}</i><span>Pay a bill</span></a>
+            <a href="/invest" class="is-primary"><i>${icon('chart', 18)}</i><span>Convert</span></a>
+            <a href="/cards"><i>${icon('card', 18)}</i><span>Cards</span></a>
+            <a href="/statements" class="hs-qa-more"><i>${icon('statement', 18)}</i><span>Statements</span></a>
           </nav>
         </section>
 
-        <div class="rf-grid cols-4 rf-mb" data-totals>
-          <div class="rf-card rf-stat"><div class="k">Total on deposit</div><div class="v" data-total="deposits">&mdash;</div><div class="d" data-total-sub="deposits">across your accounts</div></div>
-          <div class="rf-card rf-stat"><div class="k">Available now</div><div class="v" data-total="available">&mdash;</div><div class="d">after holds and pending items</div></div>
-          <div class="rf-card rf-stat"><div class="k">Card balance</div><div class="v" data-total="owed">&mdash;</div><div class="d" data-total-sub="owed">&nbsp;</div></div>
-          <div class="rf-card rf-stat"><div class="k">Credit available</div><div class="v" data-total="creditAvailable">&mdash;</div><div class="d">to spend on your card</div></div>
+        <div class="hs-kpis rf-mb" data-totals>
+          <div class="hs-kpi"><span class="k"><i>${icon('accounts', 15)}</i><span>On deposit</span></span><strong class="v" data-fit data-total="deposits">&mdash;</strong><span class="d" data-total-sub="deposits">across your accounts</span></div>
+          <div class="hs-kpi"><span class="k"><i>${icon('check', 15)}</i><span>Available now</span></span><strong class="v" data-fit data-total="available">&mdash;</strong><span class="d">after holds and pending</span></div>
+          <div class="hs-kpi in"><span class="k"><i>${icon('moneyIn', 15)}</i><span>In <em data-month-label>this month</em></span></span><strong class="v" data-fit data-total="monthIn">&mdash;</strong><span class="d" data-total-sub="monthIn">&nbsp;</span></div>
+          <div class="hs-kpi out"><span class="k"><i>${icon('moneyOut', 15)}</i><span>Out <em data-month-label>this month</em></span></span><strong class="v" data-fit data-total="monthOut">&mdash;</strong><span class="d" data-total-sub="monthOut">&nbsp;</span></div>
+          <div class="hs-kpi"><span class="k"><i>${icon('card', 15)}</i><span>Card balance</span></span><strong class="v" data-fit data-total="owed">&mdash;</strong><span class="d" data-total-sub="owed">&nbsp;</span></div>
+          <div class="hs-kpi"><span class="k"><i>${icon('plus', 15)}</i><span>Credit available</span></span><strong class="v" data-fit data-total="creditAvailable">&mdash;</strong><span class="d">to spend on your card</span></div>
         </div>
 
-        <div class="rf-grid side">
-          <div class="rf-stack">
-            <section>
-              <div class="rf-spread rf-mb">
-                <h2 style="font-family:var(--rf-display);font-size:17px;margin:0">Your accounts</h2>
-                <a class="rf-btn ghost sm" href="/accounts">All accounts</a>
-              </div>
-              <div class="rf-grid cols-2" data-accounts>
-                <div class="rf-card rf-stat"><div class="rf-skel" style="width:60%"></div><div class="rf-skel rf-mt" style="width:40%;height:24px"></div></div>
-                <div class="rf-card rf-stat"><div class="rf-skel" style="width:60%"></div><div class="rf-skel rf-mt" style="width:40%;height:24px"></div></div>
-              </div>
-            </section>
+        <div class="rf-grid hs-dash-row rf-mb">
+          <section class="rf-card">
+            <div class="rf-card-head"><h3>Accounts</h3><div class="rf-card-actions"><a class="rf-btn ghost sm" href="/accounts">All accounts</a></div></div>
+            <ul class="hs-dash-list" data-accounts>
+              <li><div class="rf-skel" style="width:70%"></div></li>
+              <li><div class="rf-skel" style="width:55%"></div></li>
+            </ul>
+          </section>
 
-            <section class="rf-card">
-              <div class="rf-card-head">
-                <h3>Recent activity</h3>
-                <div class="rf-card-actions"><a class="rf-btn ghost sm" href="/transactions">See all</a></div>
-              </div>
-              <div class="rf-table-wrap">
-                <table class="rf-table">
-                  <thead><tr><th>Date</th><th>Description</th><th class="opt">Account</th><th></th><th class="num">Amount</th><th class="num opt">Balance</th></tr></thead>
-                  <tbody data-recent><tr><td colspan="6" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
-                </table>
-              </div>
-            </section>
+          <section class="rf-card">
+            <div class="rf-card-head"><h3>Spending</h3><div class="rf-card-actions rf-small rf-muted" data-spending-total>Last 30 days</div></div>
+            <div class="rf-card-body tight"><div class="rf-ring hs-ring-sm" data-spending></div></div>
+          </section>
 
-            <section class="rf-card">
-              <div class="rf-card-head"><h3>Money in and out</h3><div class="rf-card-actions rf-small rf-muted">Last six months</div></div>
-              <div class="rf-card-body"><div class="rf-bars" data-months></div>
-                <div class="rf-inline rf-mt rf-small rf-muted">
-                  <span class="rf-inline"><i style="width:10px;height:10px;border-radius:3px;background:var(--rf-credit);display:inline-block"></i> In</span>
-                  <span class="rf-inline"><i style="width:10px;height:10px;border-radius:3px;background:var(--rf-navy-3);display:inline-block"></i> Out</span>
-                </div>
+          <section class="rf-card">
+            <div class="rf-card-head"><h3>Pending &amp; upcoming</h3><div class="rf-card-actions"><a class="rf-btn ghost sm" href="/bills">Bills</a></div></div>
+            <ul class="hs-dash-list" data-pending></ul>
+            <ul class="hs-dash-list" data-upcoming></ul>
+          </section>
+        </div>
+
+        <section class="rf-card rf-mb hs-activity">
+          <div class="rf-card-head">
+            <h3>Recent activity</h3>
+            <div class="rf-card-actions">
+              <div class="hs-seg" role="group" aria-label="Show" data-recent-filter>
+                <button type="button" class="is-active" data-filter="all">All</button>
+                <button type="button" data-filter="credit">Money in</button>
+                <button type="button" data-filter="debit">Money out</button>
+                <button type="button" data-filter="pending">Pending</button>
               </div>
-            </section>
+              <a class="rf-btn ghost sm" href="/transactions">See all</a>
+            </div>
           </div>
-
-          <div class="rf-stack">
-            <section class="rf-card hs-dash-invest">
-              <div class="rf-card-head hs-dash-invest-head"><h3>${icon('chart', 18)} Investments</h3><div class="rf-card-actions"><a class="rf-btn sm hs-open-invest" href="/invest">Open Invest &rarr;</a></div></div>
-              <div class="hs-dash-invest-v" data-dash-invest><strong>&mdash;</strong><small>Turn part of your balance into listed assets.</small></div>
-              <div class="hs-chips" aria-label="Convert in one tap">
-                <a href="/invest?convert=SPY">S&amp;P 500</a><a href="/invest?convert=BTC">Bitcoin</a><a href="/invest?convert=XAU">Gold</a>
-                <a href="/invest?convert=AAPL">Apple</a><a href="/invest?convert=AMZN">Amazon</a><a href="/invest?convert=QQQ">Nasdaq ETF</a>
-              </div>
-            </section>
-
-            <section class="rf-card">
-              <div class="rf-card-head"><h3>Spending</h3><div class="rf-card-actions rf-small rf-muted">30 days</div></div>
-              <div class="rf-card-body"><div class="rf-ring" data-spending></div></div>
-            </section>
-
-            <section class="rf-card">
-              <div class="rf-card-head"><h3>Pending</h3></div>
-              <ul class="rf-list" data-pending><li class="rf-muted rf-small">Nothing pending.</li></ul>
-            </section>
-
-            <section class="rf-card">
-              <div class="rf-card-head"><h3>Coming up</h3></div>
-              <ul class="rf-list" data-upcoming><li class="rf-muted rf-small">No scheduled payments.</li></ul>
-            </section>
+          <div class="rf-table-wrap">
+            <table class="rf-table">
+              <thead><tr><th>Date &amp; time</th><th>Description</th><th class="opt">Method</th><th class="opt">Account</th><th class="opt-sm">Status</th><th class="num">Amount</th><th class="num opt">Balance</th></tr></thead>
+              <tbody data-recent><tr><td colspan="7" class="rf-center rf-muted">Loading&hellip;</td></tr></tbody>
+            </table>
           </div>
+        </section>
+
+        <div class="hs-dash-pair">
+          <section class="rf-card">
+            <div class="rf-card-head"><h3>Money in and out</h3><div class="rf-card-actions rf-small rf-muted">Last six months</div></div>
+            <div class="rf-card-body">
+              <div class="hs-flow-sum" data-months-sum></div>
+              <div class="rf-bars" data-months></div>
+              <div class="rf-inline rf-mt rf-small rf-muted">
+                <span class="rf-inline"><i style="width:10px;height:10px;border-radius:3px;background:var(--rf-credit);display:inline-block"></i> In</span>
+                <span class="rf-inline"><i style="width:10px;height:10px;border-radius:3px;background:var(--rf-navy-3);display:inline-block"></i> Out</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="rf-card hs-dash-invest">
+            <div class="rf-card-head hs-dash-invest-head"><h3>${icon('chart', 18)} Investments</h3><div class="rf-card-actions"><a class="rf-btn sm hs-open-invest" href="/invest">Open Invest &rarr;</a></div></div>
+            <div class="hs-dash-invest-v" data-dash-invest><strong>&mdash;</strong><small>Turn part of your balance into listed assets.</small></div>
+            <div class="hs-chips" aria-label="Convert in one tap">
+              <a href="/invest?convert=SPY">S&amp;P 500</a><a href="/invest?convert=BTC">Bitcoin</a><a href="/invest?convert=XAU">Gold</a>
+              <a href="/invest?convert=AAPL">Apple</a><a href="/invest?convert=AMZN">Amazon</a><a href="/invest?convert=QQQ">Nasdaq ETF</a>
+            </div>
+          </section>
         </div>`;
 
 /* =============================================================== accounts == */

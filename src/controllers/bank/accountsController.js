@@ -401,7 +401,7 @@ const overview = asyncHandler(async (req, res) => {
     },
     accounts: accounts.map(accountsLib.publicAccount),
     cards: cardRows.map(accountsLib.publicCard),
-    recent: allTx.slice(0, 12).map((t) => publicTransaction(t, byId.get(t.account_id))),
+    recent: allTx.slice(0, 20).map((t) => publicTransaction(t, byId.get(t.account_id))),
     pending: allTx.filter((t) => t.status === 'pending').map((t) => publicTransaction(t, byId.get(t.account_id))),
     spending,
     months,

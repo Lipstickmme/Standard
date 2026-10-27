@@ -2347,3 +2347,135 @@ html.rf-invest-on .rf-tabbar a[href="/cards"] { display: none; }
 /* Tables: a light header band and a soft blue hover. */
 .rf-app .rf-table thead th { background: var(--rf-surface-2); color: var(--rf-ink-3); }
 .rf-app .rf-table tbody tr:hover td { background: #f6f9fe; }
+
+/* ==========================================================================
+   The dashboard, compact.
+
+   One screen should answer "how do I stand": the balance and the actions in
+   a short banner, six figures in a strip, accounts, spending and what is due
+   side by side, and then the activity table across the whole width, where it
+   has room for the time, the method and the account of every line.
+   ========================================================================== */
+
+.hs-dash-hero { padding: 18px 22px; border-radius: 18px; gap: 16px; }
+.hs-dash-hero .v { font-size: clamp(28px, 3.2vw, 38px); }
+.hs-dash-hero .k { font-size: 11px; }
+.hs-asof { font-weight: 600; letter-spacing: .02em; text-transform: none; opacity: .85; }
+.hs-qa { gap: 4px; }
+.hs-qa a { width: 64px; gap: 6px; font-size: 11.5px; }
+.hs-qa i { width: 42px; height: 42px; }
+
+/* Six headline figures, each with its mark beside the label. */
+.hs-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.hs-kpi {
+  min-width: 0; padding: 12px 14px; background: var(--rf-surface);
+  border: 1px solid var(--rf-line); border-radius: 14px; box-shadow: var(--rf-shadow);
+}
+.hs-kpi .k {
+  display: flex; align-items: center; gap: 7px; min-width: 0;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--rf-ink-3); white-space: nowrap;
+}
+.hs-kpi .k i {
+  display: grid; place-items: center; flex: 0 0 24px; height: 24px; border-radius: 8px;
+  background: var(--rf-surface-3); color: var(--rf-blue);
+}
+.hs-kpi .k > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.hs-kpi .k em { font-style: normal; font-weight: 600; letter-spacing: .02em; text-transform: none; color: var(--rf-ink-4); }
+.hs-kpi.in .k i { background: var(--rf-credit-soft); color: var(--rf-credit); }
+.hs-kpi.out .k i { background: var(--rf-debit-soft); color: var(--rf-debit); }
+.hs-kpi.in .v { color: var(--rf-credit); }
+.hs-kpi .v {
+  display: block; margin: 8px 0 2px; font-size: 19px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15;
+  font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden;
+}
+.hs-kpi .d { display: block; font-size: 11.5px; color: var(--rf-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Accounts, spending, and what is pending or due, side by side. */
+.rf-grid.hs-dash-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+.hs-dash-row .rf-card-head { padding: 12px 16px; }
+.hs-dash-list { list-style: none; margin: 0; padding: 0; }
+.hs-dash-list > li { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 1px solid var(--rf-line-2); min-width: 0; }
+.hs-dash-list > li:last-child { border-bottom: 0; }
+.hs-dash-list .t { flex: 1; min-width: 0; }
+.hs-dash-list .t strong { display: block; font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-dash-list .t > span { display: block; font-size: 12px; color: var(--rf-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-dash-list .rf-amt { white-space: nowrap; font-size: 13px; }
+.hs-dash-list > li.hs-list-label {
+  padding: 10px 16px 4px; border: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rf-ink-3);
+}
+.hs-dash-list + .hs-dash-list { border-top: 1px solid var(--rf-line-2); }
+.hs-dash-list a { color: var(--rf-blue); font-weight: 600; text-decoration: none; }
+
+.hs-acct-row { padding: 0 !important; }
+.hs-acct-row > a { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; padding: 10px 16px; color: inherit; text-decoration: none; }
+.hs-acct-row > a:hover { background: var(--rf-surface-2); }
+.hs-acct-row > a:focus-visible { outline: 2px solid var(--rf-blue); outline-offset: -2px; }
+.hs-acct-row .v { text-align: right; flex: 0 0 auto; max-width: 50%; }
+.hs-acct-row .v b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+.hs-acct-row .v b.owed { color: var(--rf-debit); }
+.hs-acct-row .v > span { display: block; font-size: 11.5px; color: var(--rf-ink-3); white-space: nowrap; }
+
+/* A round, tinted mark: a category, an account type, a state. */
+.hs-mark {
+  display: inline-grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 50%;
+  color: var(--c); background: color-mix(in srgb, var(--c) 12%, var(--rf-surface));
+}
+
+.hs-ring-sm { flex-wrap: nowrap; gap: 14px; }
+.hs-ring-sm svg { width: 104px; height: 104px; flex: 0 0 104px; }
+.hs-ring-sm .legend { min-width: 0; }
+.hs-ring-sm .legend li { padding: 3px 0; font-size: 12.5px; }
+.hs-ring-sm .legend li > span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* The activity table: full width, denser rows, a mark on every line. */
+.hs-activity .rf-table td { padding: 9px 14px; }
+.hs-activity .rf-table th { white-space: nowrap; }
+.hs-tx { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.hs-tx strong { font-weight: 600; }
+.hs-when { font-weight: 600; font-size: 13px; }
+.hs-when .sub { font-weight: 400; }
+.hs-pend { display: none; color: var(--rf-pending); font-weight: 700; }
+.hs-when-sm { display: none; }
+.hs-activity .rf-card-head { flex-wrap: wrap; }
+
+/* A segmented control, for the quick filter. */
+.hs-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--rf-surface-2); border: 1px solid var(--rf-line); }
+.hs-seg button {
+  border: 0; background: transparent; cursor: pointer; padding: 5px 11px; border-radius: 999px;
+  font: 600 12.5px/1.2 var(--rf-sans); color: var(--rf-ink-3); white-space: nowrap;
+}
+.hs-seg button:hover { color: var(--rf-ink); }
+.hs-seg button.is-active { background: var(--rf-surface); color: var(--rf-ink); box-shadow: 0 1px 3px rgba(16, 23, 37, .12); }
+.hs-seg button:focus-visible { outline: 2px solid var(--rf-blue); outline-offset: 1px; }
+
+/* Money in and out beside investments; alone, it takes the row. */
+.hs-dash-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.hs-dash-pair > .rf-card + .rf-card { margin-top: 0; }
+.hs-dash-pair .rf-bars { height: 120px; }
+.hs-flow-sum { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 12px; }
+.hs-flow-sum span { display: grid; gap: 2px; }
+.hs-flow-sum em { font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rf-ink-3); }
+.hs-flow-sum b { font-size: 15px; font-weight: 700; }
+
+@media (max-width: 1180px) {
+  .hs-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rf-grid.hs-dash-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rf-grid.hs-dash-row > :first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .hs-dash-hero { padding: 16px; }
+  .hs-qa a.hs-qa-more { display: none; }
+  .hs-qa i { width: 42px; height: 42px; }
+  .hs-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .hs-kpi { padding: 10px 11px; }
+  .hs-kpi .v { font-size: 16px; margin-top: 6px; }
+  .rf-grid.hs-dash-row { grid-template-columns: minmax(0, 1fr); }
+  .hs-pend, .hs-when-sm { display: inline; }
+  /* On a phone the date moves under the name, the way a banking app lists it. */
+  .hs-activity .rf-table th:first-child, .hs-activity .rf-table td.hs-when { display: none; }
+  .hs-activity .rf-table td { padding: 10px 12px; }
+  .hs-mark { flex-basis: 28px; width: 28px; height: 28px; }
+  .hs-tx { gap: 9px; }
+  .hs-seg button { padding: 5px 9px; font-size: 12px; }
+  .hs-dash-pair { grid-template-columns: minmax(0, 1fr); }
+}
