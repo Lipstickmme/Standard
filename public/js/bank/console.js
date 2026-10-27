@@ -1391,16 +1391,136 @@
             <div class="rf-field"><label>Nickname</label><input class="rf-input" data-field="nickname" /></div>
             <div class="rf-field"><label>Credit limit (cards)</label><input class="rf-input" data-field="creditLimit" inputmode="decimal" /></div>
           </div>
+          <label class="rf-check"><input type="checkbox" data-field="autoGen" /><span>Auto-generate entries for the opening balance</span></label>
+          <div class="rf-row rf-hide" data-autogen-dates>
+            <div class="rf-field"><label>Start date</label><input class="rf-input" type="date" data-field="genStart" value="${openYmd(-30)}" max="${openYmd(0)}" /></div>
+            <div class="rf-field"><label>End date</label><input class="rf-input" type="date" data-field="genEnd" value="${openYmd(0)}" max="${openYmd(0)}" /></div>
+          </div>
+          <p class="rf-small rf-muted rf-hide" data-autogen-hint>Random deposits and spending, up to ${OPEN_GEN_LIMIT} entries, spread between the dates and netting to the opening balance.</p>
           <label class="rf-check"><input type="checkbox" data-field="issueCard" checked /><span>Issue a card on this account</span></label>
           ${index > 0 ? '<button class="rf-btn link sm" type="button" data-remove-row>Remove this account</button>' : ''}
         </div>
       </div>`;
   }
 
+  const OPEN_GEN_LIMIT = 200;
+
+  function openYmd(offsetDays) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  /** Splits `total` cents into `count` random positive parts. */
+  function splitCents(total, count) {
+    const n = Math.max(1, Math.min(count, total));
+    const weights = Array.from({ length: n }, () => 0.2 + Math.random());
+    const sum = weights.reduce((s, w) => s + w, 0);
+    const parts = weights.map((w) => Math.max(1, Math.floor((w / sum) * total)));
+    let diff = total - parts.reduce((s, p) => s + p, 0);
+    for (let i = 0; diff !== 0; i = (i + 1) % n) {
+      if (diff > 0) { parts[i] += 1; diff -= 1; } else if (parts[i] > 1) { parts[i] -= 1; diff += 1; }
+    }
+    return parts;
+  }
+
+  function openWording(direction) {
+    const pickOne = (list) => list[Math.floor(Math.random() * list.length)];
+    const method = direction === 'credit'
+      ? pickOne(['direct_deposit', 'direct_deposit', 'ach', 'mobile_deposit', 'instant', 'wire_domestic'])
+      : pickOne(['card', 'card', 'card', 'atm', 'bill_pay', 'ach', 'instant']);
+    const spec = NARRATIVES[method] || { category: 'Other', credit: ['Deposit'], debit: ['Withdrawal'] };
+    const lines = spec[direction] || [direction === 'credit' ? 'Deposit' : 'Withdrawal'];
+    return {
+      method,
+      category: direction === 'credit' && method === 'direct_deposit' ? 'Income' : spec.category,
+      description: pickOne(lines),
+    };
+  }
+
+  /**
+   * A dated series of deposits and spending whose net is exactly `totalCents`,
+   * ordered so the running balance never goes below zero.
+   */
+  function openingPlan(totalCents, start, end) {
+    const now = new Date();
+    const from = new Date(`${start}T00:00`);
+    const to = new Date(`${end}T00:00`);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const last = to > today ? today : to;
+    const days = [];
+    for (const d = new Date(from); d <= last && days.length < 3660; d.setDate(d.getDate() + 1)) days.push(new Date(d));
+    if (!days.length || totalCents <= 0) return [];
+
+    const target = Math.min(OPEN_GEN_LIMIT, Math.max(2, Math.round(days.length * (1 + Math.random()))));
+    const debitCount = Math.floor(target * (0.55 + Math.random() * 0.15));
+    const debitTotal = Math.floor(totalCents * (0.2 + Math.random() * 0.3));
+    const debits = debitCount && debitTotal ? splitCents(debitTotal, debitCount) : [];
+    const credits = splitCents(totalCents + debits.reduce((s, p) => s + p, 0), Math.max(1, target - debits.length));
+    const slots = credits.length + debits.length;
+
+    const times = [];
+    for (let i = 0; i < slots; i += 1) {
+      const day = days[Math.floor(Math.random() * days.length)];
+      const isToday = day.getTime() === today.getTime();
+      const latest = isToday ? Math.max(7 * 60, now.getHours() * 60 + now.getMinutes() - 1) : 21 * 60;
+      const minute = 7 * 60 + Math.floor(Math.random() * (latest - 7 * 60 + 1));
+      const when = new Date(day);
+      when.setHours(Math.floor(minute / 60), minute % 60, Math.floor(Math.random() * 60), 0);
+      times.push(when > now ? new Date(now.getTime() - 60000) : when);
+    }
+    times.sort((a, b) => a - b);
+
+    const debitShare = debits.length / slots;
+    let balance = 0;
+    return times.map((when) => {
+      const canDebit = debits.length && balance >= debits[0];
+      const useDebit = canDebit && (!credits.length || Math.random() < debitShare * 1.4);
+      const direction = useDebit || !credits.length ? 'debit' : 'credit';
+      const amount = direction === 'debit' ? debits.shift() : credits.shift();
+      balance += direction === 'credit' ? amount : -amount;
+      return { direction, amount, when };
+    });
+  }
+
+  async function generateOpening(account, spec) {
+    const plan = openingPlan(spec.cents, spec.start, spec.end);
+    let net = 0; let failed = 0;
+    for (let i = 0; i < plan.length; i += 1) {
+      const item = plan[i];
+      const wording = openWording(item.direction);
+      try {
+        await api.post(`/admin/accounts/${account.id}/adjust`, {
+          direction: item.direction,
+          amount: (item.amount / 100).toFixed(2),
+          method: wording.method,
+          category: wording.category,
+          description: wording.description,
+          status: 'posted',
+          date: item.when.toISOString(),
+          note: `Opening balance series ${spec.start} to ${spec.end}`,
+          notify: false,
+        });
+        net += item.direction === 'credit' ? item.amount : -item.amount;
+      } catch (err) {
+        failed += 1;
+      }
+      if (i % 10 === 0) toast(`Generating ${account.name}: ${i + 1} of ${plan.length}`, 'ok');
+    }
+    return { count: plan.length - failed, failed, net };
+  }
+
   async function register() {
     if (!state.meta) state.meta = await api.get('/admin/settings');
     const host = qs('[data-account-rows]');
     host.innerHTML = accountRow(0);
+
+    host.addEventListener('change', (event) => {
+      if (event.target.getAttribute('data-field') !== 'autoGen') return;
+      const row = event.target.closest('[data-account-row]');
+      qs('[data-autogen-dates]', row).classList.toggle('rf-hide', !event.target.checked);
+      qs('[data-autogen-hint]', row).classList.toggle('rf-hide', !event.target.checked);
+    });
 
     qs('[data-add-account]').addEventListener('click', () => {
       host.insertAdjacentHTML('beforeend', accountRow(host.children.length));
@@ -1427,15 +1547,28 @@
     });
 
     onSubmit(qs('#rf-register-form'), async (values) => {
-      const accounts = qsa('[data-account-row]', host).map((row) => {
+      const generators = [];
+      const accounts = qsa('[data-account-row]', host).map((row, index) => {
         const read = (field) => {
           const el = qs(`[data-field="${field}"]`, row);
           if (!el) return undefined;
           return el.type === 'checkbox' ? el.checked : el.value.trim();
         };
+        let openingBalance = read('openingBalance');
+        if (read('autoGen')) {
+          const cents = Math.round(Number(String(openingBalance).replace(/[^0-9.]/g, '')) * 100);
+          const start = read('genStart');
+          const end = read('genEnd');
+          if (!(cents > 0)) throw new Error('Enter an opening balance to auto-generate entries.');
+          if (!start || !end) throw new Error('Pick a start and an end date for the generated entries.');
+          if (start > end) throw new Error('The start date must be on or before the end date.');
+          if (start > openYmd(0)) throw new Error('Generated entries cannot be dated in the future.');
+          generators.push({ index, cents, start, end });
+          openingBalance = '0';
+        }
         return {
           productId: read('productId'),
-          openingBalance: read('openingBalance'),
+          openingBalance,
           nickname: read('nickname'),
           creditLimit: read('creditLimit'),
           issueCard: read('issueCard'),
@@ -1443,6 +1576,13 @@
       });
 
       const result = await api.post('/admin/customers', { ...values, ...documents, accounts });
+      for (const spec of generators) {
+        const account = result.accounts[spec.index];
+        if (!account) continue;
+        const outcome = await generateOpening(account, spec);
+        account.balance = (Number(account.balance) || 0) + outcome.net;
+        if (outcome.failed) toast(`${outcome.failed} generated entr${outcome.failed === 1 ? 'y' : 'ies'} failed on ${account.name}.`, 'bad');
+      }
       showRegistration(result);
       toast('Customer registered and the welcome email sent.', 'ok');
       qs('#rf-register-form').reset();
