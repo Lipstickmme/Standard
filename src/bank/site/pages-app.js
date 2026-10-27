@@ -33,7 +33,28 @@ const signinContent = `
               </div>
               <div class="rf-field">
                 <label for="rf-password">Password</label>
-                <input class="rf-input" type="password" id="rf-password" name="password" autocomplete="current-password" required />
+                <div style="position:relative">
+                  <input class="rf-input" type="password" id="rf-password" name="password" autocomplete="current-password" required style="padding-right:2.75rem" />
+                  <button type="button" id="rf-password-toggle" aria-label="Show password" aria-pressed="false" aria-controls="rf-password" style="position:absolute;top:50%;right:0.5rem;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border:0;background:transparent;color:inherit;opacity:0.65;cursor:pointer">
+                    <svg data-eye width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg data-eye-off width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-6.5 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                  </button>
+                </div>
+                <script>
+                  (function () {
+                    var input = document.getElementById('rf-password');
+                    var toggle = document.getElementById('rf-password-toggle');
+                    if (!input || !toggle) return;
+                    toggle.addEventListener('click', function () {
+                      var show = input.type === 'password';
+                      input.type = show ? 'text' : 'password';
+                      toggle.setAttribute('aria-pressed', String(show));
+                      toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                      toggle.querySelector('[data-eye]').style.display = show ? 'none' : '';
+                      toggle.querySelector('[data-eye-off]').style.display = show ? '' : 'none';
+                    });
+                  })();
+                </script>
               </div>
               <label class="rf-check">
                 <input type="checkbox" name="remember" />
