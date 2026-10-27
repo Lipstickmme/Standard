@@ -1008,11 +1008,11 @@
 
     function genParams() {
       const f = genForm.elements;
+      const typed = Number(String(f.amount.value || '').replace(/[$,\s]/g, ''));
       return {
         start: f.start.value, end: f.end.value,
-        inMin: 0, inMax: 1, outMin: 1, outMax: 3,
-        inLow: 20000, inHigh: 250000, outLow: 500, outHigh: 25000,
-        weekdaysIn: true, noOverdraft: true,
+        cents: Number.isFinite(typed) && typed > 0 ? Math.round(typed * 100) : 0,
+        noOverdraft: true,
       };
     }
 
@@ -1032,10 +1032,10 @@
       const p = genParams();
       const days = genDays(p);
       if (!days.length) { genEstimate.textContent = 'Pick a start date on or before the end date.'; return; }
-      const inDays = p.weekdaysIn ? days.filter((d) => d.getDay() % 6 !== 0).length : days.length;
-      const raw = Math.round(inDays * (p.inMin + p.inMax) / 2 + days.length * (p.outMin + p.outMax) / 2);
-      const est = Math.min(raw, GEN_LIMIT);
-      genEstimate.textContent = `${days.length} day${days.length === 1 ? '' : 's'} \u00b7 about ${est} entr${est === 1 ? 'y' : 'ies'}${raw > GEN_LIMIT ? ` (max ${GEN_LIMIT} per run, spread across the range)` : ''}.`;
+      const raw = Math.round(days.length * 1.5);
+      const est = Math.min(Math.max(2, raw), GEN_LIMIT);
+      const total = p.cents ? ` adding up to ${money(p.cents)}` : ' \u00b7 enter a total amount';
+      genEstimate.textContent = `${days.length} day${days.length === 1 ? '' : 's'} \u00b7 about ${est} entr${est === 1 ? 'y' : 'ies'}${total}${raw > GEN_LIMIT ? ` (max ${GEN_LIMIT} per run, spread across the range)` : ''}.`;
     }
 
     function genWording(dir) {
@@ -1055,32 +1055,7 @@
 
     /** The whole run, planned up front so it can be counted and posted in order. */
     function genPlan(p) {
-      const now = new Date();
-      const todayKey = ymd(now);
-      const plan = [];
-      for (const day of genDays(p)) {
-        const isToday = ymd(day) === todayKey;
-        const latest = isToday ? now.getHours() * 60 + now.getMinutes() - 1 : 21 * 60;
-        if (latest < 7 * 60) continue;
-        const weekend = day.getDay() % 6 === 0;
-        const ins = p.weekdaysIn && weekend ? 0 : randInt(p.inMin, p.inMax);
-        const outs = randInt(p.outMin, p.outMax);
-        const items = [];
-        for (let i = 0; i < ins; i += 1) items.push({ direction: 'credit', amount: randInt(p.inLow, p.inHigh) });
-        for (let i = 0; i < outs; i += 1) items.push({ direction: 'debit', amount: randInt(p.outLow, p.outHigh) });
-        for (const item of items) {
-          const minute = randInt(7 * 60, latest);
-          const when = new Date(day);
-          when.setHours(Math.floor(minute / 60), minute % 60, randInt(0, 59), 0);
-          item.when = when;
-          plan.push(item);
-        }
-      }
-      for (let i = plan.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [plan[i], plan[j]] = [plan[j], plan[i]];
-      }
-      return plan.slice(0, GEN_LIMIT).filter((item) => item.amount > 0).sort((a, b) => a.when - b.when);
+      return openingPlan(p.cents, p.start, p.end);
     }
 
     function genBusy(on) {
@@ -1100,11 +1075,12 @@
       if (!p.start || !p.end) return fail('Pick a start and an end date.');
       if (p.start > p.end) return fail('The start date must be on or before the end date.');
       if (p.start > ymd(new Date())) return fail('Entries cannot be dated in the future.');
+      if (!p.cents) return fail('Enter the total amount the entries should add up to.');
       const plan = genPlan(p);
       if (!plan.length) return fail('No entries for that range. Try a wider range.');
       const account = desk.account;
       const label = `${account.nickname || account.name} ${account.accountMask}`;
-      if (!window.confirm(`Post ${plan.length} generated entries to ${label} between ${p.start} and ${p.end}?`)) return;
+      if (!window.confirm(`Post ${plan.length} generated entries to ${label} between ${p.start} and ${p.end}, adding up to ${money(p.cents)}?`)) return;
 
       const status = qs('#en-status', form).value === 'pending' ? 'pending' : 'posted';
       let balance = Number(account.availableBalance ?? account.balance) || 0;
