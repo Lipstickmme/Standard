@@ -777,6 +777,7 @@
       picker.classList.add('rf-hide');
       form.classList.remove('rf-hide');
       foot.classList.remove('rf-hide');
+      genCard.classList.remove('rf-hide');
       applyMethod();
       drawPreview();
       renderRecent();
@@ -784,7 +785,9 @@
     }
 
     function reset() {
+      if (gen.running) gen.cancel = true;
       desk.account = null;
+      genCard.classList.add('rf-hide');
       form.classList.add('rf-hide');
       foot.classList.add('rf-hide');
       picker.classList.remove('rf-hide');
@@ -962,6 +965,230 @@
       await renderRecent();
       amount.focus();
     });
+
+    /* ---------------------------------------------------- auto-generating -- */
+
+    const genCard = qs('[data-entry-gen-card]', panel);
+    const genForm = qs('#rf-entry-gen', panel);
+    const genSubmit = qs('[data-gen-submit]', panel);
+    const genCancel = qs('[data-gen-cancel]', panel);
+    const genError = qs('[data-gen-error]', panel);
+    const genProgress = qs('[data-gen-progress]', panel);
+    const genBar = qs('progress', genProgress);
+    const genStatus = qs('[data-gen-status]', panel);
+    const genEstimate = qs('[data-gen-estimate]', panel);
+    const gen = { running: false, cancel: false };
+    const GEN_LIMIT = 2000;
+
+    const MERCHANTS = {
+      Groceries: ['WHOLE FOODS MARKET', 'TRADER JOES', 'KROGER', 'SAFEWAY', 'COSTCO WHSE'],
+      Dining: ['STARBUCKS', 'CHIPOTLE', 'PANERA BREAD', 'SHAKE SHACK', 'DOORDASH'],
+      Fuel: ['SHELL OIL', 'CHEVRON', 'EXXONMOBIL', 'BP'],
+      Transport: ['UBER TRIP', 'LYFT RIDE', 'METRO TRANSIT'],
+      Shopping: ['AMAZON.COM', 'TARGET', 'WALMART', 'BEST BUY', 'HOME DEPOT'],
+      Entertainment: ['AMC THEATRES', 'TICKETMASTER', 'STEAM GAMES'],
+      Subscriptions: ['NETFLIX.COM', 'SPOTIFY', 'APPLE.COM/BILL', 'ADOBE'],
+      Healthcare: ['CVS PHARMACY', 'WALGREENS'],
+    };
+    const BILLERS = [
+      ['CON EDISON', 'Utilities'], ['VERIZON WIRELESS', 'Utilities'], ['COMCAST XFINITY', 'Utilities'],
+      ['STATE FARM INSURANCE', 'Insurance'], ['GEICO', 'Insurance'], ['PROPERTY MGMT RENT', 'Rent & Mortgage'],
+    ];
+    const CREDIT_MIX = [['direct_deposit', 3], ['ach', 2], ['mobile_deposit', 2], ['instant', 2], ['atm', 1], ['wire_domestic', 1], ['internal', 1]];
+    const DEBIT_MIX = [['card', 7], ['atm', 2], ['bill_pay', 2], ['ach', 1], ['instant', 1], ['check', 1]];
+
+    const randInt = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    const weighted = (pairs) => {
+      let roll = Math.random() * pairs.reduce((s, [, w]) => s + w, 0);
+      for (const [value, w] of pairs) { roll -= w; if (roll < 0) return value; }
+      return pairs[pairs.length - 1][0];
+    };
+    const toCentsOf = (v) => {
+      const n = Number(String(v).replace(/[^0-9.]/g, ''));
+      return Number.isFinite(n) ? Math.round(n * 100) : 0;
+    };
+    const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    function genParams() {
+      const f = genForm.elements;
+      const int = (el) => Math.max(0, Math.min(20, Math.floor(Number(el.value) || 0)));
+      const p = {
+        start: f.start.value, end: f.end.value,
+        inMin: int(f.inMin), inMax: int(f.inMax), outMin: int(f.outMin), outMax: int(f.outMax),
+        inLow: toCentsOf(f.inLow.value), inHigh: toCentsOf(f.inHigh.value),
+        outLow: toCentsOf(f.outLow.value), outHigh: toCentsOf(f.outHigh.value),
+        mode: f.mode.value, weekdaysIn: f.weekdaysIn.checked, noOverdraft: f.noOverdraft.checked,
+      };
+      if (p.inMax < p.inMin) [p.inMin, p.inMax] = [p.inMax, p.inMin];
+      if (p.outMax < p.outMin) [p.outMin, p.outMax] = [p.outMax, p.outMin];
+      if (p.inHigh < p.inLow) [p.inLow, p.inHigh] = [p.inHigh, p.inLow];
+      if (p.outHigh < p.outLow) [p.outLow, p.outHigh] = [p.outHigh, p.outLow];
+      return p;
+    }
+
+    function genDays(p) {
+      if (!p.start || !p.end) return [];
+      const from = new Date(`${p.start}T00:00`);
+      const to = new Date(`${p.end}T00:00`);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return [];
+      const last = to > today ? today : to;
+      const days = [];
+      for (const d = new Date(from); d <= last && days.length < 3660; d.setDate(d.getDate() + 1)) days.push(new Date(d));
+      return days;
+    }
+
+    function drawEstimate() {
+      const p = genParams();
+      const days = genDays(p);
+      if (!days.length) { genEstimate.textContent = 'Pick a start date on or before the end date.'; return; }
+      const inDays = p.weekdaysIn ? days.filter((d) => d.getDay() % 6 !== 0).length : days.length;
+      const est = Math.round(inDays * (p.inMin + p.inMax) / 2 + days.length * (p.outMin + p.outMax) / 2);
+      genEstimate.textContent = `${days.length} day${days.length === 1 ? '' : 's'} \u00b7 about ${est} entr${est === 1 ? 'y' : 'ies'}${est > GEN_LIMIT ? ` (capped at ${GEN_LIMIT})` : ''}.`;
+    }
+
+    /** One entry's wording, from the everyday mix or from the form above. */
+    function genWording(dir, p) {
+      if (p.mode === 'form') {
+        const spec = NARRATIVES[method.value];
+        return {
+          method: method.value,
+          category: category.value,
+          description: description.value.trim() || pick((spec && spec[dir]) || [dir === 'credit' ? 'Deposit' : 'Withdrawal']),
+        };
+      }
+      const m = weighted(dir === 'credit' ? CREDIT_MIX : DEBIT_MIX);
+      const spec = NARRATIVES[m] || { category: 'Other', credit: ['Deposit'], debit: ['Withdrawal'] };
+      if (dir === 'debit' && m === 'card') {
+        const cat = pick(Object.keys(MERCHANTS));
+        const merchant = pick(MERCHANTS[cat]);
+        return { method: m, category: cat, description: `CARD PURCHASE - ${merchant}`, counterpartyName: merchant };
+      }
+      if (dir === 'debit' && m === 'bill_pay') {
+        const [payee, cat] = pick(BILLERS);
+        return { method: m, category: cat, description: `BILL PAYMENT - ${payee}`, counterpartyName: payee };
+      }
+      return { method: m, category: dir === 'credit' && m === 'direct_deposit' ? 'Income' : spec.category, description: pick(spec[dir]) };
+    }
+
+    /** The whole run, planned up front so it can be counted and posted in order. */
+    function genPlan(p) {
+      const now = new Date();
+      const todayKey = ymd(now);
+      const plan = [];
+      for (const day of genDays(p)) {
+        const isToday = ymd(day) === todayKey;
+        const latest = isToday ? now.getHours() * 60 + now.getMinutes() - 1 : 21 * 60;
+        if (latest < 7 * 60) continue;
+        const weekend = day.getDay() % 6 === 0;
+        const ins = p.weekdaysIn && weekend ? 0 : randInt(p.inMin, p.inMax);
+        const outs = randInt(p.outMin, p.outMax);
+        const items = [];
+        for (let i = 0; i < ins; i += 1) items.push({ direction: 'credit', amount: randInt(p.inLow, p.inHigh) });
+        for (let i = 0; i < outs; i += 1) items.push({ direction: 'debit', amount: randInt(p.outLow, p.outHigh) });
+        for (const item of items) {
+          const minute = randInt(7 * 60, latest);
+          const when = new Date(day);
+          when.setHours(Math.floor(minute / 60), minute % 60, randInt(0, 59), 0);
+          item.when = when;
+          plan.push(item);
+        }
+      }
+      plan.sort((a, b) => a.when - b.when);
+      return plan.slice(0, GEN_LIMIT).filter((item) => item.amount > 0);
+    }
+
+    function genBusy(on) {
+      gen.running = on;
+      genSubmit.disabled = on;
+      genCancel.classList.toggle('rf-hide', !on);
+      genProgress.classList.toggle('rf-hide', !on && !genStatus.textContent);
+      qsa('input, select', genForm).forEach((el) => { el.disabled = on; });
+    }
+
+    genForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (gen.running || !desk.account) return;
+      genError.classList.add('rf-hide');
+      const p = genParams();
+      const fail = (message) => { genError.textContent = message; genError.classList.remove('rf-hide'); };
+      if (!p.start || !p.end) return fail('Pick a start and an end date.');
+      if (p.start > p.end) return fail('The start date must be on or before the end date.');
+      if (p.start > ymd(new Date())) return fail('Entries cannot be dated in the future.');
+      if (p.inMax > 0 && p.inHigh <= 0) return fail('Give money in an amount range above zero.');
+      if (p.outMax > 0 && p.outHigh <= 0) return fail('Give money out an amount range above zero.');
+      if (p.mode === 'form' && !NARRATIVES[method.value] && !description.value.trim()) return fail('Add a description above, or use the random mix.');
+
+      const plan = genPlan(p);
+      if (!plan.length) return fail('Those settings produce no entries. Raise the per-day counts.');
+      const account = desk.account;
+      const label = `${account.nickname || account.name} ${account.accountMask}`;
+      if (!window.confirm(`Post ${plan.length} generated entries to ${label} between ${p.start} and ${p.end}?`)) return;
+
+      const status = qs('#en-status', form).value === 'pending' ? 'pending' : 'posted';
+      let balance = Number(account.availableBalance ?? account.balance) || 0;
+      let posted = 0; let skipped = 0; let failed = 0; let lastError = '';
+      gen.cancel = false;
+      genStatus.textContent = '';
+      genBar.max = plan.length;
+      genBar.value = 0;
+      genBusy(true);
+
+      for (let i = 0; i < plan.length; i += 1) {
+        if (gen.cancel) break;
+        const item = plan[i];
+        if (item.direction === 'debit' && p.noOverdraft && item.amount > balance) {
+          if (balance >= 100) item.amount = randInt(100, balance);
+          else { skipped += 1; genBar.value = i + 1; continue; }
+        }
+        const wording = genWording(item.direction, p);
+        try {
+          await api.post(`/admin/accounts/${account.id}/adjust`, {
+            direction: item.direction,
+            amount: (item.amount / 100).toFixed(2),
+            method: wording.method,
+            category: wording.category,
+            description: wording.description,
+            counterpartyName: wording.counterpartyName || '',
+            status,
+            date: item.when.toISOString(),
+            note: `Auto-generated series ${p.start} to ${p.end}`,
+            notify: false,
+          });
+          posted += 1;
+          balance += item.direction === 'credit' ? item.amount : -item.amount;
+        } catch (err) {
+          failed += 1;
+          lastError = err.message;
+        }
+        genBar.value = i + 1;
+        genStatus.textContent = `Posted ${posted} of ${plan.length}${skipped ? ` \u00b7 ${skipped} skipped` : ''}${failed ? ` \u00b7 ${failed} failed` : ''}`;
+      }
+
+      const stopped = gen.cancel;
+      genBusy(false);
+      genStatus.textContent = `${stopped ? 'Stopped. ' : ''}Posted ${posted} of ${plan.length}${skipped ? ` \u00b7 ${skipped} skipped to avoid an overdraft` : ''}${failed ? ` \u00b7 ${failed} failed` : ''}.`;
+      if (failed && lastError) fail(`Last error: ${lastError}`);
+      toast(`Generated ${posted} entr${posted === 1 ? 'y' : 'ies'} on ${label}.`, failed ? 'bad' : 'ok');
+      if (desk.account && desk.account.id === account.id) {
+        await renderRecent().catch(() => {});
+        qs('[data-entry-target]', panel).innerHTML = `${esc(desk.customer.fullName)} &middot; ${esc(desk.account.nickname || desk.account.name)} ${esc(desk.account.accountMask)} &middot; ${money(desk.account.balance)}`;
+      }
+    });
+
+    genCancel.addEventListener('click', () => { gen.cancel = true; });
+    genForm.addEventListener('input', drawEstimate);
+    genForm.addEventListener('change', drawEstimate);
+    (() => {
+      const end = new Date();
+      const start = new Date(); start.setDate(start.getDate() - 30);
+      genForm.elements.start.value = ymd(start);
+      genForm.elements.end.value = ymd(end);
+      genForm.elements.start.max = ymd(end);
+      genForm.elements.end.max = ymd(end);
+      drawEstimate();
+    })();
 
     /* ----------------------------------------------------------- the wiring -- */
 
